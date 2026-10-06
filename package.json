@@ -14,10 +14,11 @@
     "db:seed": "tsx --env-file=.env.local src/db/seed/run.ts",
     "test": "vitest run --config vitest.config.ts",
     "db:verify": "tsx --env-file=.env.local src/db/seed/verify.ts",
-    "test:leak": "node --env-file=.env.local ./node_modules/vitest/vitest.mjs run --config vitest.config.ts tests/leak"
+    "test:leak": "node --env-file=.env.local ./node_modules/vitest/vitest.mjs run --config vitest.config.ts tests/leak",
+    "db:apply": "tsx --env-file=.env.local src/db/apply-sql.ts"
   },
   "dependencies": {
-    "next": "15.5.4",
+    "next": "15.5.27",
     "react": "19.1.1",
     "react-dom": "19.1.1",
     "drizzle-orm": "^0.44.5",

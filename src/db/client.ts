@@ -52,5 +52,5 @@ const sql =
 
 if (process.env.NODE_ENV !== "production") globalThis.__tvSql = sql;
 
-export const db = drizzle(sql, { schema });
+export const db = drizzle(sql, { schema, casing: "snake_case" });
 export { schema };

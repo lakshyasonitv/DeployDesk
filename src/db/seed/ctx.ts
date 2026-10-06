@@ -19,7 +19,7 @@ if (!url) {
 if (!process.env.IDENTITY_PEPPER) process.env.IDENTITY_PEPPER = "seed-pepper-local-only";
 
 export const client = postgres(url, { max: 1, prepare: false, idle_timeout: 10 });
-export const db = drizzle(client, { schema: s });
+export const db = drizzle(client, { schema: s, casing: "snake_case" });
 export const schema = s;
 
 /** Fixed seed, so repeated runs generate identical filler rows. */

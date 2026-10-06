@@ -63,8 +63,13 @@ Roles by `org_type`:
 | vendor | `vendor_admin`, `bench_manager` |
 | talentvibes | `ops_admin`, `broker`, `finance` |
 
-A user belongs to exactly one organisation. There is no cross-org membership and no
-production portal switcher.
+A user belongs to exactly one organisation. There is no cross-org membership.
+
+> **Amended by ADR-012.** A user still belongs to exactly one organisation — `memberships`
+> carries `UNIQUE (user_id)` — but a membership now holds a SET of roles
+> (`supply`, `demand`, `admin`) rather than a single one, and the portal switcher IS a
+> production feature for organisations with more than one capability. What an organisation
+> may do lives in `org_capabilities`; `org_type` is derived from it.
 
 ---
 

@@ -8,6 +8,11 @@ export default defineConfig({
   dbCredentials: {
     url: process.env.DIRECT_URL ?? process.env.DATABASE_URL ?? "",
   },
+  // Column names come from the TypeScript keys where no explicit name is given.
+  // Without this, `createdAt` became a column literally named "createdAt", against
+  // CLAUDE.md's snake_case rule. Migration 0001 renamed the 40 columns that affected;
+  // this setting and that migration must stay together.
+  casing: "snake_case",
   strict: true,
   verbose: true,
 });

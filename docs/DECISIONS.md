@@ -287,3 +287,73 @@ directly. A seeded score would make the golden test tautological."
   both agree.
 - Revisit if the business confirms the mockup ordering was intentional — in which case the
   weights in `docs/MATCHING.md` are wrong, not the fixtures.
+
+---
+
+## ADR-012: A membership holds a set of roles, and the portal switcher becomes production
+
+**Status:** Accepted · **Date:** 2026-10-06
+**Supersedes, in part:** the single-role, no-switcher assumptions in `docs/DATA-MODEL.md`
+§1 and `docs/ARCHITECTURE.md` → *Tenancy and authorisation*.
+
+### Context
+
+Some companies on the exchange are both sides of it: an IT services firm with engineers on
+its bench also hires contract engineers. Today the model cannot express that. `users.role`
+is a single enum value, and both `docs/DATA-MODEL.md` and `docs/ARCHITECTURE.md` state that
+the prototype's portal switcher "is a demo affordance and has no production equivalent".
+
+The obvious change — full cross-org membership, one user in many organisations — would
+reverse the tenancy model far more broadly than dual role actually needs, and every
+ownership check in the codebase assumes a single org.
+
+### Decision
+
+Two changes, and deliberately no more:
+
+1. **A membership holds a SET of roles**, from `('supply', 'demand', 'admin')`, rather than
+   a single role. One person at a dual-role company can hold both `supply` and `demand`.
+2. **The portal switcher becomes a production feature** for organisations with more than
+   one capability, rendered as "Hiring | Bench". For single-capability organisations it is
+   not rendered at all.
+
+**What does NOT change:** a user still belongs to **exactly one organisation**. The new
+`memberships` table carries `UNIQUE (user_id)` to enforce it in the database. Every
+ownership check, read model and leak test that assumes one org per user stays correct.
+
+Capability lives on the organisation, in `org_capabilities (can_supply, can_hire)`, which
+becomes the authoritative record. `organizations.org_type` is retained for ops filtering
+and existing queries but becomes **derived** — a trigger maintains it and application code
+must not write it. The Talentvibes organisation has neither capability, enforced by that
+trigger: it is the broker, not a participant.
+
+### Rationale
+
+Capability is a property of a company; role is a property of a person. Conflating them in
+`users.role` is what made dual role inexpressible. Separating them is the smallest change
+that works.
+
+Keeping one organisation per user matters more than it might appear. The masking guarantee
+is enforced by portal-specific read models that take an org id; "which org is this
+caller?" has to have exactly one answer, or the question "may this caller see this row?"
+stops being decidable.
+
+### Consequences
+
+- A vendor-only organisation must see **no trace** of a hiring side — not a disabled tab,
+  not an empty workspace. A locked "Hire" tab advertises a product the company has not
+  been enabled for and invites the question of why.
+- The two rate views must never appear on the same screen for the same organisation. A
+  dual-role org that can see what it is paid as a supplier *and* what it is charged as a
+  client, side by side on one screen, can infer the platform's margin.
+- For the same reason, dual-role organisations default to `fee_model = 'flat_declared_fee'`
+  rather than a hidden markup. If the fee is declared, there is no margin to infer.
+- Receivables and payables for a dual-role org are both its own invoices and are both
+  visible to it — but must never be netted in a response. No netting by default.
+- A **self-dealing rule** becomes necessary: a resource whose supplying organisation is in
+  the same group as the requirement's client must never be returned as a candidate. That
+  is implemented in the matching function *and* as a database rule, so an application bug
+  cannot bypass it.
+- Groups are declared by ops from the MSA, never inferred from PAN or GSTIN. Two
+  subsidiaries can share a PAN prefix without being related, and genuinely related
+  companies can share neither identifier.

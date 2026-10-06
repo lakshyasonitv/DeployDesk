@@ -86,8 +86,12 @@ Three checks, in this order, on every request:
 3. **Ownership** — the row belongs to the caller's `org_id`. A vendor may only read its
    own bench resources; a client only its own requirements.
 
-A user belongs to **exactly one organisation**. The portal switcher in the prototype is a
-demo affordance and has no production equivalent. Ops users are the only ones who can read
+A user belongs to **exactly one organisation**.
+
+> **Amended by ADR-012.** The portal switcher now DOES have a production equivalent, for
+> organisations with both `can_supply` and `can_hire` — rendered as "Hiring | Bench". An
+> organisation with a single capability never sees a switcher, and never sees a disabled
+> tab for the side it lacks. One user still maps to one organisation. Ops users are the only ones who can read
 across organisations, and only through `/api/ops/*`.
 
 ### Defence in depth

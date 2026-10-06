@@ -19,7 +19,7 @@ import { freshnessFor, slaFor, SLA_WINDOW_HOURS } from "../../lib/derived";
 const url = process.env.DIRECT_URL || process.env.DATABASE_URL;
 if (!url) throw new Error("DIRECT_URL must be set");
 const client = postgres(url, { max: 1, prepare: false });
-const db = drizzle(client, { schema: s });
+const db = drizzle(client, { schema: s, casing: "snake_case" });
 
 let pass = 0;
 let fail = 0;
