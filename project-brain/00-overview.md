@@ -4,13 +4,19 @@
 
 ## What is being built
 
-**Talentvibes Bench Exchange** — the backend for a brokered marketplace in IT bench
-capacity. Vendors (supplier companies) list idle engineers; clients (hiring companies)
-post requirements and hire them. Talentvibes is the sole broker in the middle.
+**DeployDesk by Talentvibes** — a brokered marketplace in IT bench capacity. Vendors
+(supplier companies) list idle engineers; clients (hiring companies) post requirements and
+hire them. Talentvibes is the sole broker in the middle.
 
-Three portals over one backend — `client`, `vendor`, `ops` — built as one Next.js app
-on Supabase Postgres. The frontend is already designed and specified; this repo is the
-server behind it.
+Renamed on 2026-10-07 (it was "Talentvibes Bench Exchange", and the repo, the remote and
+many docs still carry the old name). The name lives in exactly one place in code: `BRAND`
+in `src/lib/ui/style.ts`. Note the v2 handoff asks for "Bench Exchange / by Thinkvibes" in
+the sidebar — the owner's name wins; see `02-decisions.md`.
+
+Three portals over one backend — `client`, `vendor`, `ops` — built as one Next.js app on
+Supabase Postgres. **This is not a backend-only repo**: all 19 routes and all three portals
+are built here, server-rendered, with the UI following
+`design_handoff_bench_exchange_v2/`.
 
 ## Who is it for / what problem does it solve
 
@@ -26,7 +32,7 @@ Three distinct users, and they must stay separated:
 The commercial reason the product exists: **neither side may ever identify the other, or
 see the margin.** If a client can identify the supplier, they contract them directly and
 the business dies. See the non-negotiable rule at the top of `../CLAUDE.md`, and the
-field-level visibility matrix in `../MASKING.md`.
+field-level visibility matrix in `../docs/MASKING.md`.
 
 ## Dual-role organisations (added 2026-10-06)
 
@@ -59,7 +65,7 @@ The hero path is **Phase 6 — the masked shortlist**: a client reviews candidat
 entirely from immutable snapshot data (ADR-009), with the leak suite proving no vendor
 identity, exact vendor rate, or margin reached them.
 
-Phase-by-phase scope and the "done when" test for each phase live in `../BUILD-PLAN.md`
+Phase-by-phase scope and the "done when" test for each phase live in `../docs/BUILD-PLAN.md`
 (13 phases, 0 through 12). That file is the authority — tick boxes there, not here.
 
 Launch scale: ~2,000 bench resources, ~25 concurrent requirements, ~20 vendors,
@@ -69,10 +75,20 @@ Launch scale: ~2,000 bench resources, ~25 concurrent requirements, ~20 vendors,
 
 Two lists already exist and are authoritative — do not duplicate them here:
 
-- `../BUILD-PLAN.md` → **Anti-goals** (shared candidate API across portals, client-side
-  masking of any kind, direct browser→Supabase for business data, websockets, mobile)
-- `../ARCHITECTURE.md` → **What is deliberately out of scope for v1** (command palette,
-  multi-currency, self-serve vendor onboarding)
+- `../docs/BUILD-PLAN.md` → **Anti-goals** (shared candidate API across portals,
+  client-side masking of any kind, direct browser→Supabase for business data, websockets)
+- `../docs/ARCHITECTURE.md` → **What is deliberately out of scope for v1**
+  (multi-currency, self-serve vendor onboarding)
+
+**Two items on those lists were overturned by the v2 handoff and are now IN scope.** The
+older docs still name them as anti-goals, so do not trust them on these two points:
+
+| Item | Old position | v2 requires |
+|---|---|---|
+| Mobile / responsive | out of scope, desktop ≥1280px | **works from ~900px up** (README rule 5) |
+| Command palette | out of scope for v1 | **⌘K palette** is part of the shell |
+
+Both are tracked in `04-tasks.md` under Sprint 7.
 
 The one worth memorising: **there is no such thing as client-side masking in this
 product.** Every masking decision is server-side, in a portal-specific read model.

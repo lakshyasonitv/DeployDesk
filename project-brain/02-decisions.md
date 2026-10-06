@@ -3,7 +3,7 @@
 > Append-only. Newest entry at the TOP. Never edit old entries — if a decision is
 > reversed, add a new entry linking back.
 >
-> **Scope of this file.** Architectural decisions live in `../DECISIONS.md` as numbered
+> **Scope of this file.** Architectural decisions live in `../docs/DECISIONS.md` as numbered
 > ADRs (ADR-001 … ADR-010, plus ten open questions Q1–Q10). That file is the authority and
 > has its own supersede protocol — do **not** copy ADRs here or they will drift the first
 > time one is superseded.
@@ -11,10 +11,10 @@
 > This file is for **session-level decisions below the ADR bar**: tooling choices, local
 > conventions, workflow calls, and "we tried X and chose Y" notes. If a decision
 > constrains the data model, the masking boundary, or money handling, it belongs in
-> `../DECISIONS.md` as a new ADR instead.
+> `../docs/DECISIONS.md` as a new ADR instead.
 >
 > Open spec questions follow the same split: genuinely open business questions go in the
-> **Open questions** table in `../DECISIONS.md` with the safer default recorded, per
+> **Open questions** table in `../docs/DECISIONS.md` with the safer default recorded, per
 > working agreement 8 in `../CLAUDE.md`.
 
 <!-- Format:

@@ -19,13 +19,17 @@ foundation) is done**: the whole token set with a working light/dark toggle, Plu
 Sans + IBM Plex Mono, a rewritten 260px light shell with a 60px top bar, and 790 scripted
 hex-to-token replacements across 23 files.
 
-- **Database** — Supabase `fmgwcspsuljefhfdcqen`, ap-south-1 (Mumbai). **33 tables**
-  (the original 30 plus groups, org_capabilities, memberships, org_blocks), 2 probing
-  views, 2 portal engagement views, 22 RLS policies, 4 migrations applied.
+- **Database** — Supabase `fmgwcspsuljefhfdcqen`, ap-south-1 (Mumbai). Counted live on
+  2026-10-07: **35 base tables and 5 views**, 22 RLS policies, 4 migrations applied.
+  The arithmetic, because two nearby numbers look like a contradiction and are not:
+  30 original + 4 dual-role (`groups`, `org_capabilities`, `memberships`, `org_blocks`)
+  + `applied_sql_migrations` (the hand-written-SQL ledger) = 35. `db:seed` reports
+  "reset 34 tables" because it owns everything except that ledger. The 5 views are
+  2 probing + 2 portal engagement + `ops_v_own_bench_matches`.
 - **Next.js 15.5.27** — patched for CVE-2025-66478 (CVSS 10.0 RCE in the RSC protocol).
   15.5.4 was vulnerable and Vercel refused to deploy it.
-- **All 15 design screens**, 18 routes, every one 200 cold and warm. Warm page loads
-  0.26-0.60s in production.
+- **All screens built**, **19 routes**, every one 200 cold and warm. Warm page loads
+  0.13-1.03s in production (`/ops/matching/[code]` is the slowest; `/vendor` 0.27s).
 - **Gates: all four green** — routes 19/19 (twice each) · db:verify **25/25** ·
   test:leak **30/30** · build and typecheck clean.
 - **Self-dealing and block list enforced twice** — in the matching query and by a database

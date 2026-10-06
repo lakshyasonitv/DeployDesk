@@ -2,7 +2,7 @@
 
 > How the project is built. Update when stack/structure/patterns change.
 >
-> **`../ARCHITECTURE.md` is the authority.** This file is a thin index plus the Gotchas
+> **`../docs/ARCHITECTURE.md` is the authority.** This file is a thin index plus the Gotchas
 > section, which is the part that exists nowhere else. `../CLAUDE.md` says "do not
 > duplicate content between docs — link instead", so resist restating anything below.
 
@@ -13,17 +13,43 @@ Drizzle ORM with checked-in append-only SQL migrations · Supabase Auth (JWT car
 `org_id`, `org_type`, `role`) · `pg_cron` + a DB job table · Resend for email ·
 proctored assessments behind an adapter.
 
-Rationale and rejected options: **ADR-001** and **ADR-002** in `../DECISIONS.md`.
+Rationale and rejected options: **ADR-001** and **ADR-002** in `../docs/DECISIONS.md`.
+
+**UI layer** (rebuilt in Sprint 7a to the v2 handoff):
+
+- `app/globals.css` holds the v2 design tokens — light on `:root`, dark on
+  `[data-tvtheme="dark"]`, every tint derived from `--brand` through `color-mix`.
+  **`--brand` is the only colour knob**; its `#0b6ed9` is approximated from
+  thinkvibes.com and still needs confirming with the brand team.
+- Fonts are **Plus Jakarta Sans** (UI) and **IBM Plex Mono** (IDs, key hints), self-hosted
+  through `next/font/google` rather than linked from fonts.googleapis.com.
+- Icons are **lucide-react** at 17-18px, stroke 1.75.
+- `src/lib/ui/style.ts` — the `s()` / `sx()` inline-style helpers and the token maps.
+  Nothing in here holds a hex literal any more; it names roles and the stylesheet resolves
+  them, which is what makes the theme toggle work.
+- `src/lib/ui/ThemeToggle.tsx` is the only client component in the shell.
 
 ## Folder structure
 
-What exists today, at the repo root: eleven spec docs (`ARCHITECTURE.md`, `MASKING.md`,
-`DATA-MODEL.md`, `DOMAIN.md`, `API.md`, `MATCHING.md`, `DECISIONS.md`, `BUILD-PLAN.md`,
-`TESTING.md`, `SEED-DATA.md`, `CLAUDE.md`) · `design_handoff_bench_exchange/` — the UI
-contract, treat its README as authoritative · `project-brain/` — this folder.
+What exists today: `CLAUDE.md` at the repo root · ten spec docs inside **`docs/`**
+(`ARCHITECTURE.md`, `MASKING.md`, `DATA-MODEL.md`, `DOMAIN.md`, `API.md`, `MATCHING.md`,
+`DECISIONS.md`, `BUILD-PLAN.md`, `TESTING.md`, `SEED-DATA.md`) · `project-brain/` — this
+folder · `scripts/` · and **two** design handoffs.
 
-Planned layout (no application code built yet — see `03-progress.md`): the layer map and
-the three hard rules that go with it are in `../ARCHITECTURE.md` → **Layers**.
+**The UI contract is `design_handoff_bench_exchange_v2/`.** v1
+(`design_handoff_bench_exchange/`) is superseded and kept only for history — do not build
+from it. v2 is the richer bundle: `README.md` (shell and global rules), `SCREENS.md` (all
+16 screens with copy), `DESIGN_TOKENS.md` + `tokens.css`, `DATA_MODEL.md`, its own
+`CLAUDE.md`, and a clickable `prototype/bench-exchange-standalone.html`.
+
+Where v2 and the implementation disagree, three calls are already made and recorded in
+`02-decisions.md` — **do not re-open them from the handoff**: groups stay declared in the
+MSA (not inferred from PAN/GST), SLA `warn` stays at 25% of the window (not an absolute
+8h), and the client never sees an exact client rate (bands everywhere, including
+placements).
+
+Application code is built: 19 routes across the three portals. The layer map and the three
+hard rules that go with it are in `../docs/ARCHITECTURE.md` → **Layers**.
 
 The shape in one line: `app/api/{client,vendor,ops}/` are thin (auth → validate → service
 → read model); `src/read-models/{client,vendor,ops}/` is the *only* place a response shape
@@ -42,7 +68,7 @@ that cause the most damage when forgotten:
 | Never a shared DTO across portals; three unrelated types in three folders | ADR-003 |
 | Money is `bigint` **paise**, never floats/strings/rupees | ADR-007 |
 | `timestamptz` UTC in the DB; SLA clocks and sweeps run **Asia/Kolkata** | `../CLAUDE.md` |
-| Derived values are derived on read, never stored (freshness, SLA, margin colour) | `../DOMAIN.md` |
+| Derived values are derived on read, never stored (freshness, SLA, margin colour) | `../docs/DOMAIN.md` |
 | No `SELECT *` on any table carrying a masked column | `../CLAUDE.md` |
 | Never name a variable `rate` — it is `vendor_rate` or `client_rate`, always | `../CLAUDE.md` |
 | Migrations are append-only; every one has a matching `down` | `../CLAUDE.md` |
@@ -56,7 +82,7 @@ Supabase (DB + Auth) · Resend (email) · external proctoring provider behind
 `AssessmentProvider` (ADR-006 — likely to point at the in-house platform first) · object
 storage for CVs, assessment reports and bulk-upload sheets, signed short-lived URLs only.
 
-Boundary rules per integration: `../ARCHITECTURE.md` → **Integrations**. Env var *names*
+Boundary rules per integration: `../docs/ARCHITECTURE.md` → **Integrations**. Env var *names*
 go here once Phase 0 defines them; **never values**.
 
 Two standing constraints worth repeating because they are easy to breach:
@@ -69,13 +95,11 @@ Two standing constraints worth repeating because they are easy to breach:
 
 Hard-won surprises and traps. Everything here is non-obvious from reading the code.
 
-- **The `docs/` prefix in `../CLAUDE.md` does not resolve.** CLAUDE.md routes you to
-  `docs/MASKING.md`, `docs/ARCHITECTURE.md`, `docs/DOMAIN.md` and so on, but all eleven
-  markdown files sit at the **repo root** — there is no `docs/` folder. A session that
-  follows CLAUDE.md literally will fail to find `docs/MASKING.md`, the one file CLAUDE.md
-  calls mandatory before touching any read path. Strip the `docs/` prefix when reading.
-  **Unresolved:** either create `docs/` and move the files, or fix the references — that
-  call has not been made. Flagged 2026-10-06.
+- ~~**The `docs/` prefix does not resolve.**~~ **RESOLVED — the `docs/` folder exists**
+  and holds all ten spec files, so `../CLAUDE.md`'s references are correct as written.
+  Earlier brain entries told readers to strip the `docs/` prefix; that advice is obsolete
+  and any remaining root-relative link in this folder is the thing to fix, not the path in
+  CLAUDE.md. Corrected 2026-10-07.
 
 - **Client rate bands will NOT match the design mockups, and that is correct.** Every
   fixture in the design prototype shows the client-facing band bracketing the *vendor*
@@ -84,40 +108,43 @@ Hard-won surprises and traps. Everything here is non-obvious from reading the co
   bands read higher than the mockups. Do not "fix" the discrepancy by matching the design.
   Flag it to the design owner instead. Full reasoning: **ADR-004**.
 
-- **Phase 1 before Phase 2, always.** `../BUILD-PLAN.md` orders phases so the masking
+- **Phase 1 before Phase 2, always.** `../docs/BUILD-PLAN.md` orders phases so the masking
   harness exists *before* any data that could leak. The build plan says explicitly: do not
   reorder Phase 1 and Phase 2.
 
 - **A vendor hitting a client route is a 404, not a 403.** A 403 confirms the route
-  exists. See `../ARCHITECTURE.md` → **Tenancy and authorisation**.
+  exists. See `../docs/ARCHITECTURE.md` → **Tenancy and authorisation**.
 
-- **The connection pool must be wider than 1, and the query count must stay low.**
-  Two separate lessons, learned the hard way on the same file (`src/db/client.ts`):
-  (1) `max: 1` plus concurrent queries over a Supavisor transaction-mode connection
-  stalls indefinitely, and because the pool is one socket wide it takes every route down,
-  not just the one that stalled. (2) Raising `max` is not a licence to fan out: `/ops`
-  issues roughly eight concurrent queries and still exhausts a pool of 5 on the SECOND
-  request. Prefer fewer queries over more parallelism.
-
-- **Parallelising queries was a Sydney-era fix and is now counterproductive.** When the
-  database was in ap-southeast-2, a warm round trip cost ~410ms and a new connection ~3s,
-  so `Promise.all` looked like an obvious win — except each concurrent query opened a cold
-  connection, making five-in-parallel (3.1s) *slower* than five in sequence. After moving
-  to ap-south-1 a warm query is ~30ms, so sequential is both fast and safe. Measure before
-  parallelising; the numbers are in `app/layout.tsx`.
+- **Concurrency: safe up to the pool width, and now the main latency lever.** This entry
+  replaces two older ones that said the opposite; read it before "fixing" a `Promise.all`
+  back into sequential awaits. The history, because it is easy to misread:
+  1. `max: 1` plus *any* concurrency over a Supavisor transaction-mode connection stalls
+     indefinitely, and a one-socket pool takes every route down with it. That was the real
+     cause of the Sprint 1 `/ops` hang — **not concurrency itself**.
+  2. In the Sydney era each concurrent query opened a cold connection (~3s TLS), so
+     five-in-parallel measured *slower* than five in sequence. That stopped being true
+     when the database moved to Mumbai.
+  3. The pool is now `max: 10` and a two-way `Promise.all` ships on ten pages.
+  **Measured 2026-10-07:** `getVendorOverview` made six sequential round trips at roughly
+  60-70ms each and spent ~440ms almost entirely waiting. Fanning out its five independent
+  reads took it to **144ms** — and cutting its row volume first had won only 9%, so
+  **latency here is round-trip count, not row count.** Look for serial `await`s before
+  optimising rows. The still-valid caution: a fan-out wider than the pool exhausts it, so
+  stay inside `max`.
 
 - **Database region and function region must stay aligned.** Supabase cannot move a
   project's region, so changing it means a new project and a re-migrate. `preferredRegion`
   in `app/layout.tsx` is pinned to `bom1` to match ap-south-1. If one moves, move both.
 
-- **40 columns in the database are camelCase, against the `snake_case` convention.**
-  `createdAt`, `updatedAt` and similar were created verbatim from the TypeScript keys
-  because the schema uses Drizzle's implicit-name API without `casing: "snake_case"`.
-  The application works, since Drizzle quotes identifiers consistently, but hand-written
-  SQL and RLS policies will reference the wrong names — and RLS is the next workstream.
-  Fix is `casing: "snake_case"` plus an append-only `ALTER TABLE ... RENAME COLUMN`
-  migration. **Written for approval, not yet applied** (see the database-safety decision
-  in `02-decisions.md`).
+- **40 columns were created camelCase, against the `snake_case` convention — now fixed.**
+  `createdAt`, `updatedAt` and similar came out verbatim from the TypeScript keys because
+  the schema used Drizzle's implicit-name API without `casing: "snake_case"`. The
+  application still worked, since Drizzle quotes identifiers consistently, but
+  hand-written SQL and RLS policies would have referenced the wrong names.
+  Fixed by `casing: "snake_case"` (set in four places) plus migration
+  `0001_snake_case_timestamps.sql`, which carries 40 guarded `RENAME COLUMN` statements.
+  **Applied 2026-10-06** — the database is `snake_case` throughout, so hand-written SQL
+  and RLS policies can be written the obvious way.
 
 - **`drizzle-kit push` needs a TTY** and fails in this harness. Schema changes go through
   `db:generate` plus the migrator in `src/db/migrate.ts`, which is what working agreement
@@ -132,10 +159,11 @@ Hard-won surprises and traps. Everything here is non-obvious from reading the co
   "exactly one SLA breach" starts failing a few hours after seeding: REQ-2302 is stage
   `new`, whose documented window is 4 business hours, and the fixture wants it in `warn` —
   which by definition means 25% or less remaining, so its deadline sits under an hour out
-  and ages into `late`. Re-seed (`npm run db:seed`, ~4s) before a demo. The durable fix is
-  a per-requirement SLA window column, which also resolves the underlying conflict: the
-  fixture's own label for that row is "SLA 12h = warn", which implies a window of ~48h,
-  not 4h. Proposed for the Sprint 3 migration batch.
+  and ages into `late`. **Fixed:** `requirements.sla_window_hours` (migration 0002)
+  derives each fixture's window from its stated runway instead of the stage default, so the
+  shortest runway is now ~4h and `db:verify` holds at 25/25 through the day. Re-seeding
+  before a demo (`npm run db:seed`, ~4s) is still the quickest way to get crisp numbers,
+  but is no longer needed to keep the suite green.
 
 - **Fewer queries only reads as "faster" where queries were the bottleneck.** Sprint 2 cut
   `/client` from 8 queries to 6 and `/vendor/roster` from 6 to 4, and both pages' wall
@@ -181,10 +209,12 @@ Hard-won surprises and traps. Everything here is non-obvious from reading the co
   function region, which is how the bom1 co-location was confirmed live.
 
 - **A fixture's SLA label can contradict the stage window it sits in.** REQ-2302 is
-  labelled "SLA 12h · warn", but `warn` means 25% or less of the window remains, so 12h
-  of runway implies a ~60h window while docs/DOMAIN.md gives stage `new` four hours. The
-  resolution is `requirements.sla_window_hours`: derive the window from the stated runway
-  and store it per requirement. Without that, seeded demo data decays within the hour.
+  labelled "SLA 12h · warn", but `warn` means 25% or less of the window remains, so 12h of
+  runway implies a ~60h window while `docs/DOMAIN.md` gives stage `new` four hours.
+  Resolved by `requirements.sla_window_hours` (migration 0002), which stores the window per
+  requirement rather than inferring it from the stage. **Note v2 proposes a different rule
+  entirely** — `warn` under an absolute 8h — which was considered and declined; see
+  `02-decisions.md`, 2026-10-07.
 
 - **The seed must OWN every table it can cascade into.** `TRUNCATE organizations CASCADE`
   empties anything referencing it with `ON DELETE CASCADE`, whether or not the seed
@@ -224,10 +254,13 @@ Hard-won surprises and traps. Everything here is non-obvious from reading the co
   data time spent on the sidebar, not the content. Badge counts want their own `COUNT`
   query, never a full read model.
 
-- **Pages and their sidebar helper duplicate the same read model.** `/client` calls
-  `getClientOverview()` and `ShellAside()` calls it again; `/vendor/roster` does the same
-  with `getVendorRoster()`. React's `cache()` around each read-model entry point dedupes
-  within a request without touching any page.
+- **Pages and their sidebar helper used to duplicate the same read model.** `/client`
+  called `getClientOverview()` and `ShellAside()` called it again; the vendor pages did the
+  same with `getVendorRoster()`. React's `cache()` was the obvious dedupe and was
+  **deliberately not adopted** — there are zero `cache()` calls in the codebase. The
+  cheaper fix was to stop the sidebars calling heavy read models at all: badge counts get
+  their own aggregate (`getVendorSidebar` / `getVendorRosterCounts`), one query instead of
+  173 rows. Revisit `cache()` only if a genuinely shared heavy read reappears.
 
 - **Never build a production bundle while `next dev` is running.** They share `.next` and
   the build fails with `Cannot find module for page`. Stop the dev server and delete
@@ -235,6 +268,41 @@ Hard-won surprises and traps. Everything here is non-obvious from reading the co
 
 - **Bash heredocs fail on larger TypeScript and TSX files** in this environment
   (`unexpected EOF`). Use the Write tool for code; heredocs are fine for short appends.
+
+- **A colour token swap cannot be done by blanket find-and-replace.** Sprint 7a converted
+  885 hex literals to CSS variables, and three things only surfaced by doing it:
+  1. **The shell had to be migrated by hand.** v1's sidebar was dark `#111114` with `#fff`
+     text; `#fff` maps to `--surface` and v2's sidebar **is** `--surface`, so the
+     substitution produced white text on a white sidebar. `Skeleton.tsx` was actually
+     broken this way by the script before being rewritten.
+  2. **`color:#fff` has two correct answers.** On `--t1` or a status background it becomes
+     `--surface`, so it inverts properly in dark mode (v2's "Dark button" recipe is
+     literally "`--t1` background, `--surface` text"). On a `--brand` background v2 says
+     white **stays literal white**. The only two live hex values in any `.ts`/`.tsx` file
+     are exactly those, in `Shell.tsx`, and they are deliberate.
+  3. **Scan for same-token pairs afterwards.** A check for declarations whose `color` and
+     `background` resolve to the *same* token finds invisible text directly, which review
+     does not. It reports 0; re-run it after any colour work.
+  The conversion script is `scripts/migrate-colours-to-tokens.py` and is idempotent.
+
+- **Theme must be applied by a blocking inline script, not an effect.** `app/layout.tsx`
+  reads `localStorage("tvbx-theme")` in a `<script>` in `<head>` and sets `data-tvtheme`
+  before first paint. Doing it in a `useEffect` runs after hydration, so a dark-mode user
+  gets a white flash on **every** navigation. Every `localStorage` access is wrapped in
+  try/catch because it throws outright in a private window or with site data blocked, and a
+  theme preference is not worth a blank page.
+
+- **The four gates cannot catch a displayed number changing.** Routes still return 200 and
+  the leak and seed suites assert nothing about dashboard values, so a read-model refactor
+  that silently moves a figure from 7 to 8 passes everything. When refactoring a read model,
+  capture the rendered values **before** and assert them identical **after**. That is how
+  the `getVendorOverview` rewrite was proven behaviour-neutral across all six figures.
+
+- **Two screens showing the same label must call the same function.** "Assessments pending"
+  had drifted into two definitions — the sidebar counted assessment ROWS not scored, the
+  dashboard counted RESOURCES with no scored assessment. Both printed `13` on the seeded
+  data, so nothing would have caught it until someone retook a test. Both now go through
+  `getVendorRosterCounts()`, so the second definition no longer exists to drift from.
 
 - **Remote is `github.com/lakshyasonitv/DeployDesk`.** Commits must be authored as
   Lakshya Soni; an earlier run used the session account's name by mistake and had to be

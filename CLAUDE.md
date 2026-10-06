@@ -1,10 +1,14 @@
-# CLAUDE.md — Talentvibes Bench Exchange (Backend)
+# CLAUDE.md — DeployDesk by Talentvibes
 
 This file is loaded on every session. Read it fully before writing code.
 
 ## What this product is
 
-Talentvibes Bench Exchange is a **brokered marketplace for IT bench capacity**.
+**DeployDesk by Talentvibes** is a **brokered marketplace for IT bench capacity**.
+
+(Renamed 2026-10-07; it was "Talentvibes Bench Exchange". The repo, the git remote and the
+design handoffs still carry the old name. In code the product name lives in exactly one
+place: `BRAND` in `src/lib/ui/style.ts`.)
 
 - **Vendors** (supplier companies) list idle engineers sitting on their bench.
 - **Clients** (hiring companies) post requirements and hire those engineers.
@@ -12,8 +16,17 @@ Talentvibes Bench Exchange is a **brokered marketplace for IT bench capacity**.
   or contact each other. Ever.
 
 There are three portals over one backend: `client`, `vendor`, `ops`.
-The frontend design for all three is already built and specified in
-`design_handoff_bench_exchange/README.md` — treat that file as the UI contract.
+The frontend design for all three is specified in
+**`design_handoff_bench_exchange_v2/`** — treat `README.md` (shell and global rules) and
+`SCREENS.md` (every screen, with copy) as the UI contract, with `DESIGN_TOKENS.md` /
+`tokens.css` for styling.
+
+`design_handoff_bench_exchange/` (v1) is **superseded** — kept for history only, do not
+build from it. Where v2's `DATA_MODEL.md` disagrees with this file or with the implemented
+dual-role brief, three calls are already recorded in `project-brain/02-decisions.md` and
+must not be re-opened from the handoff: groups are **declared in the MSA**, never inferred
+from PAN/GST; SLA `warn` stays at 25% of the window, not an absolute 8h; and the client
+never sees an exact client rate — **bands everywhere, placements included**.
 
 ## The one rule that matters most
 
