@@ -223,15 +223,62 @@ frozen.
 
 ---
 
-## SPRINT 5 — Dual-role stage 2: matching and bypass tests
+## SPRINT 5 — Self-dealing rule and block list · DONE (commit `c571083`)
 
-- [ ] Self-dealing rule: a resource whose vendor `group_id` equals the requirement's
-      client `group_id` is never returned as a candidate — in the matching query **and**
-      as a database policy or constraint, so an application bug cannot bypass it
-- [ ] Block list enforced in the same matching function and in RLS
-- [ ] Tests that actively **try to bypass** both rules, not merely tests that they work
-- [ ] The user's acceptance tests 3 and 4
-- [ ] Four gates stay green
+Both rules are enforced TWICE — in the matching query and in the database — because the
+brief requires that an application bug cannot bypass them.
+
+- [x] **Self-dealing rule.** A resource is never offered to a requirement whose client is
+      the same organisation, or in the same DECLARED group. Application side:
+      `src/services/matching-eligibility.ts`, used by the seed and the ops read model.
+      Database side: migration 0004 adds `is_self_dealing()`, `match_is_blocked()` and a
+      `BEFORE INSERT OR UPDATE` trigger on `matches` that RAISES.
+- [x] **Block list** enforced in the same two places, bidirectionally, via the symmetric
+      `orgs_are_blocked(a, b)` helper from 0002.
+- [x] **30 tests**, four of which attempt a forbidden insert directly: own bench, group
+      sibling, blocked pairing, plus a CONTROL asserting a legitimate pairing still
+      succeeds — without that control, a rule that refused everything would pass.
+- [x] Acceptance tests 3 and 4 from the brief.
+- [x] Ops-only "N matching people on this client's own bench" note, via
+      `ops_v_own_bench_matches`. Reads 14 for Cygnet — excluded from its pool, visible to
+      the broker, never to the client.
+- [x] Four gates: 19 routes 200 twice each, `db:verify` **25/25**, `test:leak` **30/30**,
+      build and typecheck clean.
+
+### Ten edge scenarios checked by hand, beyond the suite
+
+All pass. Worth keeping because several are the ones a future change could break:
+
+| Scenario | Result |
+|---|---|
+| UPDATE a match INTO a violation (not just INSERT) | refused |
+| Broker still holds neither capability after a reseed | holds |
+| Giving the broker a capability | refused |
+| One user, one organisation (ADR-012's kept half) | 0 violations |
+| An org blocking itself | refused |
+| Self-dealing/blocked rows anywhere in `matches` | 0 |
+| Self-dealing/blocked rows anywhere in `shortlist_items` | 0 |
+| **The exchange is not emptied by the rule** | 94 matches across 19 requirements |
+| Dual-role org's own people in its own pool | 0 of 5 candidates |
+| Ops can still see the own-bench count | 14, ops only |
+
+### Bugs found while building this
+
+1. **`org_capabilities` and `memberships` were EMPTY.** Migration 0002 backfilled them
+   once and the next `db:seed` destroyed both: the seed truncates `organizations CASCADE`
+   and they reference it `ON DELETE CASCADE`, but were absent from the seed's
+   owned-tables list. **Any table the seed can cascade into has to be owned by it.**
+2. **The client match preview counted the client's own group's bench.** A dual-role
+   company would have seen its own people inflating "42 profiles match" — and learned
+   that the exchange can see its bench. Now excluded in SQL alongside blocked suppliers.
+3. **The dual-role requirement had no pool**, so "its own people are absent" passed
+   trivially against an empty set. It now sources 5 eligible candidates with 14 of its
+   own excluded, which is both a real demo scenario and a meaningful assertion.
+4. **Two test-harness bugs that looked like product failures.** Drizzle wraps the driver
+   error, so the trigger's text is on `err.cause`, not `err.message`; and `matches` has
+   `UNIQUE (requirement_id, resource_id)`, so re-inserting a seeded pair hits that
+   constraint instead of the rule. The control test is what exposed both — it failed,
+   which proved the harness rather than the rule was wrong.
 
 ---
 

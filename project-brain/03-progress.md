@@ -11,7 +11,7 @@ last_log: 2026-10-06
 
 ## Current state
 
-**Sprints 1-4 complete, committed and pushed.** Latest commit: `f77c17d` on `main`
+**Sprints 1-5 complete, committed and pushed.** Latest commit: `c571083` on `main`
 at `github.com/lakshyasonitv/DeployDesk`. Working tree clean.
 
 - **Database** — Supabase `fmgwcspsuljefhfdcqen`, ap-south-1 (Mumbai). **33 tables**
@@ -21,8 +21,11 @@ at `github.com/lakshyasonitv/DeployDesk`. Working tree clean.
   15.5.4 was vulnerable and Vercel refused to deploy it.
 - **All 15 design screens**, 18 routes, every one 200 cold and warm. Warm page loads
   0.26-0.60s in production.
-- **Gates: all four green** — routes 18/18 (twice each) · db:verify **21/21** ·
-  test:leak 12/12 · build and typecheck clean.
+- **Gates: all four green** — routes 19/19 (twice each) · db:verify **25/25** ·
+  test:leak **30/30** · build and typecheck clean.
+- **Self-dealing and block list enforced twice** — in the matching query and by a database
+  trigger, with four tests that attempt a bypass and a control that proves the rule is not
+  simply refusing everything.
 - **Perceived performance** — TTFB ~0.01s via streamed loading skeletons; total time to
   full content 0.19-0.53s. Fonts self-hosted; no third-party request on the critical path.
 - **No hardcoded data in the rendering path.** Two audit passes. Fixed: the client
@@ -110,23 +113,25 @@ percent-encoded (`@` becomes `%40`). Ask the user for credentials; do not guess.
 
 ## Start here next time
 
-**Sprint 5 — the self-dealing rule and bypass tests** (was Sprint 4; renumbered after the
-performance sprint was inserted). A resource whose supplying org shares a `group_id` with
-the requirement's client org must never be returned as a candidate. It has to live in two
-places so an application bug cannot bypass it:
+**Sprint 6 — dual-role UI**, the last stage of the dual-role brief. Everything it needs
+now exists in the data layer. Definition in `04-tasks.md`; the shape of it:
 
-- the matching query — `getOpsMatchingWorkspace()` in `src/read-models/ops/index.ts`, and
-  wherever matches are computed for a requirement;
-- the database — a policy or constraint, alongside the `orgs_are_blocked(a, b)` helper
-  from migration 0002, which is already symmetric and ready to use.
+- A supply-only org must see **one workspace and no hint a hiring side exists** — not a
+  disabled "Hire" tab. `org_capabilities` says which sides an org holds; `memberships.roles`
+  says which the user holds.
+- A dual-role org gets a "Hiring | Bench" switcher. **The two rate views must never appear
+  on the same screen for the same org** — that is how it would infer the platform margin,
+  and it is the reason dual-role orgs default to `flat_declared_fee`.
+- One broker thread per workspace, never mixed.
+- Ops console: dual-role badge, capability/group/fee/block-list controls, margin grouped
+  per org (billed as client, paid as supplier, net position), and the probing-flag
+  indicator. The ops-only own-bench note is already wired — `getOpsMatchingWorkspace()`
+  returns `ownBenchMatches`, which no screen renders yet.
+- Acceptance tests 1, 2, 5 and 6. Test 2 has data: Cygnet's admin holds
+  `[supply, demand, admin]`.
 
-Block-list enforcement goes in the same two places. Then tests that **actively try to
-bypass** both rules, not merely tests that they work — the user asked for that explicitly.
-New SQL goes in a migration file with the SQL shown for approval before it runs.
-
-One measured item worth doing first if the bench grows: `getVendorRoster` moves 173 rows
-to render 9 and has no LIMIT. Fine at 42 resources, not at the 2,000 launch target. See
-the note at the end of Sprint 4 in `04-tasks.md`.
+The demo tenant for this is **Cygnet Infotech Labs** — dual-role, 14 people on its own
+bench, and its own requirement `REQ-2320` at `/ops/matching/REQ-2320`.
 
 ## Milestones
 
@@ -137,8 +142,8 @@ the note at the end of Sprint 4 in `04-tasks.md`.
       policies, CVE-2025-66478 patched, hardcoded data removed from the rendering path
 - [x] **Sprint 4** — responsiveness (TTFB 0.30-0.60s to ~0.01s), self-hosted fonts,
       durable SLA windows, last hardcoded data removed
-- [ ] **Sprint 5** — self-dealing rule + block list, in the matching query AND the
-      database, with bypass tests
+- [x] **Sprint 5** — self-dealing rule + block list in both the query and the database,
+      30 tests, 10 further edge scenarios
 - [ ] **Sprint 6** — dual-role UI (workspace switcher, ops console additions)
 - [ ] Deployed — the user's to do; see Blocked
 - [ ] RLS made effective — the 22 policies exist but are inert until the app connects as a

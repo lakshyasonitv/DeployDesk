@@ -186,6 +186,34 @@ Hard-won surprises and traps. Everything here is non-obvious from reading the co
   resolution is `requirements.sla_window_hours`: derive the window from the stated runway
   and store it per requirement. Without that, seeded demo data decays within the hour.
 
+- **The seed must OWN every table it can cascade into.** `TRUNCATE organizations CASCADE`
+  empties anything referencing it with `ON DELETE CASCADE`, whether or not the seed
+  mentions it. `org_capabilities` and `memberships` were backfilled by migration 0002 and
+  then silently destroyed by the next `db:seed`, so the dual-role schema sat live and
+  empty. They are now in `OWNED_TABLES` and rebuilt by `src/db/seed/dual-role.ts`.
+
+- **`null = null` is NULL in SQL, and that trap is load-bearing here.** The self-dealing
+  rule compares `parent_group_id`. Without an explicit null guard, every pair of ungrouped
+  organisations would compare as "same group" in a naive implementation and the exchange
+  would empty itself. Both the SQL and the TypeScript guard explicitly, and there is a
+  test asserting two ungrouped orgs are NOT related.
+
+- **A bypass test needs a control.** Four tests assert the database refuses a forbidden
+  match. A fifth asserts a LEGITIMATE match still succeeds — without it, a rule that
+  refused everything would pass all four. That control is what caught two harness bugs:
+  Drizzle wraps the driver error so the trigger text is on `err.cause` not `err.message`,
+  and `matches` has `UNIQUE (requirement_id, resource_id)` so re-inserting a seeded pair
+  hits the constraint rather than the rule.
+
+- **RLS policies are OR-ed, so adding one WIDENS access.** To narrow `shortlist_items`,
+  migration 0004 had to REPLACE the policy from 0003, not add a second. A second
+  permissive policy would have granted more, which is the opposite of the intent.
+
+- **A trigger, not a CHECK, when the rule spans tables.** Self-dealing involves
+  `matches -> requirements -> organizations` and `matches -> bench_resources ->
+  organizations`. A CHECK constraint sees only its own row. The trigger also RAISES rather
+  than silently dropping, so violations are loud.
+
 - **Judge performance on `next start`, not `npm run dev`.** Dev mode compiles each route
   on first visit and runs React's development build. The same pages measured 1.5-3.1s cold
   in dev and 0.26-0.60s in production. Several "it's slow" reports trace to this alone.
