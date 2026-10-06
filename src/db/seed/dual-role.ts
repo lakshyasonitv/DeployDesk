@@ -1,5 +1,6 @@
 import { eq, inArray, sql } from "drizzle-orm";
 import { db, log, schema as s } from "./ctx";
+import { deriveRateBand } from "../../lib/money/rate-band";
 import type { OrgSeed } from "./orgs";
 
 /**
@@ -262,6 +263,93 @@ export async function seedDualRoleRequirement(org: OrgSeed) {
         computedAt: new Date(),
       })),
     );
+  }
+
+  /**
+   * Send a shortlist for it, so the dual-role organisation's HIRING side has something to
+   * show.
+   *
+   * This is not decoration. Acceptance test 2 is "a dual-role user can switch workspaces
+   * and each side shows only its own rate" — and with no shortlist, Cygnet's hiring side
+   * renders no rate at all, so the test passes by showing NOTHING rather than by showing
+   * the right thing. That is the same vacuous-pass trap as the empty candidate pool this
+   * function already guards against above: an assertion that nothing forbidden is present
+   * is worthless when nothing at all is present.
+   *
+   * Bands come from `deriveRateBand(proposed_client_rate)` — ADR-004, the client rate
+   * only, never the vendor rate. The snapshot is immutable by design (ADR-009), so these
+   * values are copied in rather than joined at read time.
+   */
+  if (eligible.length) {
+    const matched = await db
+      .select({
+        resourceId: s.matches.resourceId,
+        proposed: s.matches.proposedClientRatePaise,
+        rank: s.matches.algoRank,
+        maskedId: s.benchResources.maskedId,
+        experienceMonths: s.benchResources.experienceMonths,
+        baseCity: s.benchResources.baseCity,
+        availableFrom: s.benchResources.availableFrom,
+      })
+      .from(s.matches)
+      .innerJoin(s.benchResources, eq(s.benchResources.id, s.matches.resourceId))
+      .where(eq(s.matches.requirementId, req.id))
+      .orderBy(s.matches.algoRank);
+
+    const [shortlist] = await db.insert(s.shortlists).values({
+      requirementId: req.id,
+      sequenceNo: 1,
+      sentBy: org.opsByShort.get("R. Verma")!.id,
+      brokerNote: "Four profiles that fit the Spring Boot brief. Rate bands reflect the "
+        + "declared fee already applied, so there is no markup to negotiate separately.",
+      sentAt: new Date(Date.now() - 2 * 3_600_000),
+      openedAt: new Date(Date.now() - 1 * 3_600_000),
+    }).returning();
+
+    // Skills per resource, for the snapshot. One query, not one per candidate.
+    const skillRows = await db
+      .select({ resourceId: s.resourceSkills.resourceId, label: s.skills.label })
+      .from(s.resourceSkills)
+      .innerJoin(s.skills, eq(s.skills.id, s.resourceSkills.skillId))
+      .where(inArray(s.resourceSkills.resourceId, matched.map((m) => m.resourceId)));
+    const skillsBy = new Map<string, string[]>();
+    for (const r of skillRows) {
+      skillsBy.set(r.resourceId, [...(skillsBy.get(r.resourceId) ?? []), r.label]);
+    }
+
+    const picked = matched.slice(0, 4);
+    await db.insert(s.shortlistItems).values(picked.map((m, i) => {
+      const band = deriveRateBand(Number(m.proposed));
+      return {
+        shortlistId: shortlist.id,
+        resourceId: m.resourceId,
+        maskedId: m.maskedId,
+        position: i + 1,
+        experienceMonths: m.experienceMonths,
+        baseCity: m.baseCity,
+        skillsSnapshot: skillsBy.get(m.resourceId) ?? [],
+        scoreOverall: 88 - i * 3,
+        scoreCoding: 90 - i * 3,
+        scoreDsa: 86 - i * 2,
+        scoreSystemDesign: 84 - i * 4,
+        scoreCommunication: 89 - i * 2,
+        assessmentAttemptNo: 1,
+        assessmentTestedOn: new Date(Date.now() - (9 + i) * 86_400_000)
+          .toISOString().slice(0, 10),
+        availabilityLabel: m.availableFrom ? "30 days notice" : "Immediate",
+        availabilityKind: (m.availableFrom ? "notice" : "immediate") as "notice" | "immediate",
+        rateBandMinPaise: band.minPaise,
+        rateBandMaxPaise: band.maxPaise,
+        clientDecision: (i === 0 ? "selected" : "pending") as "selected" | "pending",
+        decidedAt: i === 0 ? new Date(Date.now() - 30 * 60_000) : null,
+      };
+    }));
+
+    await db.update(s.requirements)
+      .set({ stage: "shortlisted" })
+      .where(eq(s.requirements.id, req.id));
+
+    log(`    shortlist sent: ${picked.length} masked profiles, bands from the client rate (ADR-004)`);
   }
 
   const [ownCount] = await db.execute<{ n: number }>(sql`

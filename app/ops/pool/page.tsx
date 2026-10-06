@@ -1,5 +1,5 @@
 import { Shell, PageHeader, Scroll, Button } from "@/src/lib/ui/Shell";
-import { getDemoSession, getPortalSwitcherOptions } from "@/src/lib/auth/session";
+import { getDemoSession, getShellNav } from "@/src/lib/auth/session";
 import { getOpsTalentPool } from "@/src/read-models/ops";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
 import { OpsAside } from "../aside";
@@ -43,12 +43,12 @@ function scoreColor(n: number | null) {
 
 export default async function PoolPage() {
   const session = await getDemoSession("ops");
-  const switcher = await getPortalSwitcherOptions();
+  const nav = await getShellNav(session);
   const [pool, aside] = await Promise.all([getOpsTalentPool({ limit: 60 }), OpsAside()]);
   const withScores = pool.results.filter((r) => r.score != null).length;
 
   return (
-    <Shell portal="ops" switcher={switcher} user={{ name: session.userName, org: `${session.orgName} · ${session.role}` }} activeKey="pool" asideTitle="TODAY'S QUEUE" asideItems={aside.items} badges={aside.badges}>
+    <Shell portal="ops" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: `${session.orgName} · ${session.role}` }} activeKey="pool" asideTitle="TODAY'S QUEUE" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Talent pool"
         subtitle={`${pool.poolTotal} profiles across the exchange · unmasked · ${withScores} of the ${pool.resultCount} shown have a proctored score`}

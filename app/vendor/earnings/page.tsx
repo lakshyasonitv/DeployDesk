@@ -1,5 +1,5 @@
 import { Shell, PageHeader, Scroll, Button, StatCard, SectionLabel } from "@/src/lib/ui/Shell";
-import { getDemoSession, getPortalSwitcherOptions } from "@/src/lib/auth/session";
+import { getDemoSession, getShellNav } from "@/src/lib/auth/session";
 import { getVendorEarnings } from "@/src/read-models/vendor";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
 import { VendorAside } from "../aside";
@@ -24,7 +24,7 @@ const STATUS_PILL: Record<string, { bg: string; fg: string }> = {
 
 export default async function VendorEarningsPage() {
   const session = await getDemoSession("vendor");
-  const switcher = await getPortalSwitcherOptions();
+  const nav = await getShellNav(session);
   const [e, aside] = await Promise.all([
     getVendorEarnings(session.orgId),
     VendorAside(session.orgId),
@@ -34,7 +34,7 @@ export default async function VendorEarningsPage() {
   const ending = e.rows.filter((r) => r.status === "PRO-RATA").length;
 
   return (
-    <Shell portal="vendor" switcher={switcher} user={{ name: session.userName, org: session.orgName }} activeKey="earnings" asideTitle="FRESHNESS ALERTS" asideItems={aside.items} badges={aside.badges}>
+    <Shell portal="vendor" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }} activeKey="earnings" asideTitle="FRESHNESS ALERTS" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Earnings"
         subtitle="Your contracted rate per placement. Talentvibes contracts separately with the client."

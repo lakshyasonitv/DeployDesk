@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Shell, PageHeader, Scroll, Button, Pill } from "@/src/lib/ui/Shell";
-import { getDemoSession, getPortalSwitcherOptions } from "@/src/lib/auth/session";
+import { getDemoSession, getShellNav } from "@/src/lib/auth/session";
 import { getClientOverview } from "@/src/read-models/client";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
 import { ShellAside } from "../aside";
@@ -10,14 +10,14 @@ export const metadata = { title: "Shortlists · DeployDesk" };
 
 export default async function ShortlistsIndex() {
   const session = await getDemoSession("client");
-  const switcher = await getPortalSwitcherOptions();
+  const nav = await getShellNav(session);
   const [overview, aside] = await Promise.all([
     getClientOverview(session.orgId, session.userName),
     ShellAside(session.orgId),
   ]);
 
   return (
-    <Shell portal="client" switcher={switcher} user={{ name: session.userName, org: session.orgName }} activeKey="shortlists" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
+    <Shell portal="client" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }} activeKey="shortlists" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Shortlists"
         subtitle="Masked profiles delivered by your broker. Names, photos and suppliers are withheld."

@@ -4,9 +4,10 @@ import {
   LayoutGrid, FileText, Users, Calendar, Briefcase,
   Upload, List, ClipboardCheck, Wallet,
   Columns3, Target, Database, BarChart2, AlertTriangle,
-  HelpCircle, MoreHorizontal, ChevronDown,
+  HelpCircle, MoreHorizontal, ChevronDown, Building2, Briefcase as BriefcaseIcon,
 } from "lucide-react";
 import { s, sx, TOKENS, PORTAL_TAG, GROUP_LABEL, BRAND } from "./style";
+import type { WorkspaceTab } from "../auth/workspace";
 import { ThemeToggle } from "./ThemeToggle";
 
 /**
@@ -87,11 +88,20 @@ export interface ShellUser {
   org: string;
 }
 
-/** Demo switcher entries, resolved from the database by getPortalSwitcherOptions(). */
+/**
+ * Demo switcher entries, resolved from the database by getShellNav().
+ *
+ * These are ORGANISATIONS, not portals. The old three-portal list could not express a
+ * dual-role company — one organisation on two sides — which is the whole point of the
+ * feature. Picking an organisation and letting the workspace tabs choose the side is also
+ * closer to production, where a user has one organisation and no portal choice at all.
+ */
 export interface SwitcherOption {
-  portal: Portal;
+  orgId: string;
+  orgName: string;
   href: string;
-  label: string;
+  role: string;
+  active: boolean;
 }
 
 /** Initials for the 32px footer avatar. "Anita Mehta" -> "AM". */
@@ -108,19 +118,26 @@ export function Shell({
   portal,
   activeKey,
   user,
-  switcher = [],
+  identities = [],
   badges = {},
   asideTitle,
   asideItems = [],
+  workspaces = [],
   children,
 }: {
   portal: Portal;
   activeKey: string;
   user: ShellUser;
-  switcher?: SwitcherOption[];
+  identities?: SwitcherOption[];
   badges?: Record<string, string | number | undefined>;
   asideTitle: string;
   asideItems?: AsideItem[];
+  /**
+   * The dual-role "Hiring | Bench" tabs, or EMPTY when there is nothing to switch
+   * between. Empty renders nothing at all — a supply-only organisation must see no hint
+   * that a hiring side exists, and a lone inert tab is exactly such a hint.
+   */
+  workspaces?: WorkspaceTab[];
   children: ReactNode;
 }) {
   const active = NAV[portal].find((n) => n.key === activeKey);
@@ -240,27 +257,68 @@ export function Shell({
             <span style={s("font-weight:700;flex:none;white-space:nowrap")}>{active?.label ?? ""}</span>
           </div>
 
+          {/*
+            Dual-role workspace switcher — a PRODUCTION feature (ADR-012), unlike the demo
+            portal switcher below it. It stays inside one organisation and changes which
+            side of the exchange you are looking at. The two must not be merged.
+
+            It renders only when there are two or more sides. `workspaceTabs()` returns an
+            empty array for a single-side organisation precisely so that nothing appears
+            here: a disabled or greyed "Hiring" tab would tell a supply-only company that
+            a hiring side exists, which the brief forbids.
+          */}
+          {workspaces.length > 1 ? (
+            <div
+              role="group"
+              aria-label="Workspace"
+              style={s("display:flex;gap:2px;flex:none;padding:3px;background:var(--surface-3);border-radius:10px")}
+            >
+              {workspaces.map((w) => (
+                <Link
+                  key={w.side}
+                  href={w.href}
+                  aria-current={w.active ? "page" : undefined}
+                  style={sx("display:flex;align-items:center;gap:6px;height:26px;padding:0 11px;border-radius:8px;font-size:12.5px;white-space:nowrap", {
+                    background: w.active ? "var(--surface)" : "transparent",
+                    color: w.active ? "var(--t1)" : "var(--t3)",
+                    fontWeight: w.active ? 700 : 500,
+                    boxShadow: w.active ? "var(--sh)" : undefined,
+                  })}
+                >
+                  {w.side === "hiring"
+                    ? <BriefcaseIcon size={14} strokeWidth={1.75} />
+                    : <Building2 size={14} strokeWidth={1.75} />}
+                  {w.label}
+                </Link>
+              ))}
+            </div>
+          ) : null}
+
           <div style={s("flex:1")} />
 
-          {/* portal switcher — demo only */}
-          {switcher.length > 1 ? (
-            <div style={s("display:flex;align-items:center;gap:8px;flex:none;height:32px;padding:0 10px;border:1px solid var(--border);border-radius:9px")}>
-              <span style={sx("font-size:9.5px;font-weight:700;letter-spacing:.08em;color:var(--t4);border:1px solid var(--border-2);border-radius:4px;padding:1px 4px", { fontFamily: TOKENS.mono })}>
+          {/*
+            Demo organisation switcher — DEMO ONLY, deleted with the demo. In production a
+            user belongs to exactly one organisation and never sees this. The dual-role
+            workspace tabs above it are a different thing and ARE a production feature.
+          */}
+          {identities.length > 1 ? (
+            <div style={s("display:flex;align-items:center;gap:8px;flex:none;height:32px;padding:0 10px;border:1px solid var(--border);border-radius:9px;min-width:0")}>
+              <span style={sx("font-size:9.5px;font-weight:700;letter-spacing:.08em;color:var(--t4);border:1px solid var(--border-2);border-radius:4px;padding:1px 4px;flex:none", { fontFamily: TOKENS.mono })}>
                 DEMO
               </span>
-              <span style={s("font-size:12.5px;color:var(--t3);white-space:nowrap")}>Viewing as</span>
-              <div style={s("display:flex;gap:4px")}>
-                {switcher.map((p) => (
+              <span style={s("font-size:12.5px;color:var(--t3);white-space:nowrap;flex:none")}>Acting as</span>
+              <div style={s("display:flex;gap:3px;min-width:0")}>
+                {identities.map((p) => (
                   <Link
-                    key={p.portal}
+                    key={p.orgId}
                     href={p.href}
-                    title={p.label}
-                    style={sx("font-size:12.5px;font-weight:700;padding:2px 7px;border-radius:7px;white-space:nowrap", {
-                      background: p.portal === portal ? "var(--brand-tint)" : "transparent",
-                      color: p.portal === portal ? "var(--brand-ink)" : "var(--t3)",
+                    title={`${p.orgName} — ${p.role}`}
+                    style={sx("font-size:12.5px;font-weight:700;padding:2px 8px;border-radius:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px", {
+                      background: p.active ? "var(--brand-tint)" : "transparent",
+                      color: p.active ? "var(--brand-ink)" : "var(--t3)",
                     })}
                   >
-                    {p.portal === "ops" ? "Ops" : p.portal === "client" ? "Client" : "Vendor"}
+                    {p.orgName}
                   </Link>
                 ))}
               </div>

@@ -23,12 +23,22 @@ interface Requirement {
 
 const COMPONENT_SHORT = ["SKILL", "TEST", "EXP FIT", "RATE", "FRESH", "VENDOR"];
 
+/**
+ * Component-score bar fill.
+ *
+ * v1 used a three-step amber ramp (#b45309 / #d9a066 / #e0b3b3) to read as "strength".
+ * The token migration collapsed the first two to `--warn` and the third to
+ * `--danger-tint`, which is a background tint and nearly invisible as a bar fill. v2's
+ * rule 3 is that colour carries status, so this is now a status ramp: good, attention,
+ * poor.
+ */
 function barColor(v: number) {
-  return v >= 80 ? "var(--warn)" : v >= 60 ? "var(--warn)" : "var(--danger-tint)";
+  return v >= 80 ? "var(--ok)" : v >= 60 ? "var(--warn)" : "var(--danger)";
 }
 
 export function Workspace({
   requirement, weights, candidates: initial, duplicateCount, pickerOptions, benchCount,
+  ownBenchMatches = 0, refusedByRules = 0,
 }: {
   requirement: Requirement;
   weights: Array<{ label: string; pct: string }>;
@@ -36,6 +46,17 @@ export function Workspace({
   duplicateCount: number;
   pickerOptions: Array<{ code: string; roleTitle: string; clientName: string; quantity: number; ownerShort: string; stage: string; slaLabel: string; slaState: string }>;
   benchCount: number;
+  /**
+   * OPS ONLY. How many listed people on this client's OWN organisation or declared group
+   * could fill its requirement, and how many candidates the self-dealing and block rules
+   * refused outright.
+   *
+   * Never rendered in the client or vendor portals. Telling a CLIENT that its own group
+   * could have filled the role is a commercial conversation for a broker to open, not a
+   * number to publish; telling a VENDOR anything about a client is a masking breach.
+   */
+  ownBenchMatches?: number;
+  refusedByRules?: number;
 }) {
   const router = useRouter();
   const [order, setOrder] = useState<string[]>(initial.map((c) => c.maskedId));
@@ -250,6 +271,37 @@ export function Workspace({
               <a href="/ops/duplicates" style={s("display:inline-block;font-size:11px;font-weight:700;color:var(--danger);margin-top:5px")}>
                 Resolve before sending →
               </a>
+            </div>
+          ) : null}
+
+          {/*
+            OPS-ONLY note. This is the broker's cue that the client sits on both sides of
+            the exchange — its own organisation or declared group has people who match the
+            role it is hiring for, and the self-dealing rule keeps them out of the pool.
+
+            It must never appear in the client or vendor portals. Telling a client its own
+            group could have filled the role is a conversation for a broker to open, and
+            telling a vendor anything about a client is a masking breach. The number comes
+            from `ops_v_own_bench_matches`, a view named for the audience it is limited to.
+          */}
+          {ownBenchMatches > 0 ? (
+            <div style={s("margin-top:12px;background:var(--violet-tint);border:1px solid var(--violet-tint);border-radius:10px;padding:11px")}>
+              <div style={s("display:flex;align-items:center;gap:7px")}>
+                <span style={sx("font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--violet);border:1px solid var(--violet);border-radius:4px;padding:1px 4px;flex:none", { fontFamily: TOKENS.mono })}>
+                  OPS ONLY
+                </span>
+                <div style={s("font-size:11.5px;font-weight:700;color:var(--violet)")}>
+                  Dual-role client
+                </div>
+              </div>
+              <div style={s("font-size:11.5px;color:var(--t2);margin-top:6px;line-height:1.5")}>
+                <strong>{ownBenchMatches}</strong> matching {ownBenchMatches === 1 ? "person" : "people"}{" "}
+                on this client&apos;s own bench or declared group
+                {refusedByRules > 0 ? <> · <strong>{refusedByRules}</strong> candidate{refusedByRules === 1 ? "" : "s"} refused by the self-dealing and block rules</> : null}
+              </div>
+              <div style={s("font-size:11px;color:var(--t4);margin-top:5px")}>
+                Not visible to the client. They cannot be offered this requirement.
+              </div>
             </div>
           ) : null}
         </div>

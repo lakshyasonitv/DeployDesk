@@ -107,9 +107,27 @@ async function main() {
   check("no client band overlaps a vendor rate", overlaps === 0, `${overlaps} overlap(s)`);
 
   /* ---------------- shortlist shape ---------------- */
+  /**
+   * Scoped to REQ-2291's shortlist, which is what these three checks are named for.
+   *
+   * They used to select every row in `shortlist_items` with no join, so they only held
+   * while exactly one shortlist existed in the whole database. Seeding the dual-role
+   * requirement's shortlist broke all three at once — the assertions were under-specified,
+   * not the new data. A check named for one requirement must filter by it, or it is really
+   * asserting "nothing else in the product has a shortlist", which is not a property
+   * anyone intended to guarantee.
+   */
   const items = await db
-    .select({ maskedId: s.shortlistItems.maskedId, position: s.shortlistItems.position, decision: s.shortlistItems.clientDecision })
-    .from(s.shortlistItems).orderBy(s.shortlistItems.position);
+    .select({
+      maskedId: s.shortlistItems.maskedId,
+      position: s.shortlistItems.position,
+      decision: s.shortlistItems.clientDecision,
+    })
+    .from(s.shortlistItems)
+    .innerJoin(s.shortlists, eq(s.shortlists.id, s.shortlistItems.shortlistId))
+    .innerJoin(s.requirements, eq(s.requirements.id, s.shortlists.requirementId))
+    .where(eq(s.requirements.code, "REQ-2291"))
+    .orderBy(s.shortlistItems.position);
   check("REQ-2291 shortlist has 6 items", items.length === 6, `got ${items.length}`);
   check(
     "shortlist order matches the design",
@@ -118,6 +136,28 @@ async function main() {
   );
   check("two selected, so the button reads 'Request interviews · 2'",
     items.filter((i) => i.decision === "selected").length === 2);
+
+  /* ---------------- the dual-role shortlist (acceptance test 2) ---------------- */
+  /**
+   * Cygnet's own hiring side must actually SHOW something, or "each side shows only its
+   * own rate" passes by showing nothing at all — the same vacuous-pass trap as an empty
+   * candidate pool.
+   */
+  const dualItems = await db
+    .select({
+      maskedId: s.shortlistItems.maskedId,
+      bandMin: s.shortlistItems.rateBandMinPaise,
+      bandMax: s.shortlistItems.rateBandMaxPaise,
+    })
+    .from(s.shortlistItems)
+    .innerJoin(s.shortlists, eq(s.shortlists.id, s.shortlistItems.shortlistId))
+    .innerJoin(s.requirements, eq(s.requirements.id, s.shortlists.requirementId))
+    .where(eq(s.requirements.code, "REQ-2320"));
+  check("the dual-role requirement has a shortlist to show", dualItems.length > 0,
+    `${dualItems.length} items`);
+  check("every dual-role band is a real range, not a point",
+    dualItems.every((i) => Number(i.bandMax) > Number(i.bandMin)),
+    dualItems.map((i) => `${i.maskedId} ${formatPaiseShort(Number(i.bandMin))}-${formatPaiseShort(Number(i.bandMax))}`).join(" "));
 
   /* ---------------- SLA: exactly one breach, two idle ---------------- */
   const reqs = await db

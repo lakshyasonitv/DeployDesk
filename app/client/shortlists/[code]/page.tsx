@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { Shell, EmptyState } from "@/src/lib/ui/Shell";
-import { getDemoSession, getPortalSwitcherOptions } from "@/src/lib/auth/session";
+import { getDemoSession, getShellNav } from "@/src/lib/auth/session";
 import { getClientShortlist } from "@/src/read-models/client";
 import { ShellAside } from "../../aside";
 import { ShortlistBoard } from "./ShortlistBoard";
@@ -19,7 +19,7 @@ export default async function ShortlistPage({
 }) {
   const { code } = await params;
   const session = await getDemoSession("client");
-  const switcher = await getPortalSwitcherOptions();
+  const nav = await getShellNav(session);
 
   // Tenancy is enforced inside the read model: it filters on client_org_id, so a
   // requirement belonging to another client simply does not exist from here.
@@ -28,7 +28,7 @@ export default async function ShortlistPage({
 
   if (!view) {
     return (
-      <Shell portal="client" switcher={switcher} user={{ name: session.userName, org: session.orgName }} activeKey="shortlists" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
+      <Shell portal="client" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }} activeKey="shortlists" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
         <div style={{ padding: "26px" }}>
           <EmptyState>
             No shortlist has been sent for {code.toUpperCase()} yet. Your broker will deliver
@@ -41,7 +41,7 @@ export default async function ShortlistPage({
 
   return (
     <Shell
-      portal="client" switcher={switcher}
+      portal="client" identities={nav.identities} workspaces={nav.workspaces}
       user={{ name: session.userName, org: session.orgName }}
       activeKey="shortlists"
       asideTitle="OPEN REQS"

@@ -1,5 +1,5 @@
 import { Shell } from "@/src/lib/ui/Shell";
-import { getDemoSession, getPortalSwitcherOptions } from "@/src/lib/auth/session";
+import { getDemoSession, getShellNav } from "@/src/lib/auth/session";
 import { db } from "@/src/db/client";
 import * as s from "@/src/db/schema";
 import { eq, sql } from "drizzle-orm";
@@ -11,7 +11,7 @@ export const metadata = { title: "Pipeline · DeployDesk" };
 
 export default async function OpsPipelinePage() {
   const session = await getDemoSession("ops");
-  const switcher = await getPortalSwitcherOptions();
+  const nav = await getShellNav(session);
   const aside = await OpsAside();
   // The board needs the full pipeline; the sidebar no longer fetches it.
   const pipeline = await getOpsPipeline();
@@ -23,7 +23,7 @@ export default async function OpsPipelinePage() {
   `) as unknown as Array<{ clients: number; vendors: number }>;
 
   return (
-    <Shell portal="ops" switcher={switcher} user={{ name: session.userName, org: `${session.orgName} · ${session.role}` }} activeKey="pipeline" asideTitle="TODAY'S QUEUE"
+    <Shell portal="ops" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: `${session.orgName} · ${session.role}` }} activeKey="pipeline" asideTitle="TODAY'S QUEUE"
       asideItems={aside.items} badges={aside.badges}>
       <PipelineBoard
         requirements={pipeline.requirements}

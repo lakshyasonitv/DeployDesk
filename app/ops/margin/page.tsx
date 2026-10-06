@@ -1,5 +1,5 @@
 import { Shell, PageHeader, Scroll, Button, StatCard, SectionLabel } from "@/src/lib/ui/Shell";
-import { getDemoSession, getPortalSwitcherOptions } from "@/src/lib/auth/session";
+import { getDemoSession, getShellNav } from "@/src/lib/auth/session";
 import { getOpsMargin } from "@/src/read-models/ops";
 import { s, sx, TOKENS, MARGIN_COLOR } from "@/src/lib/ui/style";
 import { OpsAside } from "../aside";
@@ -15,7 +15,7 @@ const COLS = "150px 130px 1fr 118px 118px 118px 86px";
 
 export default async function MarginPage() {
   const session = await getDemoSession("ops");
-  const switcher = await getPortalSwitcherOptions();
+  const nav = await getShellNav(session);
   const [margin, aside] = await Promise.all([getOpsMargin(), OpsAside()]);
 
   const totals = margin.rows.reduce(
@@ -28,7 +28,7 @@ export default async function MarginPage() {
   );
 
   return (
-    <Shell portal="ops" switcher={switcher} user={{ name: session.userName, org: `${session.orgName} · ${session.role}` }} activeKey="margin" asideTitle="TODAY'S QUEUE" asideItems={aside.items} badges={aside.badges}>
+    <Shell portal="ops" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: `${session.orgName} · ${session.role}` }} activeKey="margin" asideTitle="TODAY'S QUEUE" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Margin"
         subtitle="Vendor rate, client rate and spread on every live placement · visible to Talentvibes only"
