@@ -1,0 +1,1525 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"><style>body{margin:0;background:#f7f7f9;font-family:Manrope,system-ui,sans-serif;-webkit-font-smoothing:antialiased}*{box-sizing:border-box}a{color:#6d3ff0;text-decoration:none}a:hover{color:#5a2fd0}::-webkit-scrollbar{width:9px;height:9px}::-webkit-scrollbar-thumb{background:#d8d8e2;border-radius:6px}::-webkit-scrollbar-track{background:transparent}</style></helmet>
+
+<div style="display:flex;height:100vh;min-height:720px;background:#f7f7f9;color:#101014;overflow:hidden">
+
+<div style="width:222px;flex:none;background:#111114;color:#fff;display:flex;flex-direction:column;padding:16px 0;overflow:hidden">
+<div style="padding:0 16px 14px;display:flex;align-items:center;gap:9px">
+<div style="width:22px;height:22px;border-radius:6px;background:{{ accentGrad }};flex:none"></div>
+<div><div style="font-weight:800;font-size:13px;letter-spacing:-.3px">Bench Exchange</div><div style="font:600 9px 'JetBrains Mono',monospace;letter-spacing:.12em;color:#6c6c78;margin-top:2px">{{ portalTag }}</div></div>
+</div>
+<div style="margin:0 12px 12px;padding:6px 9px;border:1px solid #26262c;border-radius:7px;display:flex;align-items:center;justify-content:space-between;color:#8b8b96;font-size:12px">Search<span style="font:500 10px 'JetBrains Mono',monospace;border:1px solid #33333b;border-radius:4px;padding:1px 5px">⌘K</span></div>
+<div style="padding:0 8px;display:flex;flex-direction:column;gap:2px">
+<sc-for list="{{ navItems }}" as="n" hint-placeholder-count="5">
+<div onClick="{{ n.go }}" style="padding:7px 10px;border-radius:7px;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:8px;cursor:pointer;white-space:nowrap;background:{{ n.bg }};color:{{ n.fg }};font-weight:{{ n.fw }}">{{ n.label }}<span style="font:600 10.5px 'JetBrains Mono',monospace;color:{{ n.badgeColor }}">{{ n.badge }}</span></div>
+</sc-for>
+</div>
+<div style="margin:16px 12px 0;padding-top:13px;border-top:1px solid #26262c;font:700 9px 'JetBrains Mono',monospace;letter-spacing:.14em;color:#5c5c68">{{ asideTitle }}</div>
+<div style="padding:9px 12px;display:flex;flex-direction:column;gap:8px;overflow:hidden">
+<sc-for list="{{ asideItems }}" as="a" hint-placeholder-count="3">
+<div style="display:flex;align-items:center;gap:7px"><div style="width:5px;height:5px;border-radius:50%;background:{{ a.dot }};flex:none"></div><div style="font-size:11.5px;color:#a0a0ac;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ a.label }}</div></div>
+</sc-for>
+</div>
+<div style="margin-top:auto;padding:12px;border-top:1px solid #26262c">
+<div style="font:700 9px 'JetBrains Mono',monospace;letter-spacing:.14em;color:#5c5c68;padding:0 4px 8px">DEMO · SWITCH PORTAL</div>
+<div style="display:flex;flex-direction:column;gap:3px">
+<sc-for list="{{ portals }}" as="p" hint-placeholder-count="3">
+<div onClick="{{ p.go }}" style="padding:6px 9px;border-radius:6px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:8px;background:{{ p.bg }};color:{{ p.fg }};font-weight:{{ p.fw }}"><div style="width:6px;height:6px;border-radius:2px;background:{{ p.dot }}"></div>{{ p.label }}</div>
+</sc-for>
+</div>
+<div style="margin-top:10px;padding-top:10px;border-top:1px solid #26262c;display:flex;align-items:center;gap:9px"><div style="width:24px;height:24px;border-radius:50%;background:#3b3b45;flex:none"></div><div style="min-width:0"><div style="font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ userName }}</div><div style="font-size:10.5px;color:#6c6c78;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ userOrg }}</div></div></div>
+</div>
+</div>
+
+<div style="flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden">
+
+<sc-if value="{{ isClientDash }}" hint-placeholder-val="{{ true }}">
+<div style="padding:20px 26px 16px;background:#fff;border-bottom:1px solid #e8e8ee">
+<div style="display:flex;align-items:flex-end;justify-content:space-between">
+<div><div style="font-size:22px;font-weight:800;letter-spacing:-.6px">Good morning, Ananya</div><div style="font-size:12.5px;color:#6b6b78;margin-top:4px">Acme Finserv · 4 open requirements · your broker Priya Nair responds in ~2h</div></div>
+<div style="display:flex;gap:8px"><div onClick="{{ openAsk }}" style="padding:8px 13px;border:1px solid #e0e0e8;border-radius:8px;font-size:12.5px;font-weight:600;background:#fff;cursor:pointer">Ask Talentvibes</div><div onClick="{{ goPost }}" style="padding:8px 13px;border-radius:8px;font-size:12.5px;font-weight:700;background:#6d3ff0;color:#fff;cursor:pointer">Post a requirement</div></div>
+</div>
+</div>
+<div style="flex:1;overflow:auto;padding:20px 26px 30px">
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+<sc-for list="{{ clientStats }}" as="s" hint-placeholder-count="4">
+<div style="background:#fff;border:1px solid #e8e8ee;border-radius:12px;padding:15px">
+<div style="font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.12em;color:#8a8a96">{{ s.label }}</div>
+<div style="display:flex;align-items:baseline;gap:8px;margin-top:9px"><div style="font-size:28px;font-weight:800;letter-spacing:-1px">{{ s.value }}</div><div style="font-size:11.5px;font-weight:600;color:{{ s.deltaColor }}">{{ s.delta }}</div></div>
+<div style="font-size:11.5px;color:#8a8a96;margin-top:4px">{{ s.sub }}</div>
+</div>
+</sc-for>
+</div>
+<div style="display:grid;grid-template-columns:1.55fr 1fr;gap:16px;margin-top:16px">
+<div style="background:#fff;border:1px solid #e8e8ee;border-radius:12px;overflow:hidden">
+<div style="padding:14px 16px;border-bottom:1px solid #eeeef3;display:flex;align-items:center;justify-content:space-between"><div style="font-size:13.5px;font-weight:800">Open requirements</div><div style="font-size:12px;color:#8a8a96">4 live · 1 draft</div></div>
+<div style="display:grid;grid-template-columns:96px 1fr 78px 128px 132px 96px;padding:8px 16px;font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.1em;color:#8a8a96;border-bottom:1px solid #eeeef3;background:#fafafc"><div>REQ</div><div>ROLE</div><div>QTY</div><div>BUDGET/MO</div><div>STAGE</div><div style="text-align:right">ACTION</div></div>
+<sc-for list="{{ openReqs }}" as="r" hint-placeholder-count="4">
+<div style="display:grid;grid-template-columns:96px 1fr 78px 128px 132px 96px;align-items:center;padding:12px 16px;border-bottom:1px solid #f2f2f6">
+<div style="font:700 12px 'JetBrains Mono',monospace">{{ r.id }}</div>
+<div style="padding-right:14px"><div style="font-size:13px;font-weight:600">{{ r.role }}</div><div style="font-size:11px;color:#8a8a96;margin-top:2px">{{ r.meta }}</div></div>
+<div style="font-size:12.5px;font-weight:600">{{ r.qty }}</div>
+<div style="font-size:12.5px">{{ r.budget }}</div>
+<div><span style="padding:3px 8px;border-radius:20px;font-size:10.5px;font-weight:700;background:{{ r.stageBg }};color:{{ r.stageFg }}">{{ r.stage }}</span></div>
+<div style="text-align:right"><span onClick="{{ r.go }}" style="font-size:11.5px;font-weight:700;color:#6d3ff0;cursor:pointer">{{ r.action }}</span></div>
+</div>
+</sc-for>
+</div>
+<div style="display:flex;flex-direction:column;gap:16px">
+<div style="background:#fff;border:1px solid #e8e8ee;border-radius:12px;padding:15px">
+<div style="display:flex;align-items:center;justify-content:space-between"><div style="font-size:13.5px;font-weight:800">Awaiting your review</div><span style="padding:3px 8px;border-radius:20px;font-size:10.5px;font-weight:700;background:#f1ecff;color:#6d3ff0">3</span></div>
+<div style="display:flex;flex-direction:column;gap:9px;margin-top:12px">
+<sc-for list="{{ awaiting }}" as="a" hint-placeholder-count="3">
+<div onClick="{{ goShortlist }}" style="padding:11px;border:1px solid #eeeef3;border-radius:9px;cursor:pointer">
+<div style="display:flex;align-items:center;justify-content:space-between"><div style="font:700 11.5px 'JetBrains Mono',monospace">{{ a.id }}</div><div style="font-size:11px;color:#8a8a96">{{ a.age }}</div></div>
+<div style="font-size:12.5px;font-weight:600;margin-top:4px">{{ a.role }}</div>
+<div style="font-size:11.5px;color:#8a8a96;margin-top:3px">{{ a.count }} masked profiles · avg score {{ a.avg }}</div>
+</div>
+</sc-for>
+</div>
+</div>
+<div style="background:#fff;border:1px solid #e8e8ee;border-radius:12px;padding:15px">
+<div style="font-size:13.5px;font-weight:800">Active engagements</div>
+<div style="display:flex;flex-direction:column;gap:10px;margin-top:12px">
+<sc-for list="{{ engagements }}" as="e" hint-placeholder-count="4">
+<div style="display:flex;align-items:center;gap:10px">
+<div style="width:34px;height:34px;border-radius:9px;background:#f3f3f7;display:flex;align-items:center;justify-content:center;font:700 10px 'JetBrains Mono',monospace;color:#6b6b78;flex:none">{{ e.initials }}</div>
+<div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:700">{{ e.id }} · {{ e.role }}</div><div style="font-size:11px;color:#8a8a96;margin-top:2px">{{ e.since }} · {{ e.rate }}/mo</div></div>
+<div style="display:flex;align-items:center;gap:5px"><div style="width:5px;height:5px;border-radius:50%;background:{{ e.dot }}"></div><span style="font-size:11px;font-weight:600;color:#6b6b78">{{ e.status }}</span></div>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isClientPost }}" hint-placeholder-val="{{ true }}">
+<div style="padding:20px 26px 16px;background:#fff;border-bottom:1px solid #e8e8ee">
+<div style="font:600 11px 'JetBrains Mono',monospace;color:#8a8a96">NEW REQUIREMENT · DRAFT SAVED 2 MIN AGO</div>
+<div style="font-size:22px;font-weight:800;letter-spacing:-.6px;margin-top:7px">Post a requirement</div>
+<div style="font-size:12.5px;color:#6b6b78;margin-top:4px">Talentvibes matches from 14 supplier benches. You will see masked profiles only — we handle every vendor conversation.</div>
+</div>
+<div style="flex:1;overflow:auto;padding:20px 26px 30px">
+<div style="display:grid;grid-template-columns:1.6fr 1fr;gap:18px;align-items:start">
+<div style="background:#fff;border:1px solid #e8e8ee;border-radius:12px;padding:20px">
+<div style="font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.12em;color:#8a8a96">ROLE</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px">
+<div style="grid-column:span 2"><div style="font-size:12px;font-weight:700;margin-bottom:6px">Primary skill</div><div style="display:flex;flex-wrap:wrap;gap:6px;padding:9px;border:1px solid #e0e0e8;border-radius:9px;background:#fff"><span style="padding:4px 9px;border-radius:6px;background:#f1ecff;color:#6d3ff0;font-size:12px;font-weight:700">React</span><span style="padding:4px 9px;border-radius:6px;background:#f1ecff;color:#6d3ff0;font-size:12px;font-weight:700">TypeScript</span><span style="padding:4px 9px;border-radius:6px;background:#f1ecff;color:#6d3ff0;font-size:12px;font-weight:700">Node.js</span><span style="padding:4px 9px;font-size:12px;color:#a3a3b0">Add a skill…</span></div>
+<div style="display:flex;gap:6px;margin-top:8px;font-size:11.5px;color:#8a8a96;align-items:center">Suggested:<span style="padding:2px 8px;border:1px solid #e0e0e8;border-radius:6px;color:#4a4a58">GraphQL</span><span style="padding:2px 8px;border:1px solid #e0e0e8;border-radius:6px;color:#4a4a58">Next.js</span><span style="padding:2px 8px;border:1px solid #e0e0e8;border-radius:6px;color:#4a4a58">React Native</span></div></div>
+<div><div style="font-size:12px;font-weight:700;margin-bottom:6px">Experience band</div><div style="display:flex;gap:5px"><span style="flex:1;text-align:center;padding:8px;border:1px solid #e0e0e8;border-radius:8px;font-size:12px;color:#6b6b78">0–3y</span><span style="flex:1;text-align:center;padding:8px;border:1px solid #e0e0e8;border-radius:8px;font-size:12px;color:#6b6b78">3–5y</span><span style="flex:1;text-align:center;padding:8px;border-radius:8px;font-size:12px;font-weight:700;background:#101014;color:#fff">5–8y</span><span style="flex:1;text-align:center;padding:8px;border:1px solid #e0e0e8;border-radius:8px;font-size:12px;color:#6b6b78">8y+</span></div></div>
+<div><div style="font-size:12px;font-weight:700;margin-bottom:6px">Quantity</div><div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border:1px solid #e0e0e8;border-radius:9px"><span style="font-size:16px;font-weight:800">3</span><div style="display:flex;gap:6px"><span style="width:24px;height:24px;border:1px solid #e0e0e8;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#6b6b78">−</span><span style="width:24px;height:24px;border:1px solid #e0e0e8;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#6b6b78">+</span></div></div></div>
+</div>
+<div style="height:1px;background:#eeeef3;margin:20px 0"></div>
+<div style="font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.12em;color:#8a8a96">COMMERCIALS</div>
+<div style="margin-top:12px"><div style="display:flex;align-items:baseline;justify-content:space-between"><div style="font-size:12px;font-weight:700">Budget range (₹ per month, per resource)</div><div style="font:700 12.5px 'JetBrains Mono',monospace">₹1,30,000 — ₹1,70,000</div></div>
+<div style="position:relative;height:5px;border-radius:4px;background:#eeeef3;margin-top:14px"><div style="position:absolute;left:26%;right:33%;top:0;height:5px;border-radius:4px;background:#6d3ff0"></div><div style="position:absolute;left:26%;top:-5px;width:15px;height:15px;border-radius:50%;background:#fff;border:3px solid #6d3ff0"></div><div style="position:absolute;right:33%;top:-5px;width:15px;height:15px;border-radius:50%;background:#fff;border:3px solid #6d3ff0"></div></div>
+<div style="display:flex;justify-content:space-between;margin-top:9px;font:500 10.5px 'JetBrains Mono',monospace;color:#8a8a96"><span>₹60K</span><span>₹3L</span></div>
+<div style="margin-top:10px;padding:9px 11px;border-radius:8px;background:#f5f2ff;font-size:11.5px;color:#5a2fd0;font-weight:600">Market signal · 42 profiles on live benches match this band. Median ask for 5–8y React in Bangalore is ₹1.48L.</div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px">
+<div><div style="font-size:12px;font-weight:700;margin-bottom:6px">Engagement type</div><div style="display:flex;gap:5px"><span style="flex:1;text-align:center;padding:8px;border-radius:8px;font-size:12px;font-weight:700;background:#101014;color:#fff">Contract</span><span style="flex:1;text-align:center;padding:8px;border:1px solid #e0e0e8;border-radius:8px;font-size:12px;color:#6b6b78">C2H</span><span style="flex:1;text-align:center;padding:8px;border:1px solid #e0e0e8;border-radius:8px;font-size:12px;color:#6b6b78">Full-time</span></div></div>
+<div><div style="font-size:12px;font-weight:700;margin-bottom:6px">Duration</div><div style="padding:8px 12px;border:1px solid #e0e0e8;border-radius:9px;font-size:12.5px">6 months, extendable</div></div>
+</div>
+<div style="height:1px;background:#eeeef3;margin:20px 0"></div>
+<div style="font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.12em;color:#8a8a96">LOGISTICS</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px">
+<div><div style="font-size:12px;font-weight:700;margin-bottom:6px">Location</div><div style="padding:8px 12px;border:1px solid #e0e0e8;border-radius:9px;font-size:12.5px">Bangalore · Whitefield</div>
+<div style="display:flex;gap:5px;margin-top:8px"><span style="padding:5px 10px;border:1px solid #e0e0e8;border-radius:20px;font-size:11.5px;color:#6b6b78">Onsite</span><span style="padding:5px 10px;border-radius:20px;font-size:11.5px;font-weight:700;background:#f1ecff;color:#6d3ff0">Hybrid · 3 days</span><span style="padding:5px 10px;border:1px solid #e0e0e8;border-radius:20px;font-size:11.5px;color:#6b6b78">Remote</span></div></div>
+<div><div style="font-size:12px;font-weight:700;margin-bottom:6px">Start date</div><div style="padding:8px 12px;border:1px solid #e0e0e8;border-radius:9px;font-size:12.5px">15 September 2026</div>
+<div style="font-size:12px;font-weight:700;margin:14px 0 6px">Notice period accepted</div><div style="display:flex;gap:5px"><span style="flex:1;text-align:center;padding:7px;border-radius:8px;font-size:11.5px;font-weight:700;background:#101014;color:#fff">Immediate</span><span style="flex:1;text-align:center;padding:7px;border-radius:8px;font-size:11.5px;font-weight:700;background:#101014;color:#fff">≤30 days</span><span style="flex:1;text-align:center;padding:7px;border:1px solid #e0e0e8;border-radius:8px;font-size:11.5px;color:#6b6b78">60 days</span></div></div>
+</div>
+<div style="display:flex;align-items:center;gap:10px;margin-top:22px;padding-top:18px;border-top:1px solid #eeeef3">
+<div onClick="{{ goShortlist }}" style="padding:10px 16px;border-radius:9px;background:#6d3ff0;color:#fff;font-size:13px;font-weight:700;cursor:pointer">Send to Talentvibes</div>
+<div style="padding:10px 16px;border:1px solid #e0e0e8;border-radius:9px;font-size:13px;font-weight:600;color:#4a4a58">Save draft</div>
+<div style="margin-left:auto;font-size:11.5px;color:#8a8a96">Typical first shortlist: <b style="color:#101014">36 hours</b></div>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:14px">
+<div style="background:#101014;color:#fff;border-radius:12px;padding:17px">
+<div style="font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.12em;color:#8b8b96">HOW BROKERING WORKS</div>
+<div style="display:flex;flex-direction:column;gap:12px;margin-top:13px">
+<sc-for list="{{ brokerSteps }}" as="s" hint-placeholder-count="4">
+<div style="display:flex;gap:10px"><div style="width:20px;height:20px;border-radius:6px;background:#26262c;display:flex;align-items:center;justify-content:center;font:700 10px 'JetBrains Mono',monospace;color:#a78bfa;flex:none">{{ s.n }}</div><div><div style="font-size:12.5px;font-weight:700">{{ s.title }}</div><div style="font-size:11.5px;color:#a0a0ac;margin-top:2px;line-height:1.45">{{ s.body }}</div></div></div>
+</sc-for>
+</div>
+</div>
+<div style="background:#fff;border:1px solid #e8e8ee;border-radius:12px;padding:16px">
+<div style="font-size:13px;font-weight:800">Live match preview</div>
+<div style="font-size:11.5px;color:#8a8a96;margin-top:3px">Updates as you edit. Identities stay hidden.</div>
+<div style="display:flex;align-items:baseline;gap:8px;margin-top:12px"><div style="font-size:32px;font-weight:800;letter-spacing:-1.2px">42</div><div style="font-size:12px;color:#6b6b78">bench profiles match</div></div>
+<div style="display:flex;flex-direction:column;gap:9px;margin-top:12px">
+<sc-for list="{{ matchPreview }}" as="m" hint-placeholder-count="4">
+<div style="display:flex;align-items:center;gap:9px"><div style="font-size:11.5px;color:#6b6b78;width:104px">{{ m.label }}</div><div style="flex:1;height:5px;border-radius:3px;background:#eeeef3;overflow:hidden"><div style="height:5px;border-radius:3px;background:#6d3ff0;width:{{ m.w }}"></div></div><div style="font:700 11px 'JetBrains Mono',monospace;width:26px;text-align:right">{{ m.v }}</div></div>
+</sc-for>
+</div>
+<div style="margin-top:13px;padding:10px;border-radius:9px;background:#fff8ec;border:1px solid #f7e2bd;font-size:11.5px;color:#8a5a08;line-height:1.45"><b>Tighten your band?</b> Raising the floor to ₹1.40L would add 11 profiles with proctored scores above 85.</div>
+</div>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isClientShortlist }}" hint-placeholder-val="{{ true }}">
+<div style="padding:15px 26px 14px;display:flex;align-items:flex-start;justify-content:space-between;border-bottom:1px solid #e8e8ee;background:#fff">
+<div><div style="display:flex;align-items:center;gap:8px"><span style="font:600 10px 'JetBrains Mono',monospace;padding:3px 7px;border-radius:5px;background:#f1ecff;color:#6d3ff0;letter-spacing:.05em">SHORTLIST READY</span><span style="font:500 11px 'JetBrains Mono',monospace;color:#8a8a96">REQ-2291 · delivered 22 Aug</span></div>
+<div style="font-size:22px;font-weight:800;letter-spacing:-.6px;margin-top:8px">Senior React Engineers</div>
+<div style="font-size:12.5px;color:#6b6b78;margin-top:4px">3 positions · 5–8 yrs · 6-month contract · Bangalore / Remote · ₹1.30–1.70L per month</div></div>
+<div style="display:flex;gap:8px"><div onClick="{{ openAsk }}" style="padding:8px 13px;border:1px solid #e0e0e8;border-radius:8px;font-size:12.5px;font-weight:600;background:#fff;cursor:pointer">Ask Talentvibes</div><div onClick="{{ goInterviews }}" style="padding:8px 13px;border-radius:8px;font-size:12.5px;font-weight:700;background:#6d3ff0;color:#fff;cursor:pointer">Request interviews · {{ selectedCount }}</div></div>
+</div>
+<div style="flex:1;overflow:auto;padding:14px 26px 26px">
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:11px"><span style="font-size:12.5px;font-weight:700">6 masked profiles</span><span style="font-size:12px;color:#8a8a96">· ranked by proctored score · names, photos and supplier withheld</span><span style="margin-left:auto;font:500 11px 'JetBrains Mono',monospace;color:#8a8a96">J / K to move · E to shortlist</span></div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+<sc-for list="{{ shortlist }}" as="r" hint-placeholder-count="6">
+<div style="background:#fff;border:1px solid {{ r.cardBorder }};border-radius:12px;padding:13px;box-shadow:0 1px 2px rgba(16,16,20,.04)">
+<div style="display:flex;align-items:flex-start;justify-content:space-between">
+<div><div style="font:700 15px 'JetBrains Mono',monospace;letter-spacing:-.5px">{{ r.id }}</div><div style="font-size:11.5px;color:#8a8a96;margin-top:3px">{{ r.exp }} · {{ r.city }}</div></div>
+<div style="text-align:right"><div style="font-size:19px;font-weight:800;letter-spacing:-.6px;color:{{ r.dot }}">{{ r.score }}</div><div style="font:600 9px 'JetBrains Mono',monospace;color:#8a8a96;letter-spacing:.06em">PROCTORED</div></div>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:9px">
+<sc-for list="{{ r.skills }}" as="s" hint-placeholder-count="3"><span style="padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;background:#f3f3f7;color:#4a4a58;white-space:nowrap">{{ s }}</span></sc-for>
+</div>
+<div style="margin-top:10px;padding-top:9px;border-top:1px dashed #e8e8ee;display:flex;flex-direction:column;gap:5px">
+<sc-for list="{{ r.bars }}" as="b" hint-placeholder-count="4">
+<div style="display:flex;align-items:center;gap:8px"><div style="font-size:10.5px;color:#8a8a96;width:74px">{{ b.label }}</div><div style="flex:1;height:4px;border-radius:3px;background:#eeeef3;overflow:hidden"><div style="height:4px;border-radius:3px;background:#6d3ff0;width:{{ b.w }}"></div></div><div style="font:600 10.5px 'JetBrains Mono',monospace;color:#4a4a58">{{ b.v }}</div></div>
+</sc-for>
+</div>
+<div style="margin-top:8px;font-size:10.5px;color:#8a8a96">Proctored by Talentvibes · {{ r.attempt }} · {{ r.testedOn }}</div>
+<div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:13px;font-weight:700">{{ r.rate }}</div><div style="font-size:10.5px;color:#8a8a96">per month</div></div><div style="display:flex;align-items:center;gap:5px;padding:4px 8px;border-radius:20px;background:{{ r.softbg }}"><div style="width:5px;height:5px;border-radius:50%;background:{{ r.dot }}"></div><span style="font-size:10.5px;font-weight:600;color:{{ r.dot }}">{{ r.avail }}</span></div></div>
+<div style="margin-top:10px;display:flex;gap:6px"><div onClick="{{ r.toggle }}" style="flex:1;text-align:center;padding:7px;border-radius:8px;background:{{ r.btnBg }};color:{{ r.btnFg }};font-size:12px;font-weight:700;cursor:pointer">{{ r.btnLabel }}</div><div style="padding:7px 11px;border-radius:8px;border:1px solid #e0e0e8;font-size:12px;color:#6b6b78;cursor:pointer">Pass</div><div onClick="{{ r.ask }}" title="Ask Talentvibes about this profile" style="padding:7px 10px;border-radius:8px;border:1px solid #e0e0e8;font-size:12px;font-weight:700;color:#6d3ff0;cursor:pointer">?</div></div>
+</div>
+</sc-for>
+</div>
+<div style="margin-top:14px;padding:12px 14px;background:#fff;border:1px solid #e8e8ee;border-radius:12px;display:flex;align-items:center;gap:12px">
+<div style="width:28px;height:28px;border-radius:50%;background:#f3f3f7;flex:none"></div>
+<div style="font-size:12.5px;color:#4a4a58;line-height:1.5"><b>Priya Nair, your broker:</b> “TV-6620 and TV-4821 both clear your budget and can start on the 15th. TV-4488 is above band — I can negotiate if the SAP overlap matters to you.”</div>
+<div style="margin-left:auto;display:flex;gap:7px"><div onClick="{{ openAsk }}" style="padding:7px 12px;border-radius:8px;background:#101014;color:#fff;font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer">Reply</div></div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isClientInterviews }}" hint-placeholder-val="{{ true }}">
+<div style="padding:18px 26px 14px;background:#fff;border-bottom:1px solid #e8e8ee">
+<div style="display:flex;align-items:flex-end;justify-content:space-between">
+<div><div style="font-size:22px;font-weight:800;letter-spacing:-.6px">Interviews</div><div style="font-size:12.5px;color:#6b6b78;margin-top:4px">Talentvibes arranges every slot. Candidates join under their masked ID until you extend an offer.</div></div>
+<div style="display:flex;gap:8px"><div style="padding:8px 13px;border:1px solid #e0e0e8;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer">Panel availability</div><div style="padding:8px 13px;border-radius:8px;font-size:12.5px;font-weight:700;background:#6d3ff0;color:#fff;cursor:pointer">Propose new slots</div></div>
+</div>
+</div>
+<div style="flex:1;overflow:auto;padding:18px 26px 26px;display:grid;grid-template-columns:1.35fr 1fr;gap:16px;align-items:start">
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.12em;color:#8a8a96">SCHEDULED · THIS WEEK</div>
+<sc-for list="{{ interviews }}" as="i" hint-placeholder-count="3">
+<div style="background:#fff;border:1px solid #e8e8ee;border-radius:12px;padding:15px">
+<div style="display:flex;align-items:flex-start;gap:14px">
+<div style="width:62px;flex:none;text-align:center;padding:8px 0;border-radius:9px;background:#f6f4ff"><div style="font:700 9.5px 'JetBrains Mono',monospace;color:#6d3ff0;letter-spacing:.08em">{{ i.mon }}</div><div style="font-size:20px;font-weight:800;letter-spacing:-.6px;color:#3d1f8f">{{ i.day }}</div><div style="font-size:10.5px;color:#6d3ff0;font-weight:700">{{ i.time }}</div></div>
+<div style="flex:1;min-width:0">
+<div style="display:flex;align-items:center;gap:8px"><div style="font:700 14px 'JetBrains Mono',monospace">{{ i.id }}</div><span style="padding:2px 7px;border-radius:5px;font-size:10.5px;font-weight:700;background:{{ i.stageBg }};color:{{ i.stageFg }}">{{ i.stage }}</span></div>
+<div style="font-size:12px;color:#6b6b78;margin-top:5px">{{ i.role }} · {{ i.dur }} · {{ i.mode }}</div>
+<div style="font-size:12px;color:#6b6b78;margin-top:3px">Panel: {{ i.panel }}</div>
+<div style="display:flex;gap:6px;margin-top:10px"><div style="padding:6px 11px;border-radius:7px;background:#101014;color:#fff;font-size:11.5px;font-weight:700;cursor:pointer">{{ i.cta }}</div><div onClick="{{ openAsk }}" style="padding:6px 11px;border:1px solid #e0e0e8;border-radius:7px;font-size:11.5px;color:#6b6b78;cursor:pointer">Reschedule via broker</div></div>
+</div>
+</div>
+</div>
+</sc-for>
+<div style="font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.12em;color:#8a8a96;margin-top:6px">AWAITING TALENTVIBES CONFIRMATION</div>
+<div style="background:#fff;border:1px dashed #d9d9e3;border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px">
+<div style="font:700 13px 'JetBrains Mono',monospace">TV-5302</div>
+<div style="font-size:12px;color:#6b6b78">You proposed Thu 27 Aug, 11:00 & 16:00 — broker is confirming supplier release.</div>
+<div style="margin-left:auto;font-size:11.5px;color:#8a8a96;white-space:nowrap">Requested 4h ago</div>
+</div>
+</div>
+<div style="background:#fff;border:1px solid #e8e8ee;border-radius:12px;padding:17px">
+<div style="display:flex;align-items:center;justify-content:space-between"><div style="font-size:14px;font-weight:800">Feedback · TV-6620</div><span style="padding:3px 8px;border-radius:20px;font-size:10.5px;font-weight:700;background:#fff3e4;color:#b45309">DUE TODAY</span></div>
+<div style="font-size:12px;color:#8a8a96;margin-top:4px">Round 2 · Technical deep-dive · 21 Aug, 15:00</div>
+<div style="display:flex;flex-direction:column;gap:11px;margin-top:15px">
+<sc-for list="{{ feedbackRows }}" as="f" hint-placeholder-count="4">
+<div><div style="display:flex;justify-content:space-between;align-items:baseline"><div style="font-size:12px;font-weight:700">{{ f.label }}</div><div style="font:700 11.5px 'JetBrains Mono',monospace;color:#6d3ff0">{{ f.v }}/5</div></div>
+<div style="display:flex;gap:4px;margin-top:6px"><sc-for list="{{ f.pips }}" as="p" hint-placeholder-count="5"><div style="flex:1;height:6px;border-radius:3px;background:{{ p.bg }}"></div></sc-for></div></div>
+</sc-for>
+</div>
+<div style="margin-top:15px"><div style="font-size:12px;font-weight:700;margin-bottom:6px">Notes to Talentvibes</div>
+<div style="padding:11px;border:1px solid #e0e0e8;border-radius:9px;font-size:12px;color:#4a4a58;line-height:1.5;min-height:74px">Strong on Playwright and CI pipelines; walked our team through a flaky-test triage cleanly. Would want a short pairing round with the platform lead before we commit.</div></div>
+<div style="margin-top:14px"><div style="font-size:12px;font-weight:700;margin-bottom:7px">Outcome</div>
+<div style="display:flex;gap:6px"><div style="flex:1;text-align:center;padding:9px;border-radius:8px;background:#101014;color:#fff;font-size:12px;font-weight:700;cursor:pointer">Advance</div><div style="flex:1;text-align:center;padding:9px;border:1px solid #e0e0e8;border-radius:8px;font-size:12px;color:#6b6b78;cursor:pointer">Hold</div><div style="flex:1;text-align:center;padding:9px;border:1px solid #e0e0e8;border-radius:8px;font-size:12px;color:#6b6b78;cursor:pointer">Pass</div></div></div>
+<div style="margin-top:13px;padding:10px;border-radius:9px;background:#f7f7fa;font-size:11.5px;color:#6b6b78;line-height:1.45">Feedback is relayed to the supplier by Talentvibes with commercial details removed.</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isVendorDash }}" hint-placeholder-val="{{ true }}">
+<div style="padding:20px 26px 16px;background:#fff;border-bottom:1px solid #e8e8ee">
+<div style="display:flex;align-items:flex-end;justify-content:space-between">
+<div><div style="font-size:22px;font-weight:800;letter-spacing:-.6px">Nimbus Softworks · bench</div><div style="font-size:12.5px;color:#6b6b78;margin-top:4px">Supplier ID NSW-0142 · reliability score 4.6/5 · you are one of 14 suppliers on the exchange</div></div>
+<div style="display:flex;gap:8px"><div onClick="{{ goRoster }}" style="padding:8px 13px;border:1px solid #e0e0e8;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer">Confirm availability (7)</div><div onClick="{{ goAdd }}" style="padding:8px 13px;border-radius:8px;font-size:12.5px;font-weight:700;background:#059669;color:#fff;cursor:pointer">Add bench resource</div></div>
+</div>
+</div>
+<div style="flex:1;overflow:auto;padding:20px 26px 30px">
+<div style="display:grid;grid-template-columns:1.15fr repeat(4,1fr);gap:12px">
+<div style="background:#101014;color:#fff;border-radius:12px;padding:16px">
+<div style="font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.12em;color:#8b8b96">BENCH UTILISATION</div>
+<div style="display:flex;align-items:baseline;gap:8px;margin-top:10px"><div style="font-size:34px;font-weight:800;letter-spacing:-1.4px">64%</div><div style="font-size:11.5px;font-weight:700;color:#34d399">+9 pts MoM</div></div>
+<div style="display:flex;height:7px;border-radius:4px;overflow:hidden;margin-top:12px;background:#26262c"><div style="width:64%;background:#34d399"></div><div style="width:14%;background:#fbbf24"></div></div>
+<div style="display:flex;gap:12px;margin-top:9px;font-size:10.5px;color:#a0a0ac"><span><b style="color:#34d399">27</b> deployed</span><span><b style="color:#fbbf24">6</b> in process</span><span><b style="color:#fff">9</b> idle</span></div>
+<div style="margin-top:12px;padding-top:11px;border-top:1px solid #26262c;font-size:11.5px;color:#a0a0ac;line-height:1.45">Idle cost this month: <b style="color:#fff">₹9.8L</b>. Listing 9 idle profiles could recover ~₹7.2L.</div>
+</div>
+<sc-for list="{{ vendorStats }}" as="s" hint-placeholder-count="4">
+<div style="background:#fff;border:1px solid #e8e8ee;border-radius:12px;padding:15px">
+<div style="font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.12em;color:#8a8a96">{{ s.label }}</div>
+<div style="display:flex;align-items:baseline;gap:8px;margin-top:9px"><div style="font-size:28px;font-weight:800;letter-spacing:-1px">{{ s.value }}</div><div style="font-size:11.5px;font-weight:700;color:{{ s.deltaColor }}">{{ s.delta }}</div></div>
+<div style="font-size:11.5px;color:#8a8a96;margin-top:4px">{{ s.sub }}</div>
+</div>
+</sc-for>
+</div>
+<div style="display:grid;grid-template-columns:1.5fr 1fr;gap:16px;margin-top:16px">
+<div style="background:#fff;border:1px solid #e8e8ee;border-radius:12px;overflow:hidden">
+<div style="padding:14px 16px;border-bottom:1px solid #eeeef3;display:flex;align-items:center;justify-content:space-between"><div style="font-size:13.5px;font-weight:800">Pipeline on your profiles</div><div style="font-size:12px;color:#8a8a96">Talentvibes hides the hiring company until placement</div></div>
+<div style="display:grid;grid-template-columns:100px 1fr 120px 130px 118px;padding:8px 16px;font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.1em;color:#8a8a96;border-bottom:1px solid #eeeef3;background:#fafafc"><div>RESOURCE</div><div>SKILLS</div><div>YOUR RATE</div><div>STAGE</div><div style="text-align:right">UPDATED</div></div>
+<sc-for list="{{ vendorPipeline }}" as="p" hint-placeholder-count="5">
+<div style="display:grid;grid-template-columns:100px 1fr 120px 130px 118px;align-items:center;padding:12px 16px;border-bottom:1px solid #f2f2f6">
+<div><div style="font:700 12px 'JetBrains Mono',monospace">{{ p.id }}</div><div style="font-size:11px;color:#8a8a96;margin-top:2px">{{ p.name }}</div></div>
+<div style="display:flex;flex-wrap:wrap;gap:4px;padding-right:14px"><sc-for list="{{ p.skills }}" as="s" hint-placeholder-count="3"><span style="padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;background:#f3f3f7;color:#4a4a58;white-space:nowrap">{{ s }}</span></sc-for></div>
+<div style="font-size:12.5px;font-weight:700">{{ p.rate }}</div>
+<div><span style="padding:3px 8px;border-radius:20px;font-size:10.5px;font-weight:700;background:{{ p.stageBg }};color:{{ p.stageFg }}">{{ p.stage }}</span></div>
+<div style="text-align:right;font-size:11.5px;color:#8a8a96">{{ p.updated }}</div>
+</div>
+</sc-for>
+</div>
+<div style="display:flex;flex-direction:column;gap:16px">
+<div style="background:#fff;border:1px solid #f7dcae;border-radius:12px;padding:15px">
+<div style="display:flex;align-items:center;justify-content:space-between"><div style="font-size:13.5px;font-weight:800">Availability freshness</div><span style="padding:3px 8px;border-radius:20px;font-size:10.5px;font-weight:700;background:#fff3e4;color:#b45309">ACTION NEEDED</span></div>
+<div style="font-size:11.5px;color:#6b6b78;margin-top:5px;line-height:1.45">Profiles unconfirmed for 14 days drop out of matching. Confirming takes one click and lifts your ranking.</div>
+<div style="display:flex;gap:9px;margin-top:13px">
+<sc-for list="{{ freshSummary }}" as="f" hint-placeholder-count="3">
+<div style="flex:1;padding:11px;border-radius:9px;background:{{ f.bg }}"><div style="font-size:22px;font-weight:800;letter-spacing:-.8px;color:{{ f.fg }}">{{ f.n }}</div><div style="font-size:10.5px;font-weight:700;color:{{ f.fg }};margin-top:2px">{{ f.label }}</div></div>
+</sc-for>
+</div>
+<div onClick="{{ goRoster }}" style="margin-top:12px;text-align:center;padding:9px;border-radius:8px;background:#059669;color:#fff;font-size:12.5px;font-weight:700;cursor:pointer">Confirm all 7 expiring</div>
+</div>
+<div style="background:#fff;border:1px solid #e8e8ee;border-radius:12px;padding:15px">
+<div style="font-size:13.5px;font-weight:800">Assessment throughput</div>
+<div style="display:flex;flex-direction:column;gap:10px;margin-top:12px">
+<sc-for list="{{ assessSummary }}" as="a" hint-placeholder-count="3">
+<div style="display:flex;align-items:center;gap:9px"><div style="font-size:11.5px;color:#6b6b78;width:96px">{{ a.label }}</div><div style="flex:1;height:6px;border-radius:3px;background:#eeeef3;overflow:hidden"><div style="height:6px;border-radius:3px;background:{{ a.color }};width:{{ a.w }}"></div></div><div style="font:700 11.5px 'JetBrains Mono',monospace;width:22px;text-align:right">{{ a.n }}</div></div>
+</sc-for>
+</div>
+<div style="margin-top:12px;padding:10px;border-radius:9px;background:#f7f7fa;font-size:11.5px;color:#6b6b78;line-height:1.45">Scored profiles are shortlisted <b style="color:#101014">3.1×</b> more often. 9 of your listed resources have not started the proctored test.</div>
+</div>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isVendorAdd }}" hint-placeholder-val="{{ true }}">
+<div style="padding:20px 26px 16px;background:#fff;border-bottom:1px solid #e8e8ee">
+<div style="font:600 11px 'JetBrains Mono',monospace;color:#8a8a96">BENCH · ADD RESOURCE</div>
+<div style="font-size:22px;font-weight:800;letter-spacing:-.6px;margin-top:7px">Add a bench resource</div>
+<div style="font-size:12.5px;color:#6b6b78;margin-top:4px">Talentvibes masks the name, photo and your company identity before any client sees this profile.</div>
+</div>
+<div style="flex:1;overflow:auto;padding:20px 26px 30px">
+<div style="display:grid;grid-template-columns:1.6fr 1fr;gap:18px;align-items:start">
+<div style="background:#fff;border:1px solid #e8e8ee;border-radius:12px;padding:20px">
+<div style="font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.12em;color:#8a8a96">IDENTITY · INTERNAL ONLY</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:12px">
+<div><div style="font-size:12px;font-weight:700;margin-bottom:6px">Full name</div><div style="padding:8px 12px;border:1px solid #e0e0e8;border-radius:9px;font-size:12.5px">Ishita Bansal</div></div>
+<div><div style="font-size:12px;font-weight:700;margin-bottom:6px">Employee ID</div><div style="padding:8px 12px;border:1px solid #e0e0e8;border-radius:9px;font-size:12.5px">NSW-3391</div></div>
+<div><div style="font-size:12px;font-weight:700;margin-bottom:6px">Base city</div><div style="padding:8px 12px;border:1px solid #e0e0e8;border-radius:9px;font-size:12.5px">Pune</div></div>
+</div>
+<div style="margin-top:10px;padding:9px 11px;border-radius:8px;background:#ecfdf5;font-size:11.5px;color:#065f46;font-weight:600">Clients will see this profile as <b>TV-####</b> only. Name and Nimbus Softworks are never exposed.</div>
+<div style="height:1px;background:#eeeef3;margin:20px 0"></div>
+<div style="font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.12em;color:#8a8a96">CAPABILITY</div>
+<div style="margin-top:12px"><div style="font-size:12px;font-weight:700;margin-bottom:6px">Skills</div><div style="display:flex;flex-wrap:wrap;gap:6px;padding:9px;border:1px solid #e0e0e8;border-radius:9px"><span style="padding:4px 9px;border-radius:6px;background:#ecfdf5;color:#059669;font-size:12px;font-weight:700">Java Spring Boot</span><span style="padding:4px 9px;border-radius:6px;background:#ecfdf5;color:#059669;font-size:12px;font-weight:700">Microservices</span><span style="padding:4px 9px;border-radius:6px;background:#ecfdf5;color:#059669;font-size:12px;font-weight:700">PostgreSQL</span><span style="padding:4px 9px;font-size:12px;color:#a3a3b0">Add a skill…</span></div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:14px">
+<div><div style="font-size:12px;font-weight:700;margin-bottom:6px">Total experience</div><div style="padding:8px 12px;border:1px solid #e0e0e8;border-radius:9px;font-size:12.5px">6 years 4 months</div></div>
+<div><div style="font-size:12px;font-weight:700;margin-bottom:6px">Available from</div><div style="padding:8px 12px;border:1px solid #e0e0e8;border-radius:9px;font-size:12.5px">Immediate</div></div>
+<div><div style="font-size:12px;font-weight:700;margin-bottom:6px">Work mode</div><div style="padding:8px 12px;border:1px solid #e0e0e8;border-radius:9px;font-size:12.5px">Hybrid / Remote</div></div>
+</div>
+<div style="height:1px;background:#eeeef3;margin:20px 0"></div>
+<div style="font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.12em;color:#8a8a96">YOUR RATE</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px;align-items:end">
+<div><div style="font-size:12px;font-weight:700;margin-bottom:6px">Monthly rate to Talentvibes (₹)</div><div style="padding:8px 12px;border:1px solid #e0e0e8;border-radius:9px;font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace">1,45,000</div></div>
+<div style="padding:11px;border-radius:9px;background:#f7f7fa;font-size:11.5px;color:#6b6b78;line-height:1.45">Benchmark for 5–8y Java in Pune: <b style="color:#101014">₹1.32L – ₹1.61L</b>. You will never see the client-side rate.</div>
+</div>
+<div style="margin-top:14px"><div style="font-size:12px;font-weight:700;margin-bottom:7px">Proctored assessment</div>
+<div style="display:flex;gap:6px"><div style="padding:9px 14px;border-radius:8px;background:#101014;color:#fff;font-size:12px;font-weight:700">Send test invite now</div><div style="padding:9px 14px;border:1px solid #e0e0e8;border-radius:8px;font-size:12px;color:#6b6b78">Schedule for later</div></div></div>
+<div style="display:flex;align-items:center;gap:10px;margin-top:22px;padding-top:18px;border-top:1px solid #eeeef3">
+<div onClick="{{ goRoster }}" style="padding:10px 16px;border-radius:9px;background:#059669;color:#fff;font-size:13px;font-weight:700;cursor:pointer">List on exchange</div>
+<div style="padding:10px 16px;border:1px solid #e0e0e8;border-radius:9px;font-size:13px;font-weight:600;color:#4a4a58">Save as draft</div>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:14px">
+<div style="background:#fff;border:1px solid #e8e8ee;border-radius:12px;padding:17px">
+<div style="display:flex;align-items:center;justify-content:space-between"><div style="font-size:14px;font-weight:800">Bulk upload</div><span style="font:600 10.5px 'JetBrains Mono',monospace;color:#8a8a96">CSV · XLSX</span></div>
+<div style="margin-top:12px;padding:22px 14px;border:2px dashed #cfe9dd;border-radius:11px;text-align:center;background:#f6fdfa">
+<div style="font-size:12.5px;font-weight:700">Drop your bench sheet here</div>
+<div style="font-size:11.5px;color:#6b6b78;margin-top:4px">or <span style="color:#059669;font-weight:700">browse files</span> · max 500 rows</div>
+<div style="margin-top:10px;font:500 10.5px 'JetBrains Mono',monospace;color:#8a8a96">name, emp_id, skills, exp_years, city, rate_inr, available_from</div>
+</div>
+<div style="margin-top:13px;font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.12em;color:#8a8a96">LAST IMPORT · bench_aug26.csv</div>
+<div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">
+<sc-for list="{{ importRows }}" as="i" hint-placeholder-count="3">
+<div style="display:flex;align-items:center;gap:9px"><div style="width:7px;height:7px;border-radius:2px;background:{{ i.color }};flex:none"></div><div style="font-size:12px;color:#4a4a58;flex:1">{{ i.label }}</div><div style="font:700 12px 'JetBrains Mono',monospace">{{ i.n }}</div></div>
+</sc-for>
+</div>
+<div style="margin-top:12px;padding:10px;border-radius:9px;background:#fff8ec;border:1px solid #f7e2bd;font-size:11.5px;color:#8a5a08;line-height:1.45"><b>4 rows need attention.</b> Two are missing a rate; two look like duplicates of profiles already on your bench.</div>
+<div style="margin-top:11px;display:flex;gap:7px"><div style="flex:1;text-align:center;padding:8px;border-radius:8px;background:#101014;color:#fff;font-size:12px;font-weight:700;cursor:pointer">Review 4 rows</div><div style="padding:8px 12px;border:1px solid #e0e0e8;border-radius:8px;font-size:12px;color:#6b6b78;cursor:pointer">Template</div></div>
+</div>
+<div style="background:#101014;color:#fff;border-radius:12px;padding:17px">
+<div style="font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.12em;color:#8b8b96">WHAT THE CLIENT SEES</div>
+<div style="margin-top:12px;background:#1a1a20;border:1px solid #26262c;border-radius:11px;padding:14px">
+<div style="display:flex;align-items:flex-start;justify-content:space-between"><div><div style="font:700 15px 'JetBrains Mono',monospace">TV-####</div><div style="font-size:11.5px;color:#8b8b96;margin-top:3px">6.3y · Pune</div></div><div style="text-align:right"><div style="font-size:19px;font-weight:800;color:#34d399">—</div><div style="font:600 9px 'JetBrains Mono',monospace;color:#8b8b96">PENDING TEST</div></div></div>
+<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:10px"><span style="padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;background:#26262c;color:#c9c9d2">Java Spring Boot</span><span style="padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;background:#26262c;color:#c9c9d2">Microservices</span></div>
+<div style="margin-top:11px;padding-top:10px;border-top:1px dashed #26262c;font-size:11.5px;color:#8b8b96;line-height:1.5">Name · photo · Nimbus Softworks<br>Rate shown to client is set by Talentvibes</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isVendorRoster }}" hint-placeholder-val="{{ true }}">
+<div style="padding:18px 26px 14px;background:#fff;border-bottom:1px solid #e8e8ee">
+<div style="display:flex;align-items:flex-end;justify-content:space-between">
+<div><div style="font-size:22px;font-weight:800;letter-spacing:-.6px">Bench roster</div><div style="font-size:12.5px;color:#6b6b78;margin-top:4px">42 resources · 27 listed on the exchange · confirm availability every 14 days to stay in matching</div></div>
+<div style="display:flex;gap:8px"><div style="padding:8px 13px;border:1px solid #e0e0e8;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer">Export CSV</div><div onClick="{{ confirmAll }}" style="padding:8px 13px;border-radius:8px;font-size:12.5px;font-weight:700;background:#059669;color:#fff;cursor:pointer">Confirm all expiring · {{ expiringCount }}</div></div>
+</div>
+<div style="display:flex;align-items:center;gap:8px;margin-top:14px;font-size:12px">
+<span style="padding:5px 11px;border-radius:20px;background:#101014;color:#fff;font-weight:700">All 42</span>
+<span style="padding:5px 11px;border-radius:20px;border:1px solid #e0e0e8;color:#6b6b78">Listed 27</span>
+<span style="padding:5px 11px;border-radius:20px;border:1px solid #e0e0e8;color:#6b6b78">Idle 9</span>
+<span style="padding:5px 11px;border-radius:20px;background:#fff3e4;color:#b45309;font-weight:700">Expiring 7</span>
+<span style="padding:5px 11px;border-radius:20px;background:#fdecec;color:#b91c1c;font-weight:700">Unconfirmed 3</span>
+<span style="margin-left:auto;font:500 11px 'JetBrains Mono',monospace;color:#8a8a96">Freshness recalculated nightly · 02:00 IST</span>
+</div>
+</div>
+<div style="flex:1;overflow:auto;background:#fff">
+<div style="display:grid;grid-template-columns:170px 1fr 66px 118px 128px 176px 122px;padding:9px 26px;font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.1em;color:#8a8a96;border-bottom:1px solid #eeeef3;background:#fafafc;position:sticky;top:0"><div>RESOURCE</div><div>SKILLS</div><div>EXP</div><div>YOUR RATE</div><div>ASSESSMENT</div><div>AVAILABILITY FRESHNESS</div><div style="text-align:right">CONFIRM</div></div>
+<sc-for list="{{ roster }}" as="r" hint-placeholder-count="9">
+<div style="display:grid;grid-template-columns:170px 1fr 66px 118px 128px 176px 122px;align-items:center;padding:12px 26px;border-bottom:1px solid #f2f2f6">
+<div><div style="font-size:12.5px;font-weight:700">{{ r.name }}</div><div style="font:500 11px 'JetBrains Mono',monospace;color:#8a8a96;margin-top:2px">{{ r.id }} · {{ r.city }}</div></div>
+<div style="display:flex;flex-wrap:wrap;gap:4px;padding-right:16px"><sc-for list="{{ r.skills }}" as="s" hint-placeholder-count="3"><span style="padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;background:#f3f3f7;color:#4a4a58;white-space:nowrap">{{ s }}</span></sc-for></div>
+<div style="font-size:12.5px">{{ r.exp }}</div>
+<div style="font:700 12.5px 'JetBrains Mono',monospace">{{ r.rate }}</div>
+<div><div style="display:flex;align-items:center;gap:6px"><div style="width:6px;height:6px;border-radius:50%;background:{{ r.assessDot }}"></div><span style="font-size:11.5px;font-weight:600;color:#4a4a58">{{ r.assess }}</span></div><div style="font-size:10.5px;color:#8a8a96;margin-top:2px">{{ r.assessSub }}</div></div>
+<div><div style="display:flex;align-items:center;gap:7px"><span style="padding:3px 8px;border-radius:20px;font-size:10.5px;font-weight:700;background:{{ r.freshBg }};color:{{ r.freshFg }}">{{ r.freshLabel }}</span><span style="font-size:11px;color:#8a8a96">{{ r.freshSub }}</span></div>
+<div style="height:4px;border-radius:3px;background:#eeeef3;margin-top:7px;overflow:hidden"><div style="height:4px;border-radius:3px;background:{{ r.freshFg }};width:{{ r.freshW }}"></div></div></div>
+<div style="text-align:right"><span onClick="{{ r.confirm }}" style="display:inline-block;padding:6px 11px;border-radius:8px;font-size:11.5px;font-weight:700;cursor:pointer;background:{{ r.btnBg }};color:{{ r.btnFg }};border:1px solid {{ r.btnBorder }}">{{ r.btnLabel }}</span></div>
+</div>
+</sc-for>
+<div style="padding:12px 26px;font-size:11.5px;color:#8a8a96">Showing 9 of 42 · <span style="color:#059669;font-weight:700;cursor:pointer">Load more</span></div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isVendorAssess }}" hint-placeholder-val="{{ true }}">
+<div style="padding:18px 26px 14px;background:#fff;border-bottom:1px solid #e8e8ee">
+<div style="display:flex;align-items:flex-end;justify-content:space-between">
+<div><div style="font-size:22px;font-weight:800;letter-spacing:-.6px">Assessments</div><div style="font-size:12.5px;color:#6b6b78;margin-top:4px">Proctored by Talentvibes. Scores are visible to you and to clients — you cannot edit them.</div></div>
+<div style="padding:8px 13px;border-radius:8px;font-size:12.5px;font-weight:700;background:#059669;color:#fff;cursor:pointer">Invite 9 to test</div>
+</div>
+</div>
+<div style="flex:1;overflow:auto;padding:18px 26px 26px">
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+<sc-for list="{{ assessCards }}" as="a" hint-placeholder-count="6">
+<div style="background:#fff;border:1px solid #e8e8ee;border-radius:12px;padding:15px">
+<div style="display:flex;align-items:flex-start;justify-content:space-between">
+<div><div style="font-size:13.5px;font-weight:800">{{ a.name }}</div><div style="font:500 11px 'JetBrains Mono',monospace;color:#8a8a96;margin-top:3px">{{ a.id }} · {{ a.track }}</div></div>
+<span style="padding:3px 8px;border-radius:20px;font-size:10.5px;font-weight:700;background:{{ a.bg }};color:{{ a.fg }};white-space:nowrap">{{ a.status }}</span>
+</div>
+<div style="margin-top:13px;display:flex;align-items:flex-end;gap:14px">
+<div><div style="font-size:30px;font-weight:800;letter-spacing:-1.2px;color:{{ a.scoreColor }}">{{ a.score }}</div><div style="font:600 9px 'JetBrains Mono',monospace;letter-spacing:.08em;color:#8a8a96">{{ a.scoreLabel }}</div></div>
+<div style="flex:1;display:flex;flex-direction:column;gap:5px;padding-bottom:3px">
+<sc-for list="{{ a.bars }}" as="b" hint-placeholder-count="4">
+<div style="display:flex;align-items:center;gap:8px"><div style="font-size:10.5px;color:#8a8a96;width:70px">{{ b.label }}</div><div style="flex:1;height:4px;border-radius:3px;background:#eeeef3;overflow:hidden"><div style="height:4px;border-radius:3px;background:{{ a.scoreColor }};width:{{ b.w }}"></div></div></div>
+</sc-for>
+</div>
+</div>
+<div style="margin-top:13px;padding-top:11px;border-top:1px dashed #e8e8ee;display:flex;align-items:center;justify-content:space-between">
+<div style="font-size:11.5px;color:#8a8a96">{{ a.note }}</div>
+<span style="font-size:11.5px;font-weight:700;color:#059669;cursor:pointer">{{ a.cta }}</span>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isVendorEarnings }}" hint-placeholder-val="{{ true }}">
+<div style="padding:18px 26px 14px;background:#fff;border-bottom:1px solid #e8e8ee">
+<div style="display:flex;align-items:flex-end;justify-content:space-between">
+<div><div style="font-size:22px;font-weight:800;letter-spacing:-.6px">Earnings</div><div style="font-size:12.5px;color:#6b6b78;margin-top:4px">Your contracted rate per placement. Talentvibes contracts separately with the client.</div></div>
+<div style="display:flex;gap:8px"><div style="padding:8px 13px;border:1px solid #e0e0e8;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer">Download statement</div><div style="padding:8px 13px;border-radius:8px;font-size:12.5px;font-weight:700;background:#059669;color:#fff;cursor:pointer">Raise invoice</div></div>
+</div>
+</div>
+<div style="flex:1;overflow:auto;padding:20px 26px 30px">
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+<sc-for list="{{ earnStats }}" as="s" hint-placeholder-count="4">
+<div style="background:#fff;border:1px solid #e8e8ee;border-radius:12px;padding:15px">
+<div style="font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.12em;color:#8a8a96">{{ s.label }}</div>
+<div style="display:flex;align-items:baseline;gap:8px;margin-top:9px"><div style="font-size:26px;font-weight:800;letter-spacing:-1px">{{ s.value }}</div><div style="font-size:11.5px;font-weight:700;color:{{ s.deltaColor }}">{{ s.delta }}</div></div>
+<div style="font-size:11.5px;color:#8a8a96;margin-top:4px">{{ s.sub }}</div>
+</div>
+</sc-for>
+</div>
+<div style="background:#fff;border:1px solid #e8e8ee;border-radius:12px;margin-top:16px;overflow:hidden">
+<div style="padding:14px 16px;border-bottom:1px solid #eeeef3;display:flex;align-items:center;justify-content:space-between"><div style="font-size:13.5px;font-weight:800">Active placements · August 2026</div><div style="font-size:12px;color:#8a8a96">Payout on the 7th, net 30 from client invoice</div></div>
+<div style="display:grid;grid-template-columns:168px 1fr 96px 120px 120px 130px;padding:8px 16px;font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.1em;color:#8a8a96;border-bottom:1px solid #eeeef3;background:#fafafc"><div>RESOURCE</div><div>ROLE</div><div>SINCE</div><div>YOUR RATE/MO</div><div>THIS MONTH</div><div style="text-align:right">STATUS</div></div>
+<sc-for list="{{ earnRows }}" as="e" hint-placeholder-count="5">
+<div style="display:grid;grid-template-columns:168px 1fr 96px 120px 120px 130px;align-items:center;padding:12px 16px;border-bottom:1px solid #f2f2f6">
+<div><div style="font-size:12.5px;font-weight:700">{{ e.name }}</div><div style="font:500 11px 'JetBrains Mono',monospace;color:#8a8a96;margin-top:2px">{{ e.id }}</div></div>
+<div style="font-size:12.5px;color:#4a4a58">{{ e.role }}</div>
+<div style="font-size:12px;color:#6b6b78">{{ e.since }}</div>
+<div style="font:700 12.5px 'JetBrains Mono',monospace">{{ e.rate }}</div>
+<div style="font:700 12.5px 'JetBrains Mono',monospace">{{ e.month }}</div>
+<div style="text-align:right"><span style="padding:3px 8px;border-radius:20px;font-size:10.5px;font-weight:700;background:{{ e.bg }};color:{{ e.fg }}">{{ e.status }}</span></div>
+</div>
+</sc-for>
+<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#fafafc">
+<div style="font-size:12px;color:#6b6b78">5 active placements · 1 ending 30 Sep</div>
+<div style="display:flex;align-items:baseline;gap:9px"><span style="font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.1em;color:#8a8a96">TOTAL DUE</span><span style="font-size:20px;font-weight:800;letter-spacing:-.8px;font-family:'JetBrains Mono',monospace">₹7,42,000</span></div>
+</div>
+</div>
+<div style="margin-top:14px;padding:13px 15px;border-radius:12px;background:#f7f7fa;border:1px solid #e8e8ee;font-size:12px;color:#6b6b78;line-height:1.5">Talentvibes is the contracting party for every placement. Client identity, client rate and margin are not shared with suppliers — this keeps the exchange neutral for both sides.</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isOps }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;align-items:center;gap:10px;padding:6px 26px;background:#1c1917;color:#fbbf24;font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.14em"><div style="width:5px;height:5px;border-radius:50%;background:#fbbf24"></div>INTERNAL · TALENTVIBES BROKERING CONSOLE · UNMASKED DATA<span style="margin-left:auto;color:#a8a29e;font-weight:500">Priya Nair · brokering desk 2 · logged 08:14 IST</span></div>
+</sc-if>
+
+<sc-if value="{{ isOpsPipeline }}" hint-placeholder-val="{{ true }}">
+<div style="padding:14px 26px 12px;background:#fff;border-bottom:1px solid #e8e8ee">
+<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px">
+<div><div style="font-size:22px;font-weight:800;letter-spacing:-.6px">Requirement pipeline</div><div style="font-size:12.5px;color:#6b6b78;margin-top:4px">{{ pipeSubtitle }}</div></div>
+<div style="display:flex;align-items:center;gap:8px">
+<div style="display:flex;padding:2px;border-radius:9px;background:#f1f1f4">
+<div onClick="{{ setBoard }}" style="padding:6px 12px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;background:{{ boardBg }};color:{{ boardFg }}">Board</div>
+<div onClick="{{ setList }}" style="padding:6px 12px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;background:{{ listBg }};color:{{ listFg }}">List</div>
+</div>
+<div onClick="{{ openMatchTop }}" style="padding:8px 13px;border-radius:8px;font-size:12.5px;font-weight:700;background:#b45309;color:#fff;cursor:pointer;white-space:nowrap">Open matching workspace</div>
+</div>
+</div>
+<div style="display:flex;align-items:center;gap:8px;margin-top:13px">
+<div style="display:flex;align-items:center;gap:7px;padding:6px 11px;border:1px solid #e0e0e8;border-radius:8px;background:#fff;width:288px">
+<div style="width:5px;height:5px;border-radius:50%;background:#b0b0bb"></div>
+<input value="{{ q }}" onChange="{{ onSearch }}" placeholder="Search REQ ID, role, client or owner…" style="border:0;outline:0;font:500 12px Manrope,sans-serif;flex:1;background:transparent;color:#101014" />
+</div>
+<div onClick="{{ toggleDesk }}" style="padding:6px 11px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid {{ deskBorder }};background:{{ deskBg }};color:{{ deskFg }}">{{ deskLabel }}</div>
+<div onClick="{{ toggleRisk }}" style="padding:6px 11px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid {{ riskBorder }};background:{{ riskBg }};color:{{ riskFg }}">SLA at risk</div>
+<div onClick="{{ toggleUnassigned }}" style="padding:6px 11px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid {{ unBorder }};background:{{ unBg }};color:{{ unFg }}">Needs sourcing</div>
+<sc-if value="{{ anyFilter }}" hint-placeholder-val="{{ true }}">
+<div onClick="{{ clearFilters }}" style="padding:6px 10px;font-size:12px;font-weight:700;color:#b45309;cursor:pointer">Clear filters</div>
+</sc-if>
+<div style="margin-left:auto;font:500 11px 'JetBrains Mono',monospace;color:#8a8a96">{{ resultNote }}</div>
+</div>
+</div>
+
+<sc-if value="{{ toastOn }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;align-items:center;gap:12px;padding:9px 26px;background:#101014;color:#fff">
+<div style="width:5px;height:5px;border-radius:50%;background:#34d399"></div>
+<div style="font-size:12.5px;font-weight:600">{{ toastMsg }}</div>
+<div onClick="{{ undo }}" style="font-size:12px;font-weight:700;color:#fbbf24;cursor:pointer;margin-left:6px">Undo</div>
+<div onClick="{{ dismissToast }}" style="margin-left:auto;font-size:12px;color:#8b8b96;cursor:pointer">Dismiss</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isBoard }}" hint-placeholder-val="{{ true }}">
+<div style="flex:1;min-height:0;display:flex;gap:11px;padding:13px 26px 20px;background:#f7f7f9;overflow:hidden">
+<sc-for list="{{ columns }}" as="col" hint-placeholder-count="5">
+<div onDragOver="{{ col.onDragOver }}" onDrop="{{ col.onDrop }}" style="flex:1;min-width:0;display:flex;flex-direction:column;background:{{ col.bg }};border:1px solid {{ col.border }};border-radius:12px">
+<div style="display:flex;align-items:center;gap:7px;padding:10px 11px 9px;border-bottom:1px solid #e8e8ee">
+<div style="width:7px;height:7px;border-radius:2px;background:{{ col.color }};flex:none"></div>
+<div style="font:700 10.5px 'JetBrains Mono',monospace;letter-spacing:.08em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ col.title }}</div>
+<div style="margin-left:auto;font:700 10.5px 'JetBrains Mono',monospace;color:#101014;background:#fff;border:1px solid #e8e8ee;border-radius:20px;padding:1px 7px">{{ col.count }}</div>
+</div>
+<div style="padding:6px 11px 4px;font-size:10.5px;color:{{ col.wipColor }};font-weight:600">{{ col.wip }}</div>
+<div style="flex:1;min-height:0;overflow:auto;padding:4px 11px 11px;display:flex;flex-direction:column;gap:8px">
+<sc-for list="{{ col.cards }}" as="c" hint-placeholder-count="4">
+<div draggable="true" onDragStart="{{ c.onDragStart }}" style="background:#fff;border:1px solid {{ c.border }};border-radius:11px;padding:11px;box-shadow:0 1px 2px rgba(16,16,20,.04);opacity:{{ c.opacity }};cursor:grab">
+<div style="display:flex;align-items:center;justify-content:space-between"><div onClick="{{ c.openMatch }}" style="font:700 11px 'JetBrains Mono',monospace;cursor:pointer">{{ c.id }}</div><div style="font-size:10.5px;color:#8a8a96">{{ c.age }}</div></div>
+<div onClick="{{ c.openMatch }}" style="font-size:12.5px;font-weight:700;margin-top:6px;line-height:1.3;cursor:pointer">{{ c.role }}</div>
+<div style="font-size:11px;color:#8a8a96;margin-top:3px">{{ c.client }} · ×{{ c.qty }} · {{ c.owner }}</div>
+<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px"><sc-for list="{{ c.skills }}" as="s" hint-placeholder-count="2"><span style="padding:2px 7px;border-radius:5px;font-size:10.5px;font-weight:600;background:#f3f3f7;color:#4a4a58;white-space:nowrap">{{ s }}</span></sc-for></div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-top:9px;padding-top:8px;border-top:1px dashed #eeeef3">
+<div style="font:700 11px 'JetBrains Mono',monospace;color:#4a4a58">{{ c.value }}</div>
+<div style="display:flex;align-items:center;gap:5px"><div style="width:5px;height:5px;border-radius:50%;background:{{ c.slaColor }}"></div><span style="font-size:10px;font-weight:700;color:{{ c.slaColor }}">{{ c.sla }}</span></div>
+</div>
+<div style="display:flex;align-items:center;gap:5px;margin-top:9px">
+<div onClick="{{ c.prev }}" title="Move back a stage" style="width:24px;text-align:center;padding:5px 0;border:1px solid #e8e8ee;border-radius:7px;font-size:11px;color:{{ c.prevColor }};cursor:pointer">←</div>
+<div onClick="{{ c.openMatch }}" style="flex:1;text-align:center;padding:5px 0;border-radius:7px;font-size:11px;font-weight:700;background:#f6efe6;color:#b45309;cursor:pointer">{{ c.action }}</div>
+<div onClick="{{ c.next }}" title="Advance to next stage" style="width:24px;text-align:center;padding:5px 0;border:1px solid #e8e8ee;border-radius:7px;font-size:11px;color:{{ c.nextColor }};cursor:pointer">→</div>
+</div>
+</div>
+</sc-for>
+<sc-if value="{{ col.empty }}" hint-placeholder-val="{{ true }}">
+<div style="padding:16px 10px;text-align:center;border:1px dashed #dcdce4;border-radius:10px;font-size:11.5px;color:#9a9aa6">Drop a requirement here</div>
+</sc-if>
+</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ isList }}" hint-placeholder-val="{{ true }}">
+<div style="flex:1;min-height:0;overflow:auto;background:#fff">
+<div style="display:grid;grid-template-columns:98px 1fr 132px 52px 104px 92px 158px 120px 92px;padding:9px 26px;font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.1em;color:#8a8a96;border-bottom:1px solid #eeeef3;background:#fafafc;position:sticky;top:0;z-index:2"><div>REQ</div><div>ROLE</div><div>CLIENT</div><div>QTY</div><div>VALUE/MO</div><div>OWNER</div><div>STAGE · MOVE</div><div>SLA</div><div style="text-align:right">ACTION</div></div>
+<sc-for list="{{ rowsList }}" as="r" hint-placeholder-count="12">
+<div style="display:grid;grid-template-columns:98px 1fr 132px 52px 104px 92px 158px 120px 92px;align-items:center;padding:10px 26px;border-bottom:1px solid #f2f2f6;background:{{ r.rowBg }}">
+<div style="font:700 11.5px 'JetBrains Mono',monospace">{{ r.id }}</div>
+<div style="padding-right:14px"><div style="font-size:12.5px;font-weight:600">{{ r.role }}</div><div style="font-size:10.5px;color:#8a8a96;margin-top:2px">{{ r.skillsLine }}</div></div>
+<div style="font-size:12px;color:#4a4a58">{{ r.client }}</div>
+<div style="font-size:12px">{{ r.qty }}</div>
+<div style="font:600 12px 'JetBrains Mono',monospace">{{ r.value }}</div>
+<div style="font-size:11.5px;color:#6b6b78">{{ r.owner }}</div>
+<div style="display:flex;align-items:center;gap:5px">
+<div onClick="{{ r.prev }}" style="width:20px;text-align:center;border:1px solid #e8e8ee;border-radius:6px;font-size:10px;color:{{ r.prevColor }};cursor:pointer;line-height:18px">←</div>
+<span style="padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700;background:{{ r.stageBg }};color:{{ r.stageFg }};white-space:nowrap">{{ r.stageLabel }}</span>
+<div onClick="{{ r.next }}" style="width:20px;text-align:center;border:1px solid #e8e8ee;border-radius:6px;font-size:10px;color:{{ r.nextColor }};cursor:pointer;line-height:18px">→</div>
+</div>
+<div style="display:flex;align-items:center;gap:6px"><div style="width:5px;height:5px;border-radius:50%;background:{{ r.slaColor }}"></div><span style="font-size:11px;font-weight:600;color:{{ r.slaColor }}">{{ r.sla }}</span></div>
+<div style="text-align:right"><span onClick="{{ r.openMatch }}" style="font-size:11.5px;font-weight:700;color:#b45309;cursor:pointer">{{ r.action }}</span></div>
+</div>
+</sc-for>
+<div style="padding:12px 26px;font-size:11.5px;color:#8a8a96">{{ resultNote }} · list view is the one to use when the board gets crowded — search and the desk filter narrow it before you switch back.</div>
+</div>
+</sc-if>
+</sc-if>
+
+<sc-if value="{{ isOpsMatching }}" hint-placeholder-val="{{ true }}">
+<div style="padding:12px 26px 11px;background:#fff;border-bottom:1px solid #e8e8ee;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;position:relative;z-index:5">
+<div>
+<div style="display:flex;align-items:center;gap:8px"><span style="font:600 10px 'JetBrains Mono',monospace;padding:3px 7px;border-radius:5px;background:{{ selStageBg }};color:{{ selStageFg }};letter-spacing:.05em">{{ selStageLabel }}</span><span style="font:500 11px 'JetBrains Mono',monospace;color:#8a8a96">{{ selMeta }}</span></div>
+<div style="display:flex;align-items:center;gap:9px;margin-top:7px">
+<div style="font-size:20px;font-weight:800;letter-spacing:-.6px">Matching workspace</div>
+<div onClick="{{ togglePicker }}" style="display:flex;align-items:center;gap:8px;padding:6px 11px;border:1px solid {{ pickerBorder }};border-radius:8px;background:{{ pickerBg }};cursor:pointer">
+<span style="font:700 12px 'JetBrains Mono',monospace">{{ selId }}</span>
+<span style="font-size:12px;font-weight:600;color:#4a4a58;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ selRole }}</span>
+<span style="font-size:10px;color:#8a8a96">{{ pickerCaret }}</span>
+</div>
+<div style="font-size:11.5px;color:#8a8a96">{{ selPoolNote }}</div>
+</div>
+</div>
+<div style="display:flex;gap:8px">
+<div onClick="{{ resetRank }}" style="padding:8px 13px;border:1px solid #e0e0e8;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap">Reset to algorithm</div>
+<div onClick="{{ sendShortlist }}" style="padding:8px 13px;border-radius:8px;font-size:12.5px;font-weight:700;background:#b45309;color:#fff;cursor:pointer;white-space:nowrap">Send masked shortlist · {{ includedCount }}</div>
+</div>
+<sc-if value="{{ pickerOpen }}" hint-placeholder-val="{{ true }}">
+<div style="position:absolute;top:76px;left:210px;width:430px;background:#fff;border:1px solid #e0e0e8;border-radius:12px;box-shadow:0 16px 40px rgba(16,16,20,.16);overflow:hidden;z-index:20">
+<div style="padding:9px 13px;border-bottom:1px solid #eeeef3;background:#fafafc;font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.12em;color:#8a8a96">SELECT A REQUIREMENT · {{ pickerCount }} ON YOUR DESK</div>
+<div style="max-height:330px;overflow:auto">
+<sc-for list="{{ pickerItems }}" as="p" hint-placeholder-count="6">
+<div onClick="{{ p.go }}" style="display:flex;align-items:center;gap:10px;padding:10px 13px;border-bottom:1px solid #f4f4f7;cursor:pointer;background:{{ p.bg }}">
+<div style="font:700 11px 'JetBrains Mono',monospace;width:74px;flex:none">{{ p.id }}</div>
+<div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.role }}</div><div style="font-size:11px;color:#8a8a96;margin-top:2px">{{ p.client }} · ×{{ p.qty }} · {{ p.owner }}</div></div>
+<span style="padding:2px 7px;border-radius:20px;font-size:9.5px;font-weight:700;background:{{ p.stageBg }};color:{{ p.stageFg }};white-space:nowrap">{{ p.stageLabel }}</span>
+<div style="font-size:10.5px;font-weight:700;color:{{ p.slaColor }};width:78px;text-align:right">{{ p.sla }}</div>
+</div>
+</sc-for>
+</div>
+<div style="padding:9px 13px;background:#fafafc;font-size:11px;color:#8a8a96">Only requirements in Matching, Shortlisted or New appear here.</div>
+</div>
+</sc-if>
+</div>
+<div style="flex:1;display:flex;min-height:0">
+<div style="width:320px;flex:none;border-right:1px solid #e8e8ee;background:#fff;overflow:auto;padding:16px">
+<div style="font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.12em;color:#8a8a96">REQUIREMENT</div>
+<div style="font-size:17px;font-weight:800;letter-spacing:-.5px;margin-top:8px">{{ selRole }}</div>
+<div style="font-size:12px;color:#6b6b78;margin-top:4px">{{ selSub }}</div>
+<div style="display:flex;flex-direction:column;gap:9px;margin-top:14px;padding-top:13px;border-top:1px solid #eeeef3">
+<sc-for list="{{ reqFacts }}" as="f" hint-placeholder-count="8">
+<div style="display:flex;justify-content:space-between;font-size:12px;gap:10px"><span style="color:#8a8a96">{{ f.k }}</span><span style="font-weight:700;text-align:right;color:{{ f.color }}">{{ f.v }}</span></div>
+</sc-for>
+</div>
+<div style="margin-top:16px;padding-top:13px;border-top:1px solid #eeeef3;font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.12em;color:#8a8a96">WEIGHTING</div>
+<div style="display:flex;flex-direction:column;gap:10px;margin-top:11px">
+<sc-for list="{{ weights }}" as="w" hint-placeholder-count="6">
+<div><div style="display:flex;justify-content:space-between;font-size:11.5px"><span style="color:#4a4a58;font-weight:600">{{ w.label }}</span><span style="font:700 11px 'JetBrains Mono',monospace;color:#b45309">{{ w.pct }}</span></div>
+<div style="height:5px;border-radius:3px;background:#eeeef3;margin-top:5px;overflow:hidden"><div style="height:5px;border-radius:3px;background:#b45309;width:{{ w.pct }}"></div></div></div>
+</sc-for>
+</div>
+<div style="margin-top:14px;padding:11px;border-radius:9px;background:#fffaf2;border:1px solid #f5e3c8;font-size:11.5px;color:#8a5a08;line-height:1.45"><b>Client note:</b> {{ selNote }}</div>
+<sc-if value="{{ selHasDupe }}" hint-placeholder-val="{{ true }}">
+<div style="margin-top:12px;padding:11px;border-radius:9px;background:#fdecec;border:1px solid #f6cfcf;font-size:11.5px;color:#b91c1c;line-height:1.45"><b>2 duplicate flags</b> touch this pool. <span onClick="{{ goDupes }}" style="text-decoration:underline;cursor:pointer;font-weight:700">Resolve before sending</span></div>
+</sc-if>
+</div>
+<div style="flex:1;min-width:0;display:flex;flex-direction:column;background:#f7f7f9">
+<div style="display:flex;align-items:center;gap:12px;padding:11px 20px;border-bottom:1px solid #e8e8ee;background:#fff;font-size:12px"><span style="font-weight:800">Ranked candidates · {{ candCount }}</span><span style="color:#8a8a96">{{ overrideNote }}</span><span style="margin-left:auto;color:#8a8a96">Drag a row or use ▲▼ to reorder · client sees this order</span></div>
+<div style="flex:1;overflow:auto;padding:12px 20px 22px;display:flex;flex-direction:column;gap:10px">
+<sc-for list="{{ rankedList }}" as="c" hint-placeholder-count="6">
+<div draggable="true" onDragStart="{{ c.onDragStart }}" onDragOver="{{ c.onDragOver }}" onDrop="{{ c.onDrop }}" style="background:#fff;border:1px solid {{ c.border }};border-radius:12px;padding:13px 15px;opacity:{{ c.opacity }};box-shadow:0 1px 2px rgba(16,16,20,.04);cursor:grab">
+<div style="display:flex;align-items:flex-start;gap:14px">
+<div style="width:34px;flex:none;text-align:center"><div style="font-size:19px;font-weight:800;letter-spacing:-.8px">{{ c.pos }}</div><div style="font:600 8.5px 'JetBrains Mono',monospace;color:#8a8a96;letter-spacing:.08em">RANK</div>
+<div style="display:flex;flex-direction:column;gap:3px;margin-top:7px"><div onClick="{{ c.up }}" style="border:1px solid #e0e0e8;border-radius:5px;font-size:10px;color:#6b6b78;cursor:pointer;line-height:14px">▲</div><div onClick="{{ c.down }}" style="border:1px solid #e0e0e8;border-radius:5px;font-size:10px;color:#6b6b78;cursor:pointer;line-height:14px">▼</div></div>
+</div>
+<div style="width:186px;flex:none">
+<div style="display:flex;align-items:center;gap:7px"><div style="font:700 13.5px 'JetBrains Mono',monospace">{{ c.id }}</div><span style="padding:2px 6px;border-radius:5px;font-size:9.5px;font-weight:700;background:{{ c.tagBg }};color:{{ c.tagFg }};white-space:nowrap">{{ c.tag }}</span></div>
+<div style="font-size:12px;font-weight:700;margin-top:5px">{{ c.name }}</div>
+<div style="font-size:11px;color:#8a8a96;margin-top:2px">{{ c.vendor }}</div>
+<div style="font-size:11px;color:#8a8a96;margin-top:2px">{{ c.exp }} · {{ c.rate }}/mo</div>
+</div>
+<div style="flex:1;min-width:0">
+<div style="display:flex;align-items:baseline;gap:8px"><span style="font-size:20px;font-weight:800;letter-spacing:-.8px;color:#b45309">{{ c.match }}</span><span style="font:600 9.5px 'JetBrains Mono',monospace;letter-spacing:.08em;color:#8a8a96">MATCH SCORE</span><span style="font-size:11.5px;color:#6b6b78">· {{ c.note }}</span></div>
+<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:9px">
+<sc-for list="{{ c.reasons }}" as="r" hint-placeholder-count="6">
+<div><div style="display:flex;justify-content:space-between;font-size:9.5px;font-weight:700;color:#8a8a96"><span>{{ r.label }}</span><span style="color:#101014">{{ r.v }}</span></div><div style="height:5px;border-radius:3px;background:#eeeef3;margin-top:4px;overflow:hidden"><div style="height:5px;border-radius:3px;background:{{ r.color }};width:{{ r.w }}"></div></div></div>
+</sc-for>
+</div>
+</div>
+<div style="width:96px;flex:none;display:flex;flex-direction:column;gap:5px"><div onClick="{{ c.toggleIn }}" style="text-align:center;padding:6px;border-radius:7px;background:{{ c.inBg }};color:{{ c.inFg }};font-size:11.5px;font-weight:700;cursor:pointer">{{ c.inLabel }}</div><div onClick="{{ c.expand }}" style="text-align:center;padding:6px;border:1px solid #e0e0e8;border-radius:7px;font-size:11.5px;color:#6b6b78;cursor:pointer">{{ c.expandLabel }}</div></div>
+</div>
+<sc-if value="{{ c.open }}" hint-placeholder-val="{{ true }}">
+<div style="margin-top:12px;padding-top:12px;border-top:1px dashed #e8e8ee;display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+<sc-for list="{{ c.detail }}" as="d" hint-placeholder-count="8">
+<div><div style="font:700 9px 'JetBrains Mono',monospace;letter-spacing:.1em;color:#8a8a96">{{ d.k }}</div><div style="font-size:12px;font-weight:600;margin-top:4px;color:{{ d.color }}">{{ d.v }}</div></div>
+</sc-for>
+<div style="grid-column:span 4;padding:9px 11px;border-radius:8px;background:#fafafc;font-size:11.5px;color:#6b6b78;line-height:1.45">{{ c.detailNote }}</div>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isOpsPool }}" hint-placeholder-val="{{ true }}">
+<div style="padding:16px 26px 12px;background:#fff;border-bottom:1px solid #e8e8ee">
+<div style="display:flex;align-items:flex-end;justify-content:space-between">
+<div><div style="font-size:22px;font-weight:800;letter-spacing:-.6px">Talent pool</div><div style="font-size:12.5px;color:#6b6b78;margin-top:4px">1,284 profiles across 14 supplier benches · unmasked · 892 with valid proctored scores</div></div>
+<div style="display:flex;gap:8px"><div style="padding:8px 13px;border:1px solid #e0e0e8;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer">Save this view</div><div style="padding:8px 13px;border-radius:8px;font-size:12.5px;font-weight:700;background:#b45309;color:#fff;cursor:pointer">Add to REQ-2291</div></div>
+</div>
+<div style="display:flex;align-items:center;gap:7px;margin-top:13px;flex-wrap:wrap;font-size:11.5px">
+<sc-for list="{{ poolFilters }}" as="f" hint-placeholder-count="7">
+<span style="padding:5px 10px;border-radius:7px;border:1px solid {{ f.border }};background:{{ f.bg }};color:{{ f.fg }};font-weight:{{ f.fw }};white-space:nowrap">{{ f.label }}</span>
+</sc-for>
+<span style="margin-left:auto;font:500 11px 'JetBrains Mono',monospace;color:#8a8a96">62 results · 0.18s</span>
+</div>
+</div>
+<div style="flex:1;overflow:auto;background:#fff">
+<div style="display:grid;grid-template-columns:158px 148px 1fr 58px 74px 108px 108px 96px 126px;padding:9px 26px;font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.1em;color:#8a8a96;border-bottom:1px solid #eeeef3;background:#fafafc;position:sticky;top:0"><div>NAME</div><div>SUPPLIER</div><div>SKILLS</div><div>EXP</div><div>SCORE</div><div>VENDOR RATE</div><div>CLIENT RATE</div><div>CITY</div><div style="text-align:right">FRESHNESS</div></div>
+<sc-for list="{{ pool }}" as="p" hint-placeholder-count="8">
+<div style="display:grid;grid-template-columns:158px 148px 1fr 58px 74px 108px 108px 96px 126px;align-items:center;padding:11px 26px;border-bottom:1px solid #f2f2f6">
+<div><div style="font-size:12.5px;font-weight:700">{{ p.name }}</div><div style="font:500 10.5px 'JetBrains Mono',monospace;color:#8a8a96;margin-top:2px">{{ p.id }}</div></div>
+<div style="font-size:11.5px;color:#4a4a58;padding-right:10px">{{ p.vendor }}<div style="display:flex;align-items:center;gap:4px;margin-top:3px"><div style="width:4px;height:4px;border-radius:50%;background:{{ p.relColor }}"></div><span style="font-size:10.5px;color:#8a8a96">rel {{ p.rel }}</span></div></div>
+<div style="display:flex;flex-wrap:wrap;gap:4px;padding-right:14px"><sc-for list="{{ p.skills }}" as="s" hint-placeholder-count="3"><span style="padding:2px 7px;border-radius:5px;font-size:10.5px;font-weight:600;background:#f3f3f7;color:#4a4a58;white-space:nowrap">{{ s }}</span></sc-for></div>
+<div style="font-size:12px">{{ p.exp }}</div>
+<div><span style="font:700 12.5px 'JetBrains Mono',monospace;color:{{ p.scoreColor }}">{{ p.score }}</span></div>
+<div style="font:600 12px 'JetBrains Mono',monospace;color:#4a4a58">{{ p.vrate }}</div>
+<div style="font:700 12px 'JetBrains Mono',monospace">{{ p.crate }}</div>
+<div style="font-size:11.5px;color:#6b6b78">{{ p.city }}</div>
+<div style="text-align:right"><span style="padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700;background:{{ p.freshBg }};color:{{ p.freshFg }};white-space:nowrap">{{ p.fresh }}</span></div>
+</div>
+</sc-for>
+<div style="padding:12px 26px;font-size:11.5px;color:#8a8a96">Showing 8 of 62 matching profiles · <span style="color:#b45309;font-weight:700;cursor:pointer">Load more</span></div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isOpsMargin }}" hint-placeholder-val="{{ true }}">
+<div style="padding:16px 26px 13px;background:#fff;border-bottom:1px solid #e8e8ee">
+<div style="display:flex;align-items:flex-end;justify-content:space-between">
+<div><div style="font-size:22px;font-weight:800;letter-spacing:-.6px">Margin</div><div style="font-size:12.5px;color:#6b6b78;margin-top:4px">Vendor rate, client rate and spread on every live placement · visible to Talentvibes only</div></div>
+<div style="display:flex;gap:8px"><div style="padding:8px 13px;border:1px solid #e0e0e8;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer">August 2026</div><div style="padding:8px 13px;border-radius:8px;font-size:12.5px;font-weight:700;background:#b45309;color:#fff;cursor:pointer">Export to finance</div></div>
+</div>
+</div>
+<div style="flex:1;overflow:auto;padding:18px 26px 28px">
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+<sc-for list="{{ marginStats }}" as="s" hint-placeholder-count="4">
+<div style="background:{{ s.cardBg }};border:1px solid {{ s.cardBorder }};border-radius:12px;padding:15px">
+<div style="font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.12em;color:{{ s.labelColor }}">{{ s.label }}</div>
+<div style="display:flex;align-items:baseline;gap:8px;margin-top:9px"><div style="font-size:26px;font-weight:800;letter-spacing:-1px;color:{{ s.valueColor }}">{{ s.value }}</div><div style="font-size:11.5px;font-weight:700;color:{{ s.deltaColor }}">{{ s.delta }}</div></div>
+<div style="font-size:11.5px;color:{{ s.subColor }};margin-top:4px">{{ s.sub }}</div>
+</div>
+</sc-for>
+</div>
+<div style="background:#fff;border:1px solid #e8e8ee;border-radius:12px;margin-top:16px;overflow:hidden">
+<div style="display:grid;grid-template-columns:150px 130px 1fr 118px 118px 118px 86px;padding:9px 18px;font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.1em;color:#8a8a96;border-bottom:1px solid #eeeef3;background:#fafafc"><div>RESOURCE</div><div>CLIENT</div><div>ROLE</div><div style="text-align:right">VENDOR RATE</div><div style="text-align:right">CLIENT RATE</div><div style="text-align:right">SPREAD</div><div style="text-align:right">MARGIN</div></div>
+<sc-for list="{{ marginRows }}" as="m" hint-placeholder-count="6">
+<div style="display:grid;grid-template-columns:150px 130px 1fr 118px 118px 118px 86px;align-items:center;padding:12px 18px;border-bottom:1px solid #f2f2f6">
+<div><div style="font-size:12.5px;font-weight:700">{{ m.name }}</div><div style="font:500 10.5px 'JetBrains Mono',monospace;color:#8a8a96;margin-top:2px">{{ m.id }} · {{ m.vendor }}</div></div>
+<div style="font-size:12px;color:#4a4a58">{{ m.client }}</div>
+<div style="font-size:12px;color:#6b6b78;padding-right:14px">{{ m.role }}</div>
+<div style="text-align:right;font:600 12.5px 'JetBrains Mono',monospace;color:#4a4a58">{{ m.vrate }}</div>
+<div style="text-align:right;font:600 12.5px 'JetBrains Mono',monospace;color:#4a4a58">{{ m.crate }}</div>
+<div style="text-align:right;font:700 12.5px 'JetBrains Mono',monospace">{{ m.spread }}</div>
+<div style="text-align:right"><span style="padding:3px 8px;border-radius:20px;font:700 11px 'JetBrains Mono',monospace;background:{{ m.bg }};color:{{ m.fg }}">{{ m.pct }}</span></div>
+</div>
+</sc-for>
+<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:#fafafc">
+<div style="font-size:12px;color:#6b6b78">6 of 31 live placements · filtered to Acme Finserv & Northwind Retail</div>
+<div style="display:flex;align-items:baseline;gap:18px"><div><span style="font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.1em;color:#8a8a96">VENDOR </span><span style="font:700 15px 'JetBrains Mono',monospace">₹8,74,000</span></div><div><span style="font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.1em;color:#8a8a96">CLIENT </span><span style="font:700 15px 'JetBrains Mono',monospace">₹11,58,000</span></div><div><span style="font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.1em;color:#8a8a96">SPREAD </span><span style="font:700 17px 'JetBrains Mono',monospace;color:#0f7a4a">₹2,84,000</span></div></div>
+</div>
+</div>
+<div style="margin-top:14px;padding:13px 15px;border-radius:12px;background:#fffaf2;border:1px solid #f5e3c8;font-size:12px;color:#8a5a08;line-height:1.5"><b>Guardrail:</b> two placements sit below the 18% floor. TV-4488 (Vertex Digital) was approved at 14.2% as a strategic entry into Acme's SAP programme — review at renewal on 1 Oct.</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isOpsDupes }}" hint-placeholder-val="{{ true }}">
+<div style="padding:16px 26px 13px;background:#fff;border-bottom:1px solid #e8e8ee">
+<div style="display:flex;align-items:flex-end;justify-content:space-between">
+<div><div style="font-size:22px;font-weight:800;letter-spacing:-.6px">Duplicate candidates</div><div style="font-size:12.5px;color:#6b6b78;margin-top:4px">Same person submitted by two suppliers · resolve before a shortlist goes out</div></div>
+<div style="display:flex;gap:8px"><div style="padding:8px 13px;border:1px solid #e0e0e8;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer">Detection rules</div><div style="padding:8px 13px;border-radius:8px;font-size:12.5px;font-weight:700;background:#b45309;color:#fff;cursor:pointer">2 open flags</div></div>
+</div>
+</div>
+<div style="flex:1;overflow:auto;padding:18px 26px 28px">
+<div style="background:#fff;border:1px solid #f0c9c9;border-radius:14px;overflow:hidden">
+<div style="display:flex;align-items:center;gap:10px;padding:12px 18px;background:#fdecec;border-bottom:1px solid #f6cfcf">
+<div style="width:7px;height:7px;border-radius:50%;background:#b91c1c"></div>
+<div style="font-size:13px;font-weight:800;color:#b91c1c">Likely the same person · 96% confidence</div>
+<div style="font-size:12px;color:#a04141">Flagged 22 Aug, 09:12 · blocks REQ-2291 shortlist</div>
+<div style="margin-left:auto;font:600 11px 'JetBrains Mono',monospace;color:#b91c1c">DUP-0148</div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 200px 1fr">
+<sc-for list="{{ dupeSides }}" as="d" hint-placeholder-count="2">
+<div style="padding:18px;border-right:1px solid #f2f2f6">
+<div style="display:flex;align-items:center;justify-content:space-between"><span style="padding:3px 8px;border-radius:20px;font-size:10.5px;font-weight:700;background:{{ d.tagBg }};color:{{ d.tagFg }}">{{ d.tag }}</span><span style="font:600 11px 'JetBrains Mono',monospace;color:#8a8a96">{{ d.submitted }}</span></div>
+<div style="font-size:17px;font-weight:800;letter-spacing:-.4px;margin-top:11px">{{ d.name }}</div>
+<div style="font-size:12px;color:#6b6b78;margin-top:3px">{{ d.id }} · submitted by <b style="color:#101014">{{ d.vendor }}</b></div>
+<div style="display:flex;flex-direction:column;gap:8px;margin-top:14px;padding-top:13px;border-top:1px solid #eeeef3">
+<sc-for list="{{ d.facts }}" as="f" hint-placeholder-count="7">
+<div style="display:flex;justify-content:space-between;font-size:12px;gap:12px"><span style="color:#8a8a96;flex:none">{{ f.k }}</span><span style="font-weight:600;text-align:right;color:{{ f.color }}">{{ f.v }}</span></div>
+</sc-for>
+</div>
+<div style="margin-top:14px;display:flex;gap:7px"><div style="flex:1;text-align:center;padding:8px;border-radius:8px;background:{{ d.keepBg }};color:{{ d.keepFg }};font-size:12px;font-weight:700;cursor:pointer">{{ d.keep }}</div><div style="padding:8px 12px;border:1px solid #e0e0e8;border-radius:8px;font-size:12px;color:#6b6b78;cursor:pointer">Contact vendor</div></div>
+</div>
+<sc-if value="{{ d.isFirst }}" hint-placeholder-val="{{ true }}">
+<div style="padding:18px 14px;background:#fafafc;border-right:1px solid #f2f2f6">
+<div style="font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:.12em;color:#8a8a96;text-align:center">MATCH SIGNALS</div>
+<div style="display:flex;flex-direction:column;gap:10px;margin-top:14px">
+<sc-for list="{{ dupeSignals }}" as="s" hint-placeholder-count="5">
+<div style="text-align:center;padding:9px 8px;border-radius:9px;background:{{ s.bg }};border:1px solid {{ s.border }}">
+<div style="font-size:11px;font-weight:700;color:{{ s.fg }}">{{ s.label }}</div>
+<div style="font-size:10.5px;color:#6b6b78;margin-top:3px">{{ s.detail }}</div>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+</sc-for>
+</div>
+<div style="display:flex;align-items:center;gap:12px;padding:14px 18px;background:#fafafc;border-top:1px solid #f2f2f6">
+<div style="font-size:12px;color:#6b6b78;line-height:1.5;flex:1">Recommended: keep the <b style="color:#101014">Nimbus Softworks</b> submission — earlier by 6 days, confirmed availability, reliability 4.6 vs 3.1. Notify Orbit Talent Services that the profile is already represented; neither client nor candidate is told.</div>
+<div style="display:flex;gap:7px"><div style="padding:9px 14px;border-radius:8px;background:#101014;color:#fff;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap">Keep Nimbus · reject Orbit</div><div style="padding:9px 14px;border:1px solid #e0e0e8;border-radius:8px;font-size:12.5px;font-weight:600;color:#6b6b78;cursor:pointer;white-space:nowrap">Not a duplicate</div></div>
+</div>
+</div>
+<div style="margin-top:14px;background:#fff;border:1px solid #e8e8ee;border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px">
+<div style="width:7px;height:7px;border-radius:50%;background:#f59e0b"></div>
+<div style="font-size:12.5px;font-weight:700;width:110px">DUP-0147 · 71%</div>
+<div style="font-size:12px;color:#6b6b78;flex:1">Kavya Menon (Trueline Consulting) vs K. M. Nair (Vertex Digital) — matching phone hash and overlapping Salesforce project history, different PAN. Needs a human call.</div>
+<div style="font-size:11.5px;color:#8a8a96;white-space:nowrap">assigned to R. Verma</div>
+<div style="padding:8px 13px;border:1px solid #e0e0e8;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">Open</div>
+</div>
+</div>
+</sc-if>
+
+
+<sc-if value="{{ askOpen }}" hint-placeholder-val="{{ true }}">
+<div style="position:fixed;inset:0;background:rgba(16,16,20,.28);z-index:60" onClick="{{ closeAsk }}"></div>
+<div style="position:fixed;top:0;right:0;bottom:0;width:392px;background:#fff;border-left:1px solid #e8e8ee;box-shadow:-18px 0 48px rgba(16,16,20,.14);z-index:61;display:flex;flex-direction:column">
+<div style="padding:15px 17px 13px;border-bottom:1px solid #eeeef3;display:flex;align-items:flex-start;gap:11px">
+<div style="width:34px;height:34px;border-radius:50%;background:#f1ecff;flex:none;display:flex;align-items:center;justify-content:center;font:700 11px 'JetBrains Mono',monospace;color:#6d3ff0">PN</div>
+<div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:800">Priya Nair</div><div style="font-size:11.5px;color:#8a8a96;margin-top:2px">Your Talentvibes broker · replies in ~2h</div></div>
+<div onClick="{{ closeAsk }}" style="font-size:16px;color:#8a8a96;cursor:pointer;line-height:1;padding:2px 4px">×</div>
+</div>
+<div style="padding:9px 17px;background:#faf9ff;border-bottom:1px solid #f0edfa;display:flex;align-items:center;gap:8px">
+<span style="font:700 9px 'JetBrains Mono',monospace;letter-spacing:.1em;color:#8a8a96">ABOUT</span>
+<span style="font-size:11.5px;font-weight:700;color:#5a2fd0">{{ askCtx }}</span>
+</div>
+<div ref="{{ askListRef }}" style="flex:1;overflow:auto;padding:15px 17px;display:flex;flex-direction:column;gap:11px">
+<sc-for list="{{ askMsgs }}" as="m" hint-placeholder-count="4">
+<div style="display:flex;flex-direction:column;align-items:{{ m.align }}">
+<div style="max-width:88%;padding:10px 12px;border-radius:12px;background:{{ m.bg }};color:{{ m.fg }};font-size:12.5px;line-height:1.5;border:1px solid {{ m.border }}">{{ m.body }}</div>
+<div style="font:500 10px 'JetBrains Mono',monospace;color:#a3a3b0;margin-top:4px">{{ m.who }} · {{ m.at }}</div>
+</div>
+</sc-for>
+<sc-if value="{{ askTyping }}" hint-placeholder-val="{{ true }}">
+<div style="align-self:flex-start;padding:9px 12px;border-radius:12px;background:#f5f3ff;border:1px solid #ece7fb;font-size:12px;color:#6d3ff0;font-weight:600">Priya is typing…</div>
+</sc-if>
+</div>
+<div style="padding:11px 17px;border-top:1px solid #eeeef3">
+<div style="display:flex;flex-wrap:wrap;gap:6px">
+<sc-for list="{{ askChips }}" as="c" hint-placeholder-count="3">
+<div onClick="{{ c.go }}" style="padding:5px 10px;border:1px solid #e0e0e8;border-radius:20px;font-size:11.5px;color:#4a4a58;cursor:pointer;background:#fff">{{ c.label }}</div>
+</sc-for>
+</div>
+<div style="display:flex;align-items:center;gap:8px;margin-top:10px">
+<input value="{{ askDraft }}" onChange="{{ onAskInput }}" onKeyDown="{{ onAskKey }}" placeholder="Ask about a profile, rate or timeline…" style="flex:1;padding:10px 12px;border:1px solid #e0e0e8;border-radius:9px;font:500 12.5px Manrope,sans-serif;outline:0;color:#101014" />
+<div onClick="{{ sendAsk }}" style="padding:10px 14px;border-radius:9px;background:{{ sendBg }};color:#fff;font-size:12.5px;font-weight:700;cursor:pointer">Send</div>
+</div>
+<div style="font-size:11px;color:#a3a3b0;margin-top:8px;line-height:1.45">Talentvibes relays anything relevant to the supplier with your company name and commercials removed.</div>
+</div>
+</div>
+</sc-if>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = { portal: "client", screen: "dash", picked: ["TV-6620", "TV-4821"], drag: null,
+    view: "board", q: "", desk: false, risk: false, unsourced: false, stageOv: {}, toast: null,
+    selectedReq: "REQ-2291", pickerOpen: false, rankByReq: {}, inByReq: {}, openCand: null,
+    askOpen: false, askCtx: "REQ-2291 · Senior React Engineers", askDraft: "", askTyping: false,
+    askThread: [
+      { who: "Priya Nair", at: "22 Aug, 09:40", body: "Shortlist for REQ-2291 is live — six masked profiles, all proctored in the last three weeks. Two of them clear your band and can start on the 15th.", me: false },
+      { who: "You", at: "22 Aug, 10:02", body: "Thanks Priya. TV-4488 looks strong on paper but the rate is well above what we approved.", me: true },
+      { who: "Priya Nair", at: "22 Aug, 10:15", body: "Agreed — that one is ₹2.10L+. I can go back to the supplier for a 6-month rate if the SAP overlap genuinely matters to you, otherwise I'd park it and add one more React profile tomorrow.", me: false }
+    ] };
+
+  go = (portal, screen) => this.setState({ portal, screen });
+
+  cands() {
+    const mk = (id, name, vendor, city, skills, exp, score, rate, clientRate, avail, dotKey, b, attempt, testedOn, fresh) => ({
+      id, name, vendor, city, skills, exp, score, rate, clientRate, avail, attempt, testedOn, fresh,
+      dot: { g: "#16a34a", a: "#c2410c", b: "#1d4ed8" }[dotKey],
+      softbg: { g: "#e9f7ee", a: "#fdf0e7", b: "#e8eefc" }[dotKey],
+      bars: [
+        { label: "Coding", short: "COD", v: b[0], w: b[0] + "%" },
+        { label: "DSA", short: "DSA", v: b[1], w: b[1] + "%" },
+        { label: "System design", short: "SYS", v: b[2], w: b[2] + "%" },
+        { label: "Communication", short: "COM", v: b[3], w: b[3] + "%" }
+      ]
+    });
+    return [
+      mk("TV-6620", "Meghna Iyer", "Sparkbridge Systems", "Jaipur", ["QA Automation", "Playwright", "Selenium", "CI/CD"], "5.4y", 91, "₹1.10–1.25L", "₹1.44L", "Available now", "g", [93, 88, 86, 92], "attempt 1", "tested 12 Aug", "confirmed"),
+      mk("TV-4821", "Arjun Rathore", "Nimbus Softworks", "Bangalore", ["React", "TypeScript", "Node.js"], "6.2y", 88, "₹1.35–1.55L", "₹1.82L", "Available now", "g", [91, 84, 82, 90], "attempt 1", "tested 09 Aug", "confirmed"),
+      mk("TV-5302", "Kavya Menon", "Trueline Consulting", "Pune", ["Salesforce", "Apex", "LWC"], "3.8y", 85, "₹0.85–1.00L", "₹1.18L", "From 1 Oct", "a", [88, 80, 79, 87], "attempt 2", "tested 15 Aug", "expiring"),
+      mk("TV-5107", "Rohit Deshmukh", "Cygnet Infotech Labs", "Pune", ["Java Spring Boot", "Kafka", "AWS"], "8.0y", 82, "₹1.80–2.05L", "₹2.36L", "From 15 Sep", "a", [84, 78, 88, 76], "attempt 1", "tested 04 Aug", "confirmed"),
+      mk("TV-4488", "Suresh Balan", "Vertex Digital", "Bangalore", ["SAP ABAP", "Fiori", "HANA"], "9.1y", 79, "₹2.10–2.40L", "₹2.88L", "Available now", "g", [80, 72, 84, 78], "attempt 1", "tested 30 Jul", "unconfirmed"),
+      mk("TV-3964", "Nikhil Sharma", "Orbit Talent Services", "Hyderabad", [".NET Core", "Azure", "SQL Server"], "4.5y", 76, "₹0.95–1.10L", "₹1.32L", "30-day notice", "b", [79, 74, 70, 82], "attempt 2", "tested 18 Aug", "confirmed")
+    ];
+  }
+
+  navFor(portal) {
+    const A = this.accent(portal);
+    const defs = {
+      client: [["dash", "Overview", ""], ["post", "Requirements", "4"], ["shortlist", "Shortlists", "3"], ["interviews", "Interviews", "4"], ["engagements", "Engagements", "5"]],
+      vendor: [["vdash", "Overview", ""], ["add", "Add resource", ""], ["roster", "Bench roster", "42"], ["assess", "Assessments", "9"], ["earnings", "Earnings", ""]],
+      ops: [["pipeline", "Pipeline", String(this.reqs().length)], ["matching", "Matching", String(this.reqs().filter(r => r.stage === "matching").length)], ["pool", "Talent pool", "1,284"], ["margin", "Margin", ""], ["dupes", "Duplicates", "2"]]
+    }[portal];
+    return defs.map(([key, label, badge]) => {
+      const active = this.state.screen === key;
+      return { label, badge, go: () => this.setState({ screen: key }), bg: active ? "#1e1e26" : "transparent", fg: active ? "#fff" : "#a0a0ac", fw: active ? 700 : 500, badgeColor: active ? A : "#6c6c78" };
+    });
+  }
+
+  askList = React.createRef();
+
+  componentDidUpdate() {
+    const el = this.askList.current;
+    if (el && this.state.askOpen) el.scrollTop = el.scrollHeight;
+  }
+
+  ask = (text) => {
+    const body = (text || "").trim();
+    if (!body) return;
+    const now = new Date();
+    const at = "22 Aug, " + String(10 + (this.state.askThread.length % 4)).padStart(2, "0") + ":" + String((now.getSeconds() * 7) % 60).padStart(2, "0");
+    this.setState(s => ({
+      askThread: s.askThread.concat({ who: "You", at, body, me: true }),
+      askDraft: "", askTyping: true
+    }));
+    clearTimeout(this._askT);
+    this._askT = setTimeout(() => {
+      const ctx = this.state.askCtx;
+      const replies = [
+        "On it — I'll check with the supplier and come back within the hour. Nothing goes to them with your name or your budget attached.",
+        "I can do that. I'll hold the profile for 7 days and confirm availability with the supplier this afternoon.",
+        "Both of the top two are immediate joiners; the third is on a 30-day notice. I'll put the exact dates in the shortlist notes.",
+        "There is some room. Give me until 16:00 — if they won't move I'll bring you two alternatives in the same band instead."
+      ];
+      const pick = replies[this.state.askThread.length % replies.length];
+      this.setState(s => ({
+        askTyping: false,
+        askThread: s.askThread.concat({ who: "Priya Nair", at: "just now", body: pick + (ctx.indexOf("TV-") === 0 ? " (Re: " + ctx.split(" · ")[0] + ")" : ""), me: false })
+      }));
+    }, 1400);
+  };
+
+  componentWillUnmount() { clearTimeout(this._askT); }
+
+  accent(p) { return { client: "#a78bfa", vendor: "#34d399", ops: "#fbbf24" }[p]; }
+
+  STAGES = [["new", "NEW", "#9aa0ab", "#f3f3f7", "#4a4a58"], ["matching", "MATCHING", "#b45309", "#fff3e4", "#b45309"], ["shortlisted", "SHORTLISTED", "#6d3ff0", "#f1ecff", "#6d3ff0"], ["interviewing", "INTERVIEWING", "#1d4ed8", "#e8eefc", "#1d4ed8"], ["placed", "PLACED", "#0f7a4a", "#e8f6ef", "#0f7a4a"]];
+
+  SLA = { ok: "#0f7a4a", warn: "#b45309", late: "#b91c1c", idle: "#8a8a96" };
+
+  POOLS = {
+    A: [
+      { id: "TV-4821", name: "Arjun Rathore", vendor: "Nimbus Softworks", exp: "6.2y", rate: "₹1.38L", match: 94, note: "Top skill overlap; available immediately", r: [96, 88, 92, 90, 100, 95], city: "Bangalore", notice: "Immediate", score: "88 · 09 Aug", fresh: "Confirmed 2d", rel: "4.6 / 5", crate: "₹1.82L", margin: "24.2%", last: "Shipped Zeta Commerce's design system; 3 yrs on a React + GraphQL platform team." },
+      { id: "TV-6620", name: "Meghna Iyer", vendor: "Sparkbridge Systems", exp: "5.4y", rate: "₹1.12L", match: 89, note: "Highest test score in pool; QA-leaning stack", r: [74, 91, 88, 100, 100, 88], city: "Jaipur", notice: "Immediate", score: "91 · 12 Aug", fresh: "Confirmed 1d", rel: "4.2 / 5", crate: "₹1.44L", margin: "22.2%", last: "Automation lead on a retail checkout rewrite; strong React Testing Library depth." },
+      { id: "TV-7715", name: "Sanjay Pillai", vendor: "Nimbus Softworks", exp: "7.1y", rate: "₹1.46L", match: 86, note: "React Native depth, slight rate stretch", r: [92, 82, 95, 78, 84, 95], city: "Bangalore", notice: "15 days", score: "84 · 18 Aug", fresh: "Confirmed 3d", rel: "4.6 / 5", crate: "₹1.94L", margin: "24.7%", last: "Two fintech apps on React Native; led a 6-person front-end pod." },
+      { id: "TV-7024", name: "Deepak Chandran", vendor: "Helix Systems", exp: "5.9y", rate: "₹1.29L", match: 81, note: "Solid React; freshness expiring in 3 days", r: [88, 79, 80, 92, 58, 78], city: "Hyderabad", notice: "30 days", score: "81 · 06 Aug", fresh: "Expiring 11d", rel: "3.9 / 5", crate: "₹1.68L", margin: "23.2%", last: "Insurance portal migration from Angular to React; no design-system exposure." },
+      { id: "TV-6612", name: "Ritika Agarwal", vendor: "Trueline Consulting", exp: "5.2y", rate: "₹1.21L", match: 77, note: "Next.js heavy; thin on system design", r: [82, 76, 72, 95, 88, 62], city: "Pune", notice: "Immediate", score: "79 · 14 Aug", fresh: "Confirmed 5d", rel: "3.4 / 5", crate: "₹1.58L", margin: "23.4%", last: "Marketing-site work on Next.js; limited product engineering history." },
+      { id: "TV-5107", name: "Rohit Deshmukh", vendor: "Cygnet Infotech Labs", exp: "8.0y", rate: "₹1.84L", match: 68, note: "Backend-first; above budget ceiling", r: [52, 82, 88, 40, 90, 76], city: "Pune", notice: "15 Sep", score: "82 · 04 Aug", fresh: "Expiring 12d", rel: "4.1 / 5", crate: "₹2.36L", margin: "22.0%", last: "Spring Boot + Kafka platform; React only as a secondary skill." }
+    ],
+    B: [
+      { id: "TV-5533", name: "Priyanka Joshi", vendor: "Nimbus Softworks", exp: "7.4y", rate: "₹1.62L", match: 92, note: "Kafka + Spring Boot at scale; immediate", r: [95, 88, 90, 88, 100, 95], city: "Pune", notice: "Immediate", score: "87 · 11 Aug", fresh: "Confirmed 1d", rel: "4.6 / 5", crate: "₹2.18L", margin: "25.7%", last: "Logistics event pipeline at 40k msg/s; owned the migration to Kafka Streams." },
+      { id: "TV-7702", name: "Ishita Bansal", vendor: "Nimbus Softworks", exp: "6.3y", rate: "₹1.45L", match: 84, note: "Strong microservices; test not started", r: [90, 40, 86, 90, 92, 95], city: "Pune", notice: "Immediate", score: "Not started", fresh: "Expiring 13d", rel: "4.6 / 5", crate: "₹1.92L", margin: "24.5%", last: "Payments microservices on Spring Boot + PostgreSQL; 4 production services." },
+      { id: "TV-6119", name: "Aakash Menon", vendor: "Cygnet Infotech Labs", exp: "8.9y", rate: "₹1.91L", match: 79, note: "Senior, above band; strong on AWS", r: [88, 84, 96, 52, 84, 82], city: "Bangalore", notice: "30 days", score: "85 · 02 Aug", fresh: "Confirmed 6d", rel: "4.1 / 5", crate: "₹2.48L", margin: "23.0%", last: "Ran a 12-service estate on ECS; strong IaC and observability practice." },
+      { id: "TV-6845", name: "Tanvi Rane", vendor: "Helix Systems", exp: "5.1y", rate: "₹1.18L", match: 74, note: "Good Node.js; light on Kafka", r: [76, 78, 68, 96, 72, 76], city: "Hyderabad", notice: "30 days", score: "78 · 08 Aug", fresh: "Expiring 10d", rel: "3.9 / 5", crate: "₹1.54L", margin: "23.4%", last: "Node.js APIs for a travel aggregator; queue work limited to SQS." },
+      { id: "TV-5981", name: "Gaurav Sethi", vendor: "Orbit Talent Services", exp: "6.8y", rate: "₹1.34L", match: 66, note: "Vendor reliability low; unconfirmed 18d", r: [80, 72, 74, 88, 32, 44], city: "Jaipur", notice: "Unknown", score: "74 · 21 Jul", fresh: "Unconfirmed 18d", rel: "3.1 / 5", crate: "₹1.76L", margin: "23.9%", last: "Two prior Orbit submissions withdrew after client selection — flagged." }
+    ],
+    C: [
+      { id: "TV-7188", name: "Karthik Nair", vendor: "Sparkbridge Systems", exp: "5.1y", rate: "₹1.05L", match: 90, note: "Playwright + API automation; immediate", r: [94, 82, 88, 96, 96, 88], city: "Jaipur", notice: "Immediate", score: "83 · 19 Aug", fresh: "Confirmed 4d", rel: "4.2 / 5", crate: "₹1.38L", margin: "23.9%", last: "Built the regression suite for a payments gateway; 1,400 tests in CI." },
+      { id: "TV-4102", name: "Aditi Verma", vendor: "Trueline Consulting", exp: "6.6y", rate: "₹1.04L", match: 87, note: "Currently placed, rolls off 30 Sep", r: [90, 86, 84, 96, 78, 80], city: "Pune", notice: "30 Sep", score: "86 · 05 Aug", fresh: "Confirmed 7d", rel: "3.4 / 5", crate: "₹1.36L", margin: "23.5%", last: "Two years on Acme's QA pod — client already knows the work." },
+      { id: "TV-6907", name: "Shreya Kulkarni", vendor: "Helix Systems", exp: "4.4y", rate: "₹92K", match: 80, note: "Cost-effective; lighter experience", r: [84, 80, 62, 100, 88, 74], city: "Bangalore", notice: "Immediate", score: "80 · 16 Aug", fresh: "Confirmed 2d", rel: "3.9 / 5", crate: "₹1.22L", margin: "24.6%", last: "Selenium to Playwright migration at a healthtech firm." },
+      { id: "TV-7341", name: "Imran Sheikh", vendor: "Cygnet Infotech Labs", exp: "7.2y", rate: "₹1.32L", match: 76, note: "Performance testing bias; above band", r: [72, 84, 90, 66, 82, 84], city: "Hyderabad", notice: "15 days", score: "84 · 30 Jul", fresh: "Confirmed 9d", rel: "4.1 / 5", crate: "₹1.72L", margin: "23.3%", last: "JMeter and k6 load programmes; less hands-on UI automation." },
+      { id: "TV-6488", name: "Nisha Pandey", vendor: "Orbit Talent Services", exp: "5.6y", rate: "₹1.02L", match: 64, note: "Unconfirmed 22d; test expired", r: [78, 44, 70, 96, 28, 44], city: "Jaipur", notice: "Unknown", score: "Expired", fresh: "Unconfirmed 22d", rel: "3.1 / 5", crate: "₹1.34L", margin: "23.9%", last: "Score older than 90 days — needs a retest before she can be shortlisted." }
+    ],
+    D: [
+      { id: "TV-4488", name: "Suresh Balan", vendor: "Vertex Digital", exp: "9.1y", rate: "₹2.15L", match: 88, note: "Deep ABAP + Fiori; unconfirmed 26d", r: [96, 80, 96, 78, 30, 68], city: "Bangalore", notice: "Immediate", score: "79 · 30 Jul", fresh: "Unconfirmed 26d", rel: "3.6 / 5", crate: "₹2.88L", margin: "25.3%", last: "Three S/4HANA rollouts in pharma; the strongest ABAP profile on the exchange." },
+      { id: "TV-5990", name: "Farhan Qureshi", vendor: "Nimbus Softworks", exp: "9.4y", rate: "₹2.15L", match: 85, note: "S/4HANA migration lead; 30-day notice", r: [92, 79, 94, 78, 62, 95], city: "Bangalore", notice: "30 days", score: "79 · 28 Jul", fresh: "Expiring 12d", rel: "4.6 / 5", crate: "₹2.82L", margin: "23.8%", last: "Led an ABAP-to-CDS refactor for a manufacturer; strong documentation habits." },
+      { id: "TV-6833", name: "Divya Ranganathan", vendor: "Trueline Consulting", exp: "3.9y", rate: "₹92K", match: 78, note: "Salesforce Apex + LWC; under band", r: [88, 85, 58, 100, 74, 66], city: "Pune", notice: "Immediate", score: "85 · 15 Aug", fresh: "Expiring 11d", rel: "3.4 / 5", crate: "₹1.18L", margin: "22.0%", last: "Two Service Cloud implementations; no integration architecture yet." },
+      { id: "TV-6104", name: "Neha Chaudhary", vendor: "Nimbus Softworks", exp: "4.8y", rate: "₹98K", match: 74, note: ".NET Core + Azure; score below 75", r: [82, 68, 70, 96, 80, 95], city: "Hyderabad", notice: "Immediate", score: "74 · 07 Aug", fresh: "Unconfirmed 21d", rel: "4.6 / 5", crate: "₹1.32L", margin: "25.8%", last: "Internal claims tooling on .NET 6; first client-facing engagement." },
+      { id: "TV-3964", name: "Nikhil Sharma", vendor: "Orbit Talent Services", exp: "4.5y", rate: "₹98K", match: 69, note: "Duplicate risk flagged with TV-6104", r: [80, 68, 66, 96, 40, 44], city: "Hyderabad", notice: "30 days", score: "76 · 18 Aug", fresh: "Unconfirmed 21d", rel: "3.1 / 5", crate: "₹1.18L", margin: "17.4%", last: "Overlapping employer history with a Nimbus submission — see DUP-0147." }
+    ]
+  };
+
+  REQS = [
+    ["REQ-2291", "Senior React Engineers", "Acme Finserv", 3, ["React", "TypeScript"], "₹4.8L/mo", "4d", "P. Nair", "shortlisted", "Send by 16:00", "warn", "₹1.30–1.70L", "15 Sep 2026", "5–8 years", "Bangalore / hybrid", "A", "Prefer someone who has shipped a design system. Budget can stretch 10% for the right person.", 6],
+    ["REQ-2274", "SAP ABAP Consultant", "Acme Finserv", 1, ["SAP ABAP", "Fiori"], "₹2.6L/mo", "2d", "P. Nair", "matching", "SLA 4h", "warn", "₹2.00–2.60L", "1 Oct 2026", "8+ years", "Pune / onsite", "D", "Must have handled at least one S/4HANA migration end to end.", 5],
+    ["REQ-2288", "Node.js Engineers", "Kestrel Logistics", 3, ["Node.js", "AWS"], "₹4.1L/mo", "1d", "R. Verma", "matching", "SLA 11h", "ok", "₹1.20–1.55L", "22 Sep 2026", "4–7 years", "Remote", "B", "Event-driven experience matters more than years. Kafka or Kinesis both fine.", 5],
+    ["REQ-2295", "QA Automation Engineers", "Northwind Retail", 2, ["Playwright", "API"], "₹2.2L/mo", "1d", "P. Nair", "matching", "Overdue 2h", "late", "₹1.00–1.25L", "8 Sep 2026", "4–7 years", "Hyderabad / hybrid", "C", "The suite is Playwright on GitHub Actions — we want someone who has run it in CI.", 5],
+    ["REQ-2312", "Salesforce Developers", "Northwind Retail", 2, ["Apex", "LWC"], "₹2.4L/mo", "1h", "S. Iyer", "new", "SLA 23h", "ok", "₹1.00–1.30L", "1 Oct 2026", "3–5 years", "Remote", "D", "Service Cloud rollout; integration experience with SAP is a plus.", 0],
+    ["REQ-2309", "SAP ABAP Consultant", "Meridian Pharma", 1, ["SAP ABAP", "HANA"], "₹2.6L/mo", "4h", "P. Nair", "new", "SLA 20h", "ok", "₹2.10–2.70L", "15 Oct 2026", "8+ years", "Pune / onsite", "D", "Validated-systems background required (GxP). Documentation discipline is critical.", 0],
+    ["REQ-2307", "Data Engineers", "Acme Finserv", 2, ["Spark", "Airflow"], "₹3.2L/mo", "6h", "R. Verma", "new", "SLA 18h", "ok", "₹1.45–1.80L", "1 Oct 2026", "5–8 years", "Bangalore / hybrid", "B", "Lakehouse migration; Databricks exposure preferred but not mandatory.", 0],
+    ["REQ-2305", "React Native Developer", "Vantage Insurance", 1, ["React Native"], "₹1.6L/mo", "8h", "S. Iyer", "new", "SLA 16h", "ok", "₹1.30–1.60L", "29 Sep 2026", "5–8 years", "Remote", "A", "Claims app rewrite. Offline-first experience would be ideal.", 0],
+    ["REQ-2302", "QA Lead", "Kestrel Logistics", 1, ["QA Strategy", "Selenium"], "₹1.8L/mo", "12h", "P. Nair", "new", "SLA 12h", "warn", "₹1.55–1.85L", "6 Oct 2026", "8+ years", "Pune / hybrid", "C", "Needs to build the practice, not just execute. People management experience required.", 0],
+    ["REQ-2298", "Java Spring Boot Engineers", "Meridian Pharma", 2, ["Spring Boot", "Kafka"], "₹3.4L/mo", "2d", "R. Verma", "matching", "SLA 9h", "ok", "₹1.55–1.85L", "22 Sep 2026", "5–8 years", "Hyderabad / hybrid", "B", "Regulated environment — code review discipline will be assessed closely.", 5],
+    ["REQ-2293", ".NET Core Developers", "Vantage Insurance", 2, [".NET Core", "Azure"], "₹2.4L/mo", "3d", "S. Iyer", "matching", "SLA 7h", "warn", "₹1.05–1.30L", "15 Sep 2026", "3–5 years", "Remote", "D", "Azure Functions and Service Bus in the stack. Insurance domain a bonus.", 5],
+    ["REQ-2290", "Salesforce Admin", "Acme Finserv", 1, ["Salesforce", "Flows"], "₹1.1L/mo", "5d", "S. Iyer", "matching", "SLA 14h", "ok", "₹0.95–1.15L", "1 Oct 2026", "3–5 years", "Remote", "D", "Admin-plus role: flows, permissions, light Apex.", 4],
+    ["REQ-2249", "Node.js Platform Engineer", "Acme Finserv", 1, ["Node.js", "Kafka"], "₹1.7L/mo", "6d", "P. Nair", "shortlisted", "Awaiting client", "idle", "₹1.45–1.75L", "8 Sep 2026", "5–8 years", "Bangalore / hybrid", "B", "Shortlist sent 20 Aug; client has not opened it yet — chase Ananya.", 6],
+    ["REQ-2266", ".NET Core Developers", "Vantage Insurance", 2, [".NET Core", "Azure"], "₹2.4L/mo", "5d", "S. Iyer", "shortlisted", "Awaiting client", "idle", "₹1.10–1.35L", "15 Sep 2026", "3–5 years", "Remote", "D", "Two of four masked profiles are already in another client's process.", 5],
+    ["REQ-2258", "QA Automation Engineer", "Northwind Retail", 1, ["Playwright"], "₹1.2L/mo", "7d", "P. Nair", "shortlisted", "Feedback due", "warn", "₹1.05–1.25L", "1 Sep 2026", "4–7 years", "Remote", "C", "Client asked for one more profile in the ₹1.1L band before deciding.", 5],
+    ["REQ-2260", "QA Automation Engineers", "Acme Finserv", 2, ["Selenium", "CI/CD"], "₹2.5L/mo", "9d", "P. Nair", "interviewing", "R2 on 26 Aug", "ok", "₹1.00–1.30L", "1 Sep 2026", "4–7 years", "Hyderabad / hybrid", "C", "TV-6620 in round 2; client wants a pairing round with the platform lead.", 5],
+    ["REQ-2231", "Java Spring Boot Engineers", "Kestrel Logistics", 2, ["Spring Boot", "Kafka"], "₹3.6L/mo", "12d", "R. Verma", "interviewing", "Feedback due", "warn", "₹1.60–1.90L", "1 Sep 2026", "5–8 years", "Pune / hybrid", "B", "Panel feedback for two candidates is 3 days late — escalate to the account lead.", 5],
+    ["REQ-2224", "React Engineer", "Northwind Retail", 1, ["React", "Next.js"], "₹1.5L/mo", "14d", "S. Iyer", "interviewing", "Offer stage", "ok", "₹1.25–1.55L", "1 Sep 2026", "5–8 years", "Remote", "A", "Client verbally agreed; waiting on supplier release confirmation.", 6],
+    ["REQ-2219", "SAP ABAP Consultant", "Meridian Pharma", 1, ["SAP ABAP"], "₹2.7L/mo", "16d", "P. Nair", "interviewing", "R1 on 27 Aug", "ok", "₹2.20–2.80L", "15 Sep 2026", "8+ years", "Pune / onsite", "D", "Slot confirmed with the supplier; candidate briefed on masking rules.", 5],
+    ["REQ-2211", "Data Engineer", "Acme Finserv", 1, ["Spark", "Airflow"], "₹1.7L/mo", "18d", "R. Verma", "interviewing", "R2 on 28 Aug", "ok", "₹1.50–1.80L", "8 Sep 2026", "5–8 years", "Bangalore / hybrid", "B", "Strong first round; client asked for a data-modelling exercise.", 5],
+    ["REQ-2205", "SAP ABAP Consultant", "Acme Finserv", 1, ["SAP ABAP"], "₹2.9L/mo", "22d", "P. Nair", "placed", "Margin 14.2%", "warn", "₹2.20–2.90L", "1 Aug 2026", "8+ years", "Bangalore / onsite", "D", "Placed below the margin floor as a strategic entry — review at renewal.", 5],
+    ["REQ-2198", "Salesforce Developer", "Vantage Insurance", 1, ["Apex", "LWC"], "₹1.3L/mo", "28d", "S. Iyer", "placed", "Margin 24.1%", "ok", "₹1.05–1.35L", "19 May 2026", "3–5 years", "Remote", "D", "Extension likely; client has asked about a second resource.", 4],
+    ["REQ-2187", ".NET Core Developer", "Northwind Retail", 1, [".NET Core"], "₹1.4L/mo", "34d", "S. Iyer", "placed", "Margin 21.6%", "ok", "₹1.15–1.45L", "12 Apr 2026", "3–5 years", "Remote", "D", "Running clean for four months; invoice cycle on time.", 4],
+    ["REQ-2176", "Java Spring Boot Engineer", "Acme Finserv", 1, ["Spring Boot"], "₹2.2L/mo", "41d", "R. Verma", "placed", "Margin 25.7%", "ok", "₹1.85–2.20L", "3 Mar 2026", "5–8 years", "Pune / hybrid", "B", "Best-performing placement of the quarter; client cited it in the QBR.", 5]
+  ].map(r => ({ id: r[0], role: r[1], client: r[2], qty: r[3], skills: r[4], value: r[5], age: r[6], owner: r[7], stage0: r[8], sla: r[9], slaKind: r[10], budget: r[11], start: r[12], expBand: r[13], loc: r[14], pool: r[15], note: r[16], sourced: r[17] }));
+
+  reqs() { return this.REQS.map(r => Object.assign({}, r, { stage: this.state.stageOv[r.id] || r.stage0 })); }
+  stageMeta(k) { const s = this.STAGES.find(x => x[0] === k); return { key: s[0], label: s[1], color: s[2], bg: s[3], fg: s[4] }; }
+  sel() { const r = this.reqs().find(x => x.id === this.state.selectedReq); return r || this.reqs()[0]; }
+
+  moveStage = (id, dir) => {
+    const r = this.reqs().find(x => x.id === id);
+    const keys = this.STAGES.map(s => s[0]);
+    const i = keys.indexOf(r.stage), j = i + dir;
+    if (j < 0 || j >= keys.length) return;
+    this.setStageTo(id, keys[j]);
+  };
+
+  setStageTo = (id, stage) => {
+    const r = this.reqs().find(x => x.id === id);
+    if (!r || r.stage === stage) return this.setState({ drag: null });
+    const prev = r.stage;
+    this.setState(s => ({
+      stageOv: Object.assign({}, s.stageOv, { [id]: stage }),
+      drag: null,
+      toast: { msg: id + " · " + r.role + " moved to " + this.stageMeta(stage).label.toLowerCase(), id, prev }
+    }));
+  };
+
+  undoMove = () => {
+    const t = this.state.toast;
+    if (!t) return;
+    this.setState(s => ({ stageOv: Object.assign({}, s.stageOv, { [t.id]: t.prev }), toast: null }));
+  };
+
+  poolFor(req) { return this.POOLS[req.pool] || []; }
+
+  order(req) {
+    const pool = this.poolFor(req);
+    const saved = this.state.rankByReq[req.id];
+    const ids = saved || pool.map(p => p.id);
+    return ids.map(id => pool.find(p => p.id === id)).filter(Boolean);
+  }
+
+  included(req) {
+    const saved = this.state.inByReq[req.id];
+    if (saved) return saved;
+    return this.order(req).slice(0, Math.min(4, Math.max(2, req.qty + 1))).map(c => c.id);
+  }
+
+  moveCand = (req, id, dir) => {
+    const ids = this.order(req).map(c => c.id);
+    const i = ids.indexOf(id), j = i + dir;
+    if (j < 0 || j >= ids.length) return;
+    ids.splice(j, 0, ids.splice(i, 1)[0]);
+    this.setState(s => ({ rankByReq: Object.assign({}, s.rankByReq, { [req.id]: ids }) }));
+  };
+
+  dropCand = (req, targetId) => {
+    const src = this.state.drag;
+    if (!src || src === targetId) return this.setState({ drag: null });
+    const ids = this.order(req).map(c => c.id);
+    if (ids.indexOf(src) < 0) return this.setState({ drag: null });
+    ids.splice(ids.indexOf(src), 1);
+    ids.splice(ids.indexOf(targetId), 0, src);
+    this.setState(s => ({ rankByReq: Object.assign({}, s.rankByReq, { [req.id]: ids }), drag: null }));
+  };
+
+  renderVals() {
+    const { portal, screen, picked } = this.state;
+    const st0 = this.state;
+    const A = this.accent(portal);
+    const cands = this.cands();
+
+    const common = {
+      accentGrad: portal === "client" ? "linear-gradient(135deg,#8b5cf6,#6366f1)" : portal === "vendor" ? "linear-gradient(135deg,#34d399,#0d9488)" : "linear-gradient(135deg,#fbbf24,#f97316)",
+      portalTag: { client: "CLIENT PORTAL", vendor: "VENDOR PORTAL", ops: "OPS CONSOLE · INTERNAL" }[portal],
+      userName: { client: "Ananya Krishnan", vendor: "Vikram Shetty", ops: "Priya Nair" }[portal],
+      userOrg: { client: "Acme Finserv", vendor: "Nimbus Softworks", ops: "Talentvibes · Brokering" }[portal],
+      navItems: this.navFor(portal),
+      asideTitle: { client: "OPEN REQS", vendor: "FRESHNESS ALERTS", ops: "TODAY’S QUEUE" }[portal],
+      asideItems: {
+        client: [{ label: "REQ-2291 · React ×3", dot: "#a78bfa" }, { label: "REQ-2274 · SAP ABAP ×1", dot: "#3f3f4a" }, { label: "REQ-2260 · QA Auto ×2", dot: "#3f3f4a" }],
+        vendor: [{ label: "7 profiles expire in 2 days", dot: "#f59e0b" }, { label: "3 unconfirmed over 14 days", dot: "#ef4444" }, { label: "9 assessments pending", dot: "#3f3f4a" }],
+        ops: [{ label: "2 duplicate flags to clear", dot: "#ef4444" }, { label: "REQ-2291 shortlist due 4pm", dot: "#fbbf24" }, { label: "5 vendor rate approvals", dot: "#3f3f4a" }]
+      }[portal],
+      portals: ["client", "vendor", "ops"].map(p => ({
+        label: { client: "Client · Acme Finserv", vendor: "Vendor · Nimbus", ops: "Talentvibes Ops" }[p],
+        dot: this.accent(p), go: () => this.go(p, { client: "dash", vendor: "vdash", ops: "pipeline" }[p]),
+        bg: portal === p ? "#1e1e26" : "transparent", fg: portal === p ? "#fff" : "#8b8b96", fw: portal === p ? 700 : 500
+      })),
+      isClientDash: portal === "client" && screen === "dash",
+      isClientPost: portal === "client" && screen === "post",
+      isClientShortlist: portal === "client" && screen === "shortlist",
+      isClientInterviews: portal === "client" && (screen === "interviews" || screen === "engagements"),
+      goPost: () => this.setState({ screen: "post" }),
+      goShortlist: () => this.setState({ screen: "shortlist" }),
+      goInterviews: () => this.setState({ screen: "interviews" }),
+      selectedCount: picked.length,
+      askListRef: this.askList,
+      askOpen: st0.askOpen,
+      askCtx: st0.askCtx,
+      askDraft: st0.askDraft,
+      askTyping: st0.askTyping,
+      sendBg: st0.askDraft.trim() ? "#6d3ff0" : "#c9bef0",
+      askMsgs: st0.askThread.map(m => ({
+        who: m.who, at: m.at, body: m.body,
+        align: m.me ? "flex-end" : "flex-start",
+        bg: m.me ? "#101014" : "#f7f7fa",
+        fg: m.me ? "#fff" : "#26262e",
+        border: m.me ? "#101014" : "#eeeef3"
+      })),
+      askChips: [
+        "Can we hold TV-6620 for a week?",
+        "What is the notice period on the top two?",
+        "Any room on the rate for TV-4488?",
+        "Can you add one more profile under ₹1.5L?"
+      ].map(label => ({ label, go: () => this.ask(label) })),
+      openAsk: () => this.setState({ askOpen: true, askCtx: "REQ-2291 · Senior React Engineers" }),
+      closeAsk: () => this.setState({ askOpen: false, askDraft: "" }),
+      onAskInput: (e) => this.setState({ askDraft: e.target.value }),
+      onAskKey: (e) => { if (e.key === "Enter") this.ask(this.state.askDraft); },
+      sendAsk: () => this.ask(this.state.askDraft)
+    };
+
+    const clientVals = {
+      clientStats: [
+        { label: "OPEN REQUIREMENTS", value: "4", delta: "+1", deltaColor: "#16a34a", sub: "9 positions in total" },
+        { label: "AWAITING REVIEW", value: "3", delta: "2 new", deltaColor: "#6d3ff0", sub: "17 masked profiles" },
+        { label: "IN INTERVIEW", value: "4", delta: "", deltaColor: "#8a8a96", sub: "2 feedback forms due" },
+        { label: "ACTIVE ENGAGEMENTS", value: "5", delta: "₹8.4L/mo", deltaColor: "#8a8a96", sub: "avg tenure 4.2 months" }
+      ],
+      openReqs: [
+        { id: "REQ-2291", role: "Senior React Engineers", meta: "5–8y · Bangalore / Remote · start 15 Sep", qty: "3", budget: "₹1.30–1.70L", stage: "SHORTLISTED", stageBg: "#f1ecff", stageFg: "#6d3ff0", action: "Review 6", go: () => this.setState({ screen: "shortlist" }) },
+        { id: "REQ-2274", role: "SAP ABAP Consultant", meta: "8y+ · Pune · start 1 Oct", qty: "1", budget: "₹2.00–2.60L", stage: "MATCHING", stageBg: "#fff3e4", stageFg: "#b45309", action: "View", go: () => this.setState({ screen: "post" }) },
+        { id: "REQ-2260", role: "QA Automation Engineers", meta: "4–7y · Hyderabad · start immediate", qty: "2", budget: "₹1.00–1.30L", stage: "INTERVIEWING", stageBg: "#e8f6ef", stageFg: "#127a4a", action: "Schedule", go: () => this.setState({ screen: "interviews" }) },
+        { id: "REQ-2255", role: "Salesforce Developer", meta: "3–5y · Remote · start 1 Oct", qty: "2", budget: "₹0.90–1.20L", stage: "NEW", stageBg: "#f3f3f7", stageFg: "#4a4a58", action: "View", go: () => this.setState({ screen: "post" }) }
+      ],
+      awaiting: [
+        { id: "REQ-2291", role: "Senior React Engineers", count: 6, avg: 83.5, age: "2h ago" },
+        { id: "REQ-2260", role: "QA Automation Engineers", count: 5, avg: 86.2, age: "yesterday" },
+        { id: "REQ-2249", role: "Node.js Platform Engineer", count: 6, avg: 79.8, age: "2 days ago" }
+      ],
+      engagements: [
+        { initials: "TV", id: "TV-3310", role: "Java Spring Boot", since: "since 3 Mar", rate: "₹1.92L", status: "Active", dot: "#16a34a" },
+        { initials: "TV", id: "TV-2984", role: ".NET Core", since: "since 12 Apr", rate: "₹1.44L", status: "Active", dot: "#16a34a" },
+        { initials: "TV", id: "TV-4102", role: "QA Automation", since: "since 2 Jun", rate: "₹1.26L", status: "Ends 30 Sep", dot: "#c2410c" },
+        { initials: "TV", id: "TV-3877", role: "Salesforce", since: "since 19 May", rate: "₹1.18L", status: "Active", dot: "#16a34a" },
+        { initials: "TV", id: "TV-4455", role: "SAP ABAP", since: "since 1 Aug", rate: "₹2.60L", status: "Onboarding", dot: "#1d4ed8" }
+      ],
+      brokerSteps: [
+        { n: "1", title: "You post, we source", body: "Talentvibes searches 14 supplier benches. Suppliers never see your name." },
+        { n: "2", title: "Masked shortlist", body: "You review IDs, skills, proctored scores and rate bands only." },
+        { n: "3", title: "Brokered interviews", body: "We schedule, relay feedback and hold both commercial conversations." },
+        { n: "4", title: "One contract", body: "You contract with Talentvibes. We contract with the supplier." }
+      ],
+      matchPreview: [
+        { label: "Skill match", v: 42, w: "84%" }, { label: "Within budget", v: 31, w: "62%" },
+        { label: "Score ≥ 80", v: 24, w: "48%" }, { label: "Start by 15 Sep", v: 18, w: "36%" }
+      ],
+      shortlist: cands.map(c => {
+        const on = picked.includes(c.id);
+        return Object.assign({}, c, {
+          cardBorder: on ? "#c9b6ff" : "#e8e8ee",
+          btnBg: on ? "#6d3ff0" : "#101014", btnFg: "#fff", btnLabel: on ? "Selected ✓" : "Interview",
+          toggle: () => this.setState(s => ({ picked: s.picked.includes(c.id) ? s.picked.filter(x => x !== c.id) : s.picked.concat(c.id) })),
+          ask: () => this.setState({ askOpen: true, askCtx: c.id + " · " + c.skills[0] + " · " + c.exp })
+        });
+      }),
+      interviews: [
+        { mon: "AUG", day: "25", time: "11:00", id: "TV-4821", stage: "ROUND 1", stageBg: "#f1ecff", stageFg: "#6d3ff0", role: "Senior React Engineer", dur: "45 min", mode: "Google Meet · link from Talentvibes", panel: "R. Sundaram (Eng Manager), D. Kulkarni (Staff FE)", cta: "Join briefing" },
+        { mon: "AUG", day: "26", time: "15:30", id: "TV-6620", stage: "ROUND 2", stageBg: "#e8f6ef", stageFg: "#127a4a", role: "QA Automation Engineer", dur: "60 min", mode: "Onsite · Whitefield campus", panel: "S. Ahuja (QA Lead), Platform pairing", cta: "View scorecard" },
+        { mon: "AUG", day: "28", time: "10:00", id: "TV-7715", stage: "ROUND 1", stageBg: "#f1ecff", stageFg: "#6d3ff0", role: "Senior React Engineer", dur: "45 min", mode: "Google Meet · link from Talentvibes", panel: "D. Kulkarni (Staff FE)", cta: "Prepare questions" }
+      ],
+      feedbackRows: [
+        { label: "Technical depth", v: 4 }, { label: "Problem solving", v: 5 },
+        { label: "Communication", v: 4 }, { label: "Role fit", v: 4 }
+      ].map(f => Object.assign(f, { pips: [1, 2, 3, 4, 5].map(n => ({ bg: n <= f.v ? "#6d3ff0" : "#eeeef3" })) }))
+    };
+
+    const conf = this.state.confirmed || [];
+    const rosterBase = [
+      ["Arjun Rathore", "TV-4821", "Bangalore", ["React", "TypeScript", "Node.js"], "6.2y", "₹1,38,000", "Scored 88", "confirmed", 2],
+      ["Meghna Iyer", "TV-6620", "Jaipur", ["QA Automation", "Playwright"], "5.4y", "₹1,12,000", "Scored 91", "confirmed", 1],
+      ["Rohit Deshmukh", "TV-5107", "Pune", ["Java Spring Boot", "Kafka"], "8.0y", "₹1,84,000", "Scored 82", "expiring", 12],
+      ["Ishita Bansal", "TV-7702", "Pune", ["Java Spring Boot", "Microservices"], "6.3y", "₹1,45,000", "Not started", "expiring", 13],
+      ["Sanjay Pillai", "TV-7715", "Bangalore", ["React Native", "React", "GraphQL"], "7.1y", "₹1,46,000", "In progress", "confirmed", 3],
+      ["Neha Chaudhary", "TV-6104", "Hyderabad", [".NET Core", "Azure"], "4.8y", "₹98,000", "Scored 74", "unconfirmed", 21],
+      ["Farhan Qureshi", "TV-5990", "Bangalore", ["SAP ABAP", "Fiori"], "9.4y", "₹2,15,000", "Scored 79", "unconfirmed", 26],
+      ["Divya Ranganathan", "TV-6833", "Pune", ["Salesforce", "Apex", "LWC"], "3.9y", "₹92,000", "Scored 85", "expiring", 11],
+      ["Karthik Nair", "TV-7188", "Jaipur", ["QA Automation", "Selenium", "API"], "5.1y", "₹1,05,000", "Not started", "confirmed", 4]
+    ];
+    const freshMeta = { confirmed: { bg: "#e8f6ef", fg: "#0f7a4a", label: "CONFIRMED" }, expiring: { bg: "#fff3e4", fg: "#b45309", label: "EXPIRING SOON" }, unconfirmed: { bg: "#fdecec", fg: "#b91c1c", label: "UNCONFIRMED" } };
+    const roster = rosterBase.map(([name, id, city, skills, exp, rate, assess, fresh0, days]) => {
+      const fresh = conf.includes(id) ? "confirmed" : fresh0;
+      const d = conf.includes(id) ? 0 : days;
+      const m = freshMeta[fresh];
+      const done = fresh === "confirmed";
+      const aDot = assess.startsWith("Scored") ? "#16a34a" : assess === "In progress" ? "#c2410c" : "#9aa0ab";
+      return {
+        name, id, city, skills, exp, rate, assess,
+        assessDot: aDot,
+        assessSub: assess.startsWith("Scored") ? "proctored, valid 90 days" : assess === "In progress" ? "started 2 days ago" : "invite not sent",
+        freshBg: m.bg, freshFg: m.fg, freshLabel: m.label,
+        freshSub: d === 0 ? "just now" : d + "d ago",
+        freshW: Math.max(6, Math.round((1 - Math.min(d, 28) / 28) * 100)) + "%",
+        btnLabel: done ? "Confirmed ✓" : "Still available",
+        btnBg: done ? "#f3f3f7" : "#059669", btnFg: done ? "#8a8a96" : "#fff", btnBorder: done ? "#e8e8ee" : "#059669",
+        confirm: () => this.setState(s => ({ confirmed: (s.confirmed || []).concat(id) }))
+      };
+    });
+    const expiringCount = roster.filter(r => r.freshLabel !== "CONFIRMED").length;
+
+    const vendorVals = {
+      isVendorDash: portal === "vendor" && screen === "vdash",
+      isVendorAdd: portal === "vendor" && screen === "add",
+      isVendorRoster: portal === "vendor" && screen === "roster",
+      isVendorAssess: portal === "vendor" && screen === "assess",
+      isVendorEarnings: portal === "vendor" && screen === "earnings",
+      goRoster: () => this.setState({ screen: "roster" }),
+      goAdd: () => this.setState({ screen: "add" }),
+      roster, expiringCount,
+      confirmAll: () => this.setState({ confirmed: rosterBase.map(r => r[1]) }),
+      vendorStats: [
+        { label: "PROFILES LISTED", value: "27", delta: "+4", deltaColor: "#16a34a", sub: "of 42 on bench" },
+        { label: "SHORTLISTED", value: "11", delta: "6 live", deltaColor: "#059669", sub: "across 5 requirements" },
+        { label: "PLACED · YTD", value: "18", delta: "+3 Aug", deltaColor: "#16a34a", sub: "avg 6.4 month tenure" },
+        { label: "MONTHLY BILLING", value: "₹7.4L", delta: "", deltaColor: "#8a8a96", sub: "5 active placements" }
+      ],
+      vendorPipeline: [
+        { id: "TV-4821", name: "A. Rathore", skills: ["React", "TypeScript"], rate: "₹1,38,000", stage: "INTERVIEW R1", stageBg: "#f1ecff", stageFg: "#6d3ff0", updated: "2h ago" },
+        { id: "TV-6620", name: "M. Iyer", skills: ["QA Automation", "Playwright"], rate: "₹1,12,000", stage: "INTERVIEW R2", stageBg: "#f1ecff", stageFg: "#6d3ff0", updated: "yesterday" },
+        { id: "TV-7715", name: "S. Pillai", skills: ["React Native", "GraphQL"], rate: "₹1,46,000", stage: "SHORTLISTED", stageBg: "#e8f6ef", stageFg: "#0f7a4a", updated: "yesterday" },
+        { id: "TV-5107", name: "R. Deshmukh", skills: ["Java Spring Boot", "Kafka"], rate: "₹1,84,000", stage: "SHORTLISTED", stageBg: "#e8f6ef", stageFg: "#0f7a4a", updated: "2 days ago" },
+        { id: "TV-6104", name: "N. Chaudhary", skills: [".NET Core", "Azure"], rate: "₹98,000", stage: "NOT SHORTLISTED", stageBg: "#f3f3f7", stageFg: "#6b6b78", updated: "4 days ago" }
+      ],
+      freshSummary: [
+        { n: 32, label: "Confirmed", bg: "#e8f6ef", fg: "#0f7a4a" },
+        { n: 7, label: "Expiring soon", bg: "#fff3e4", fg: "#b45309" },
+        { n: 3, label: "Unconfirmed", bg: "#fdecec", fg: "#b91c1c" }
+      ],
+      assessSummary: [
+        { label: "Scored", n: 18, w: "67%", color: "#059669" },
+        { label: "In progress", n: 4, w: "15%", color: "#c2410c" },
+        { label: "Not started", n: 9, w: "33%", color: "#9aa0ab" }
+      ],
+      importRows: [
+        { label: "Rows imported", n: 38, color: "#059669" },
+        { label: "Listed automatically", n: 34, color: "#059669" },
+        { label: "Needs review", n: 4, color: "#f59e0b" }
+      ],
+      assessCards: [
+        { name: "Meghna Iyer", id: "TV-6620", track: "QA Automation track", status: "SCORED", bg: "#e8f6ef", fg: "#0f7a4a", score: "91", scoreLabel: "PROCTORED · 12 AUG", scoreColor: "#059669", b: [93, 88, 86, 92], note: "Valid until 10 Nov", cta: "View report" },
+        { name: "Arjun Rathore", id: "TV-4821", track: "Frontend / React track", status: "SCORED", bg: "#e8f6ef", fg: "#0f7a4a", score: "88", scoreLabel: "PROCTORED · 09 AUG", scoreColor: "#059669", b: [91, 84, 82, 90], note: "Valid until 07 Nov", cta: "View report" },
+        { name: "Rohit Deshmukh", id: "TV-5107", track: "Java backend track", status: "SCORED", bg: "#e8f6ef", fg: "#0f7a4a", score: "82", scoreLabel: "PROCTORED · 04 AUG", scoreColor: "#059669", b: [84, 78, 88, 76], note: "Retake allowed after 60d", cta: "View report" },
+        { name: "Sanjay Pillai", id: "TV-7715", track: "React Native track", status: "IN PROGRESS", bg: "#fff3e4", fg: "#b45309", score: "—", scoreLabel: "SECTION 2 OF 4", scoreColor: "#c2410c", b: [100, 62, 0, 0], note: "Started 22 Aug, 14:10", cta: "Nudge candidate" },
+        { name: "Ishita Bansal", id: "TV-7702", track: "Java backend track", status: "NOT STARTED", bg: "#f3f3f7", fg: "#6b6b78", score: "—", scoreLabel: "INVITE NOT SENT", scoreColor: "#9aa0ab", b: [0, 0, 0, 0], note: "Listed 3 days ago", cta: "Send invite" },
+        { name: "Karthik Nair", id: "TV-7188", track: "QA Automation track", status: "NOT STARTED", bg: "#f3f3f7", fg: "#6b6b78", score: "—", scoreLabel: "INVITE SENT 20 AUG", scoreColor: "#9aa0ab", b: [0, 0, 0, 0], note: "Expires in 4 days", cta: "Resend invite" }
+      ].map(a => Object.assign(a, { bars: [["Coding", a.b[0]], ["DSA", a.b[1]], ["System design", a.b[2]], ["Communication", a.b[3]]].map(([label, v]) => ({ label, w: v + "%" })) })),
+      earnStats: [
+        { label: "BILLED THIS MONTH", value: "₹7.42L", delta: "+₹1.26L", deltaColor: "#16a34a", sub: "5 active placements" },
+        { label: "YTD EARNINGS", value: "₹58.6L", delta: "", deltaColor: "#8a8a96", sub: "18 placements since Jan" },
+        { label: "AVG RATE / RESOURCE", value: "₹1.48L", delta: "+4%", deltaColor: "#16a34a", sub: "your contracted rate" },
+        { label: "PAYMENT CYCLE", value: "7th", delta: "on time", deltaColor: "#16a34a", sub: "net 30 · last 12 cycles clear" }
+      ],
+      earnRows: [
+        { name: "Priyanka Joshi", id: "TV-3310", role: "Java Spring Boot Engineer", since: "3 Mar 2026", rate: "₹1,62,000", month: "₹1,62,000", status: "BILLED", bg: "#e8f6ef", fg: "#0f7a4a" },
+        { name: "Nikhil Sharma", id: "TV-2984", role: ".NET Core Engineer", since: "12 Apr 2026", rate: "₹1,18,000", month: "₹1,18,000", status: "BILLED", bg: "#e8f6ef", fg: "#0f7a4a" },
+        { name: "Aditi Verma", id: "TV-4102", role: "QA Automation Engineer", since: "2 Jun 2026", rate: "₹1,04,000", month: "₹1,04,000", status: "ENDS 30 SEP", bg: "#fff3e4", fg: "#b45309" },
+        { name: "Rahul Krishnan", id: "TV-3877", role: "Salesforce Developer", since: "19 May 2026", rate: "₹96,000", month: "₹96,000", status: "BILLED", bg: "#e8f6ef", fg: "#0f7a4a" },
+        { name: "Farhan Qureshi", id: "TV-4455", role: "SAP ABAP Consultant", since: "1 Aug 2026", rate: "₹2,15,000", month: "₹1,62,000", status: "PRO-RATA", bg: "#e8eefc", fg: "#1d4ed8" }
+      ]
+    };
+
+    const RL = ["SKILL", "TEST", "EXP FIT", "RATE", "FRESH", "VENDOR"];
+    const st = this.state;
+    const all = this.reqs();
+    const q = st.q.trim().toLowerCase();
+    const match = r => !q || (r.id + " " + r.role + " " + r.client + " " + r.owner + " " + r.skills.join(" ")).toLowerCase().indexOf(q) >= 0;
+    const filtered = all.filter(r => match(r) && (!st.desk || r.owner === "P. Nair") && (!st.risk || r.slaKind === "warn" || r.slaKind === "late") && (!st.unsourced || r.sourced === 0));
+    const lateCount = all.filter(r => r.slaKind === "late").length;
+    const clientCount = new Set(all.map(r => r.client)).size;
+    const anyFilter = !!q || st.desk || st.risk || st.unsourced;
+    const sel = this.sel();
+    const selMetaS = this.stageMeta(sel.stage);
+    const pool = this.poolFor(sel);
+    const inc = this.included(sel);
+    const ordered = this.order(sel);
+    const lakh = v => v;
+    const stageAction = { new: "Source", matching: "Match", shortlisted: "Review", interviewing: "Track", placed: "Margin" };
+
+    const cardFor = r => {
+      const keys = this.STAGES.map(x => x[0]);
+      const i = keys.indexOf(r.stage);
+      return {
+        id: r.id, role: r.role, client: r.client, qty: r.qty, skills: r.skills, value: r.value, age: r.age, owner: r.owner,
+        sla: r.sla, slaColor: this.SLA[r.slaKind],
+        border: st.drag === r.id ? "#b45309" : r.slaKind === "late" ? "#f0c9c9" : r.id === st.selectedReq ? "#d9c9ff" : "#e8e8ee",
+        opacity: st.drag === r.id ? 0.5 : 1,
+        action: stageAction[r.stage],
+        prevColor: i === 0 ? "#dcdce4" : "#6b6b78",
+        nextColor: i === keys.length - 1 ? "#dcdce4" : "#6b6b78",
+        onDragStart: () => this.setState({ drag: r.id }),
+        prev: () => this.moveStage(r.id, -1),
+        next: () => this.moveStage(r.id, 1),
+        openMatch: () => r.stage === "placed" ? this.setState({ screen: "margin" }) : this.setState({ selectedReq: r.id, screen: "matching", pickerOpen: false })
+      };
+    };
+
+    const columns = this.STAGES.map(([key, title, color]) => {
+      const cards = filtered.filter(r => r.stage === key);
+      const over = cards.length > 6;
+      return {
+        key, title, color, count: cards.length, empty: cards.length === 0,
+        wip: over ? "WIP " + cards.length + " · over the limit of 6, scroll for the rest" : cards.length === 0 ? "nothing here" : cards.length + (cards.length === 1 ? " requirement" : " requirements"),
+        wipColor: over ? "#b45309" : "#9a9aa6",
+        bg: st.drag ? "#f0f0f4" : "#f2f2f5",
+        border: st.drag ? "#d8d8e2" : "#eaeaef",
+        cards: cards.map(cardFor),
+        onDragOver: (e) => e.preventDefault(),
+        onDrop: (e) => { e.preventDefault(); if (st.drag) this.setStageTo(st.drag, key); }
+      };
+    });
+
+    const rowsList = this.STAGES.flatMap(([key]) => filtered.filter(r => r.stage === key)).map(r => {
+      const m = this.stageMeta(r.stage);
+      const c = cardFor(r);
+      return {
+        id: r.id, role: r.role, client: r.client, qty: r.qty, value: r.value, owner: r.owner,
+        skillsLine: r.skills.join(" · ") + " · " + r.expBand + " · " + r.loc,
+        stageLabel: m.label, stageBg: m.bg, stageFg: m.fg,
+        sla: r.sla, slaColor: this.SLA[r.slaKind],
+        rowBg: r.slaKind === "late" ? "#fffbfb" : "#fff",
+        prev: c.prev, next: c.next, prevColor: c.prevColor, nextColor: c.nextColor,
+        openMatch: c.openMatch, action: stageAction[r.stage]
+      };
+    });
+
+    const rankedList = ordered.map((c, i) => {
+      const on = inc.indexOf(c.id) >= 0;
+      const open = st.openCand === c.id;
+      return {
+        id: c.id, name: c.name, vendor: c.vendor, exp: c.exp, rate: c.rate, match: c.match, note: c.note, pos: i + 1,
+        border: st.drag === c.id ? "#b45309" : on ? "#f0dcc0" : "#e8e8ee",
+        opacity: st.drag === c.id ? 0.55 : 1,
+        tag: on ? "IN SHORTLIST" : "HELD BACK",
+        tagBg: on ? "#fff3e4" : "#f3f3f7", tagFg: on ? "#b45309" : "#6b6b78",
+        inLabel: on ? "Included" : "Include", inBg: on ? "#b45309" : "#101014", inFg: "#fff",
+        reasons: c.r.map((v, k) => ({ label: RL[k], v, w: v + "%", color: v >= 80 ? "#b45309" : v >= 60 ? "#d9a066" : "#e0b3b3" })),
+        up: () => this.moveCand(sel, c.id, -1),
+        down: () => this.moveCand(sel, c.id, 1),
+        onDragStart: () => this.setState({ drag: c.id }),
+        onDragOver: (e) => e.preventDefault(),
+        onDrop: (e) => { e.preventDefault(); this.dropCand(sel, c.id); },
+        toggleIn: () => this.setState(s => {
+          const cur = this.included(sel);
+          const next = cur.indexOf(c.id) >= 0 ? cur.filter(x => x !== c.id) : cur.concat(c.id);
+          return { inByReq: Object.assign({}, s.inByReq, { [sel.id]: next }) };
+        }),
+        expand: () => this.setState(s => ({ openCand: s.openCand === c.id ? null : c.id })),
+        expandLabel: open ? "Hide" : "Profile",
+        open,
+        detail: [
+          { k: "CITY", v: c.city, color: "#101014" }, { k: "NOTICE", v: c.notice, color: "#101014" },
+          { k: "PROCTORED", v: c.score, color: c.score.indexOf("Not") === 0 || c.score === "Expired" ? "#b91c1c" : "#0f7a4a" },
+          { k: "FRESHNESS", v: c.fresh, color: c.fresh.indexOf("Confirmed") === 0 ? "#0f7a4a" : c.fresh.indexOf("Expiring") === 0 ? "#b45309" : "#b91c1c" },
+          { k: "VENDOR RELIABILITY", v: c.rel, color: "#101014" }, { k: "VENDOR RATE", v: c.rate, color: "#101014" },
+          { k: "PROPOSED CLIENT RATE", v: c.crate, color: "#101014" },
+          { k: "MARGIN AT THAT RATE", v: c.margin, color: parseFloat(c.margin) < 18 ? "#b91c1c" : "#0f7a4a" }
+        ],
+        detailNote: c.last
+      };
+    });
+
+    const pickerItems = all.filter(r => r.stage !== "placed" && r.stage !== "interviewing").map(r => {
+      const m = this.stageMeta(r.stage);
+      return {
+        id: r.id, role: r.role, client: r.client, qty: r.qty, owner: r.owner,
+        stageLabel: m.label, stageBg: m.bg, stageFg: m.fg,
+        sla: r.sla, slaColor: this.SLA[r.slaKind],
+        bg: r.id === sel.id ? "#fff8ef" : "#fff",
+        go: () => this.setState({ selectedReq: r.id, pickerOpen: false, openCand: null })
+      };
+    });
+
+    const opsVals = {
+      isOps: portal === "ops",
+      isOpsPipeline: portal === "ops" && screen === "pipeline",
+      isOpsMatching: portal === "ops" && screen === "matching",
+      isOpsPool: portal === "ops" && screen === "pool",
+      isOpsMargin: portal === "ops" && screen === "margin",
+      isOpsDupes: portal === "ops" && screen === "dupes",
+      goDupes: () => this.setState({ screen: "dupes" }),
+      isBoard: st.view === "board", isList: st.view === "list",
+      setBoard: () => this.setState({ view: "board" }), setList: () => this.setState({ view: "list" }),
+      boardBg: st.view === "board" ? "#fff" : "transparent", boardFg: st.view === "board" ? "#101014" : "#8a8a96",
+      listBg: st.view === "list" ? "#fff" : "transparent", listFg: st.view === "list" ? "#101014" : "#8a8a96",
+      openMatchTop: () => this.setState({ screen: "matching" }),
+      pipeSubtitle: all.length + " live requirements · " + clientCount + " clients · 14 supplier benches · " + lateCount + " SLA breach" + (lateCount === 1 ? "" : "es") + " · drag a card between columns or use ← →",
+      q: st.q,
+      onSearch: (e) => this.setState({ q: e.target.value }),
+      toggleDesk: () => this.setState(s => ({ desk: !s.desk })),
+      toggleRisk: () => this.setState(s => ({ risk: !s.risk })),
+      toggleUnassigned: () => this.setState(s => ({ unsourced: !s.unsourced })),
+      clearFilters: () => this.setState({ q: "", desk: false, risk: false, unsourced: false }),
+      anyFilter,
+      deskLabel: "My desk · P. Nair",
+      deskBg: st.desk ? "#fff3e4" : "#fff", deskFg: st.desk ? "#b45309" : "#6b6b78", deskBorder: st.desk ? "#f0dcc0" : "#e0e0e8",
+      riskBg: st.risk ? "#fff3e4" : "#fff", riskFg: st.risk ? "#b45309" : "#6b6b78", riskBorder: st.risk ? "#f0dcc0" : "#e0e0e8",
+      unBg: st.unsourced ? "#fff3e4" : "#fff", unFg: st.unsourced ? "#b45309" : "#6b6b78", unBorder: st.unsourced ? "#f0dcc0" : "#e0e0e8",
+      resultNote: filtered.length + " of " + all.length + " requirements shown",
+      columns, rowsList,
+      toastOn: !!st.toast, toastMsg: st.toast ? st.toast.msg : "",
+      undo: this.undoMove, dismissToast: () => this.setState({ toast: null }),
+      selId: sel.id, selRole: sel.role,
+      selSub: sel.client + " · " + sel.qty + " position" + (sel.qty === 1 ? "" : "s") + " · owner " + sel.owner,
+      selMeta: sel.client + " · posted " + sel.age + " ago · " + sel.owner,
+      selStageLabel: selMetaS.label, selStageBg: selMetaS.bg, selStageFg: selMetaS.fg,
+      selPoolNote: pool.length ? pool.length + " candidates sourced from " + new Set(pool.map(p => p.vendor)).size + " benches" : "no candidates sourced yet — matching starts here",
+      selNote: sel.note, selHasDupe: sel.id === "REQ-2291" || sel.pool === "D",
+      togglePicker: () => this.setState(s => ({ pickerOpen: !s.pickerOpen })),
+      pickerOpen: st.pickerOpen, pickerCaret: st.pickerOpen ? "▲" : "▼",
+      pickerBg: st.pickerOpen ? "#fff8ef" : "#fff", pickerBorder: st.pickerOpen ? "#f0dcc0" : "#e0e0e8",
+      pickerItems, pickerCount: pickerItems.length,
+      candCount: pool.length, includedCount: inc.length,
+      overrideNote: st.rankByReq[sel.id] ? "· manual override active, algorithm ranking saved" : "· algorithm ranking",
+      resetRank: () => this.setState(s => {
+        const rk = Object.assign({}, s.rankByReq); delete rk[sel.id];
+        const ib = Object.assign({}, s.inByReq); delete ib[sel.id];
+        return { rankByReq: rk, inByReq: ib, toast: { msg: sel.id + " · ranking reset to the algorithm order", id: sel.id, prev: sel.stage } };
+      }),
+      sendShortlist: () => {
+        this.setState(s => ({
+          stageOv: Object.assign({}, s.stageOv, { [sel.id]: "shortlisted" }),
+          screen: "pipeline", pickerOpen: false,
+          toast: { msg: inc.length + " masked profiles sent to " + sel.client + " for " + sel.id + " · " + sel.role, id: sel.id, prev: sel.stage }
+        }));
+      },
+      rankedList,
+      reqFacts: [
+        { k: "Positions", v: String(sel.qty), color: "#101014" },
+        { k: "Experience", v: sel.expBand, color: "#101014" },
+        { k: "Location", v: sel.loc, color: "#101014" },
+        { k: "Start", v: sel.start, color: "#101014" },
+        { k: "Client budget", v: sel.budget, color: "#b45309" },
+        { k: "Value", v: sel.value, color: "#101014" },
+        { k: "Target margin", v: "≥ 22%", color: "#0f7a4a" },
+        { k: "SLA", v: sel.sla, color: this.SLA[sel.slaKind] }
+      ],
+      weights: [
+        { label: "Skill match", pct: "30%" }, { label: "Proctored score", pct: "22%" },
+        { label: "Experience fit", pct: "16%" }, { label: "Rate vs budget", pct: "14%" },
+        { label: "Availability freshness", pct: "10%" }, { label: "Vendor reliability", pct: "8%" }
+      ],
+      poolFilters: [
+        { label: "Skill: React ×", bg: "#fff3e4", fg: "#b45309", border: "#f0dcc0", fw: 700 },
+        { label: "Exp: 5–8y ×", bg: "#fff3e4", fg: "#b45309", border: "#f0dcc0", fw: 700 },
+        { label: "Score ≥ 75 ×", bg: "#fff3e4", fg: "#b45309", border: "#f0dcc0", fw: 700 },
+        { label: "Freshness: confirmed ×", bg: "#fff3e4", fg: "#b45309", border: "#f0dcc0", fw: 700 },
+        { label: "City: any", bg: "#fff", fg: "#6b6b78", border: "#e0e0e8", fw: 500 },
+        { label: "Vendor: any", bg: "#fff", fg: "#6b6b78", border: "#e0e0e8", fw: 500 },
+        { label: "Vendor rate ≤ ₹1.6L", bg: "#fff", fg: "#6b6b78", border: "#e0e0e8", fw: 500 },
+        { label: "+ Add filter", bg: "#fff", fg: "#b45309", border: "#f0dcc0", fw: 700 }
+      ],
+      pool: [
+        { name: "Arjun Rathore", id: "TV-4821", vendor: "Nimbus Softworks", rel: "4.6", relColor: "#0f7a4a", skills: ["React", "TypeScript", "Node.js"], exp: "6.2y", score: 88, vrate: "₹1,38,000", crate: "₹1,82,000", city: "Bangalore", fresh: "CONFIRMED 2d", freshBg: "#e8f6ef", freshFg: "#0f7a4a" },
+        { name: "Sanjay Pillai", id: "TV-7715", vendor: "Nimbus Softworks", rel: "4.6", relColor: "#0f7a4a", skills: ["React Native", "React", "GraphQL"], exp: "7.1y", score: 84, vrate: "₹1,46,000", crate: "₹1,94,000", city: "Bangalore", fresh: "CONFIRMED 3d", freshBg: "#e8f6ef", freshFg: "#0f7a4a" },
+        { name: "Meghna Iyer", id: "TV-6620", vendor: "Sparkbridge Systems", rel: "4.2", relColor: "#0f7a4a", skills: ["QA Automation", "Playwright"], exp: "5.4y", score: 91, vrate: "₹1,12,000", crate: "₹1,44,000", city: "Jaipur", fresh: "CONFIRMED 1d", freshBg: "#e8f6ef", freshFg: "#0f7a4a" },
+        { name: "Deepak Chandran", id: "TV-7024", vendor: "Helix Systems", rel: "3.9", relColor: "#b45309", skills: ["React", "Redux", "Node.js"], exp: "5.9y", score: 81, vrate: "₹1,29,000", crate: "₹1,68,000", city: "Hyderabad", fresh: "EXPIRING 11d", freshBg: "#fff3e4", freshFg: "#b45309" },
+        { name: "Ritika Agarwal", id: "TV-6612", vendor: "Trueline Consulting", rel: "3.4", relColor: "#b45309", skills: ["React", "Next.js"], exp: "5.2y", score: 79, vrate: "₹1,21,000", crate: "₹1,58,000", city: "Pune", fresh: "CONFIRMED 5d", freshBg: "#e8f6ef", freshFg: "#0f7a4a" },
+        { name: "Rohit Deshmukh", id: "TV-5107", vendor: "Cygnet Infotech Labs", rel: "4.1", relColor: "#0f7a4a", skills: ["Java Spring Boot", "Kafka", "AWS"], exp: "8.0y", score: 82, vrate: "₹1,84,000", crate: "₹2,36,000", city: "Pune", fresh: "EXPIRING 12d", freshBg: "#fff3e4", freshFg: "#b45309" },
+        { name: "Nikhil Sharma", id: "TV-3964", vendor: "Orbit Talent Services", rel: "3.1", relColor: "#b91c1c", skills: [".NET Core", "Azure", "SQL Server"], exp: "4.5y", score: 76, vrate: "₹98,000", crate: "₹1,32,000", city: "Hyderabad", fresh: "UNCONFIRMED 21d", freshBg: "#fdecec", freshFg: "#b91c1c" },
+        { name: "Suresh Balan", id: "TV-4488", vendor: "Vertex Digital", rel: "3.6", relColor: "#b45309", skills: ["SAP ABAP", "Fiori", "HANA"], exp: "9.1y", score: 79, vrate: "₹2,15,000", crate: "₹2,88,000", city: "Bangalore", fresh: "UNCONFIRMED 26d", freshBg: "#fdecec", freshFg: "#b91c1c" }
+      ].map(p => Object.assign(p, { scoreColor: p.score >= 85 ? "#0f7a4a" : p.score >= 78 ? "#b45309" : "#6b6b78" })),
+      marginStats: [
+        { label: "GROSS SPREAD · AUG", value: "₹2.84L", delta: "+12%", deltaColor: "#0f7a4a", sub: "across 6 filtered placements", cardBg: "#fff", cardBorder: "#e8e8ee", labelColor: "#8a8a96", valueColor: "#101014", subColor: "#8a8a96" },
+        { label: "AVERAGE MARGIN", value: "24.5%", delta: "target 22%", deltaColor: "#0f7a4a", sub: "median 25.1% · floor 18%", cardBg: "#fff", cardBorder: "#e8e8ee", labelColor: "#8a8a96", valueColor: "#101014", subColor: "#8a8a96" },
+        { label: "BELOW FLOOR", value: "2", delta: "review", deltaColor: "#b45309", sub: "TV-4488 at 14.2%, TV-3964 at 17.4%", cardBg: "#fffaf2", cardBorder: "#f5e3c8", labelColor: "#b45309", valueColor: "#b45309", subColor: "#a97521" },
+        { label: "RUN-RATE · ANNUAL", value: "₹3.4Cr", delta: "", deltaColor: "#8a8a96", sub: "31 live placements exchange-wide", cardBg: "#101014", cardBorder: "#101014", labelColor: "#8b8b96", valueColor: "#fff", subColor: "#8b8b96" }
+      ],
+      marginRows: [
+        { name: "Arjun Rathore", id: "TV-4821", vendor: "Nimbus", client: "Acme Finserv", role: "Senior React Engineer", vrate: "₹1,38,000", crate: "₹1,82,000", spread: "₹44,000", pct: "24.2%", bg: "#e8f6ef", fg: "#0f7a4a" },
+        { name: "Meghna Iyer", id: "TV-6620", vendor: "Sparkbridge", client: "Acme Finserv", role: "QA Automation Engineer", vrate: "₹1,12,000", crate: "₹1,44,000", spread: "₹32,000", pct: "22.2%", bg: "#e8f6ef", fg: "#0f7a4a" },
+        { name: "Priyanka Joshi", id: "TV-3310", vendor: "Nimbus", client: "Acme Finserv", role: "Java Spring Boot Engineer", vrate: "₹1,62,000", crate: "₹2,18,000", spread: "₹56,000", pct: "25.7%", bg: "#e8f6ef", fg: "#0f7a4a" },
+        { name: "Rahul Krishnan", id: "TV-3877", vendor: "Trueline", client: "Northwind Retail", role: "Salesforce Developer", vrate: "₹96,000", crate: "₹1,31,000", spread: "₹35,000", pct: "26.7%", bg: "#e8f6ef", fg: "#0f7a4a" },
+        { name: "Nikhil Sharma", id: "TV-3964", vendor: "Orbit Talent", client: "Northwind Retail", role: ".NET Core Developer", vrate: "₹98,000", crate: "₹1,18,600", spread: "₹20,600", pct: "17.4%", bg: "#fff3e4", fg: "#b45309" },
+        { name: "Suresh Balan", id: "TV-4488", vendor: "Vertex Digital", client: "Acme Finserv", role: "SAP ABAP Consultant", vrate: "₹2,15,000", crate: "₹2,50,600", spread: "₹35,600", pct: "14.2%", bg: "#fdecec", fg: "#b91c1c" }
+      ],
+      dupeSides: [
+        { isFirst: true, tag: "SUBMISSION A · EARLIER", tagBg: "#e8f6ef", tagFg: "#0f7a4a", submitted: "12 AUG 09:41", name: "Arjun Rathore", id: "TV-4821", vendor: "Nimbus Softworks", keep: "Keep this one", keepBg: "#101014", keepFg: "#fff",
+          facts: [
+            { k: "PAN hash", v: "…7f21c9", color: "#b91c1c" }, { k: "Phone hash", v: "…4b8e", color: "#b91c1c" },
+            { k: "Experience", v: "6.2 years", color: "#101014" }, { k: "Last employer", v: "Zeta Commerce (2021–24)", color: "#b91c1c" },
+            { k: "Proctored score", v: "88 · 09 Aug", color: "#0f7a4a" }, { k: "Vendor rate", v: "₹1,38,000", color: "#101014" },
+            { k: "Freshness", v: "Confirmed 2d ago", color: "#0f7a4a" }, { k: "Vendor reliability", v: "4.6 / 5 · 34 placements", color: "#0f7a4a" }
+          ] },
+        { isFirst: false, tag: "SUBMISSION B · LATER", tagBg: "#fff3e4", tagFg: "#b45309", submitted: "18 AUG 16:07", name: "A. Rathore", id: "TV-7188-B", vendor: "Orbit Talent Services", keep: "Keep this one", keepBg: "#f3f3f7", keepFg: "#4a4a58",
+          facts: [
+            { k: "PAN hash", v: "…7f21c9", color: "#b91c1c" }, { k: "Phone hash", v: "…4b8e", color: "#b91c1c" },
+            { k: "Experience", v: "6.5 years", color: "#101014" }, { k: "Last employer", v: "Zeta Commerce (2021–24)", color: "#b91c1c" },
+            { k: "Proctored score", v: "Not started", color: "#8a8a96" }, { k: "Vendor rate", v: "₹1,52,000", color: "#101014" },
+            { k: "Freshness", v: "Unconfirmed 6d", color: "#b45309" }, { k: "Vendor reliability", v: "3.1 / 5 · 9 placements", color: "#b45309" }
+          ] }
+      ],
+      dupeSignals: [
+        { label: "PAN hash identical", detail: "exact match", bg: "#fdecec", border: "#f6cfcf", fg: "#b91c1c" },
+        { label: "Phone hash identical", detail: "exact match", bg: "#fdecec", border: "#f6cfcf", fg: "#b91c1c" },
+        { label: "Employer history", detail: "3 of 3 overlap", bg: "#fdecec", border: "#f6cfcf", fg: "#b91c1c" },
+        { label: "GitHub handle", detail: "same, on both CVs", bg: "#fff3e4", border: "#f5e3c8", fg: "#b45309" },
+        { label: "Experience stated", detail: "6.2y vs 6.5y", bg: "#fff3e4", border: "#f5e3c8", fg: "#b45309" },
+        { label: "Rate differs", detail: "₹14,000 apart", bg: "#f7f7fa", border: "#e8e8ee", fg: "#4a4a58" }
+      ]
+    };
+
+    return Object.assign(common, clientVals, vendorVals, opsVals, { cands, A });
+  }
+}
+</script>
+</body>
+</html>

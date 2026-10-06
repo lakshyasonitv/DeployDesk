@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><meta name="design_doc_mode" content="canvas"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600;700&family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"><style>body{margin:0;background:#f0eee9;font-family:system-ui,sans-serif}a{color:#2a78d6}a:hover{color:#1b5aa8}.dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 20px}.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}.dv-tname{font:600 13px/1.2 system-ui,sans-serif;color:#1a1a1a}.dv-opts{display:flex;flex-wrap:wrap;gap:36px;align-items:flex-start}.dv-opt{flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px}.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px;text-decoration:none}.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 system-ui,sans-serif;color:rgba(0,0,0,.55);max-width:1120px}.dv-card{max-width:100%;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}.dv-opt:target .dv-oid{background:#2a78d6;color:#fff}.dv-next{margin:22px 0 0;font:12px/1.5 system-ui,sans-serif;color:rgba(0,0,0,.5)}</style></helmet>
+
+<section class="dv-turn" id="t1">
+<div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Five directions · Client Portal → Shortlist Review (the hero screen), same data in every one</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="1a">
+<div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a><span><b>Ledger</b> — collapsed sidebar rail, IBM Plex Sans + Plex Mono, table-first density, one indigo accent, status carried by a single dot. Reads like a trading blotter: every candidate is a row, breakdown lives in a nested micro-grid.</span></div>
+<div class="dv-card" style="width:1120px">
+<div style="display:flex;height:760px;font-family:'IBM Plex Sans',sans-serif;background:#fbfbfc;color:#15181d">
+<div style="width:196px;flex:none;background:#fff;border-right:1px solid #e7e8ec;display:flex;flex-direction:column;padding:16px 0">
+<div style="padding:0 16px 18px;display:flex;align-items:center;gap:9px"><div style="width:22px;height:22px;border-radius:5px;background:#3a3ad6"></div><div style="font-weight:600;font-size:13.5px;letter-spacing:-.2px">Talentvibes</div></div>
+<div style="padding:0 16px 8px;font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.09em;color:#9aa0ab">CLIENT · ACME FINSERV</div>
+<div style="display:flex;flex-direction:column;gap:1px;padding:8px 8px">
+<div style="padding:7px 10px;border-radius:6px;font-size:13px;color:#5b6270">Dashboard</div>
+<div style="padding:7px 10px;border-radius:6px;font-size:13px;color:#5b6270">Requirements <span style="float:right;font:500 11px 'IBM Plex Mono',monospace;color:#9aa0ab">6</span></div>
+<div style="padding:7px 10px;border-radius:6px;font-size:13px;background:#eef0fe;color:#3a3ad6;font-weight:600">Shortlists <span style="float:right;font:500 11px 'IBM Plex Mono',monospace">3</span></div>
+<div style="padding:7px 10px;border-radius:6px;font-size:13px;color:#5b6270">Interviews <span style="float:right;font:500 11px 'IBM Plex Mono',monospace;color:#9aa0ab">4</span></div>
+<div style="padding:7px 10px;border-radius:6px;font-size:13px;color:#5b6270">Engagements</div>
+<div style="padding:7px 10px;border-radius:6px;font-size:13px;color:#5b6270">Invoices</div>
+</div>
+<div style="margin-top:auto;padding:12px 14px;margin:auto 12px 0;border:1px solid #e7e8ec;border-radius:8px;background:#fff">
+<div style="font:500 10px/1 'IBM Plex Mono',monospace;color:#9aa0ab;letter-spacing:.08em">YOUR BROKER</div>
+<div style="font-size:12.5px;font-weight:600;margin-top:7px">Priya Nair</div>
+<div style="font-size:11.5px;color:#7b828f;margin-top:2px">Responds in ~2h</div>
+<div style="margin-top:9px;padding:6px 0;text-align:center;border-radius:6px;background:#15181d;color:#fff;font-size:11.5px;font-weight:500">Ask a question</div>
+</div>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;min-width:0">
+<div style="padding:20px 26px 14px;border-bottom:1px solid #e7e8ec;background:#fff">
+<div style="display:flex;align-items:center;gap:8px;font:500 11px 'IBM Plex Mono',monospace;color:#9aa0ab"><span>REQ-2291</span><span>·</span><span>POSTED 18 AUG</span><span>·</span><span style="color:#3a3ad6">SHORTLIST READY</span></div>
+<div style="display:flex;align-items:flex-end;justify-content:space-between;margin-top:8px">
+<div><div style="font-size:21px;font-weight:600;letter-spacing:-.4px">Senior React Engineers — 3 positions</div>
+<div style="font-size:12.5px;color:#6b7280;margin-top:5px">5–8 yrs · Contract, 6 months · Bangalore or Remote · Start 15 Sep · Budget ₹1.30–1.70L/month</div></div>
+<div style="display:flex;gap:8px"><div style="padding:7px 13px;border:1px solid #dcdee4;border-radius:6px;font-size:12.5px;font-weight:500;background:#fff">Edit requirement</div><div style="padding:7px 13px;border-radius:6px;font-size:12.5px;font-weight:500;background:#3a3ad6;color:#fff">Request interviews (2)</div></div>
+</div>
+</div>
+<div style="display:flex;align-items:center;gap:16px;padding:11px 26px;border-bottom:1px solid #e7e8ec;background:#fff;font-size:12.5px">
+<div style="font-weight:600">6 masked profiles</div>
+<div style="width:1px;height:14px;background:#e7e8ec"></div>
+<div style="display:flex;gap:6px"><span style="padding:4px 9px;border:1px solid #dcdee4;border-radius:5px;color:#4b525f">All</span><span style="padding:4px 9px;border-radius:5px;background:#15181d;color:#fff">Available now</span><span style="padding:4px 9px;border:1px solid #dcdee4;border-radius:5px;color:#4b525f">Score ≥ 80</span><span style="padding:4px 9px;border:1px solid #dcdee4;border-radius:5px;color:#4b525f">Within budget</span></div>
+<div style="margin-left:auto;font:500 11px 'IBM Plex Mono',monospace;color:#9aa0ab">SORTED BY TEST SCORE ↓</div>
+</div>
+<div style="display:grid;grid-template-columns:118px 1fr 74px 168px 132px 130px 96px;gap:0;padding:9px 26px;font:500 10px 'IBM Plex Mono',monospace;letter-spacing:.08em;color:#9aa0ab;border-bottom:1px solid #e7e8ec;background:#f7f8fa">
+<div>CANDIDATE</div><div>SKILLS</div><div>EXP</div><div>PROCTORED SCORE</div><div>RATE BAND</div><div>AVAILABILITY</div><div style="text-align:right">ACTION</div>
+</div>
+<div style="flex:1;overflow:hidden;background:#fff">
+<sc-for list="{{ rows }}" as="r" hint-placeholder-count="6">
+<div style="display:grid;grid-template-columns:118px 1fr 74px 168px 132px 130px 96px;align-items:center;padding:13px 26px;border-bottom:1px solid #f0f1f4">
+<div><div style="font:600 13px 'IBM Plex Mono',monospace;letter-spacing:-.2px">{{ r.id }}</div><div style="font-size:11px;color:#9aa0ab;margin-top:3px">{{ r.city }}</div></div>
+<div style="display:flex;flex-wrap:wrap;gap:4px;padding-right:16px">
+<sc-for list="{{ r.skills }}" as="s" hint-placeholder-count="3"><span style="padding:2px 7px;border:1px solid #e4e6ea;border-radius:4px;font-size:11px;color:#4b525f;background:#fafbfc;white-space:nowrap">{{ s }}</span></sc-for>
+</div>
+<div style="font-size:13px;font-weight:500">{{ r.exp }}</div>
+<div style="padding-right:16px"><div style="display:flex;align-items:baseline;gap:6px"><span style="font:600 15px 'IBM Plex Mono',monospace">{{ r.score }}</span><span style="font-size:10.5px;color:#9aa0ab">/100</span></div>
+<div style="display:flex;gap:3px;margin-top:5px">
+<sc-for list="{{ r.bars }}" as="b" hint-placeholder-count="4"><div title="{{ b.label }}" style="width:26px"><div style="height:3px;background:#eceef2;border-radius:2px;overflow:hidden"><div style="height:3px;background:#3a3ad6;width:{{ b.w }}"></div></div><div style="font:500 8.5px 'IBM Plex Mono',monospace;color:#9aa0ab;margin-top:3px">{{ b.short }}</div></div></sc-for>
+</div></div>
+<div><div style="font-size:12.5px;font-weight:500">{{ r.rate }}</div><div style="font-size:10.5px;color:#9aa0ab;margin-top:2px">per month</div></div>
+<div style="display:flex;align-items:center;gap:6px"><div style="width:6px;height:6px;border-radius:50%;background:{{ r.dot }}"></div><span style="font-size:12px;color:#4b525f">{{ r.avail }}</span></div>
+<div style="display:flex;gap:6px;justify-content:flex-end"><div style="padding:5px 9px;border:1px solid #dcdee4;border-radius:5px;font-size:11.5px;color:#6b7280">Pass</div><div style="padding:5px 9px;border-radius:5px;background:#eef0fe;color:#3a3ad6;font-size:11.5px;font-weight:600">Interview</div></div>
+</div>
+</sc-for>
+</div>
+<div style="padding:10px 26px;border-top:1px solid #e7e8ec;background:#f7f8fa;font-size:11.5px;color:#7b828f;display:flex;align-items:center;gap:8px"><div style="width:5px;height:5px;border-radius:50%;background:#9aa0ab"></div>Identities, vendor names and photographs are withheld until an interview is confirmed by Talentvibes.</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="1b">
+<div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a><span><b>Signal</b> — dark app chrome, light workspace. Manrope + JetBrains Mono, card grid, violet accent, keyboard-first affordances (⌘K, row shortcuts). Score breakdown is a radial + stacked meter. Closest to Linear.</span></div>
+<div class="dv-card" style="width:1120px">
+<div style="display:flex;height:760px;font-family:Manrope,sans-serif;background:#f7f7f9;color:#101014">
+<div style="width:210px;flex:none;background:#111114;color:#fff;display:flex;flex-direction:column;padding:16px 0">
+<div style="padding:0 16px 16px;display:flex;align-items:center;gap:9px"><div style="width:20px;height:20px;border-radius:6px;background:linear-gradient(135deg,#8b5cf6,#6366f1)"></div><div style="font-weight:700;font-size:13px;letter-spacing:-.2px">Bench Exchange</div></div>
+<div style="margin:0 12px 14px;padding:6px 9px;border:1px solid #26262c;border-radius:7px;display:flex;align-items:center;justify-content:space-between;color:#8b8b96;font-size:12px">Search<span style="font:500 10px 'JetBrains Mono',monospace;border:1px solid #33333b;border-radius:4px;padding:1px 5px">⌘K</span></div>
+<div style="padding:0 8px;display:flex;flex-direction:column;gap:2px">
+<div style="padding:7px 10px;border-radius:7px;font-size:13px;color:#a0a0ac">Overview</div>
+<div style="padding:7px 10px;border-radius:7px;font-size:13px;color:#a0a0ac">Requirements</div>
+<div style="padding:7px 10px;border-radius:7px;font-size:13px;background:#1e1e26;color:#fff;font-weight:600;display:flex;justify-content:space-between">Shortlists<span style="color:#a78bfa;font:600 11px 'JetBrains Mono',monospace">3</span></div>
+<div style="padding:7px 10px;border-radius:7px;font-size:13px;color:#a0a0ac;display:flex;justify-content:space-between">Interviews<span style="font:500 11px 'JetBrains Mono',monospace;color:#6c6c78">4</span></div>
+<div style="padding:7px 10px;border-radius:7px;font-size:13px;color:#a0a0ac">Engagements</div>
+</div>
+<div style="margin:18px 12px 0;padding-top:14px;border-top:1px solid #26262c;font:600 9.5px 'JetBrains Mono',monospace;letter-spacing:.1em;color:#5c5c68">OPEN REQS</div>
+<div style="padding:8px 12px;display:flex;flex-direction:column;gap:7px">
+<div style="font-size:12px;color:#c9c9d2">REQ-2291 · React ×3</div>
+<div style="font-size:12px;color:#6c6c78">REQ-2274 · SAP ABAP ×1</div>
+<div style="font-size:12px;color:#6c6c78">REQ-2260 · QA Auto ×2</div>
+</div>
+<div style="margin-top:auto;padding:12px 16px;display:flex;align-items:center;gap:9px;border-top:1px solid #26262c"><div style="width:24px;height:24px;border-radius:50%;background:#3b3b45"></div><div><div style="font-size:12px;font-weight:600">Acme Finserv</div><div style="font-size:10.5px;color:#6c6c78">Broker: Priya N.</div></div></div>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;min-width:0">
+<div style="padding:15px 24px 14px;display:flex;align-items:flex-start;justify-content:space-between;border-bottom:1px solid #e8e8ee;background:#fff">
+<div><div style="display:flex;align-items:center;gap:8px"><span style="font:600 10px 'JetBrains Mono',monospace;padding:3px 7px;border-radius:5px;background:#f1ecff;color:#6d3ff0;letter-spacing:.05em">SHORTLIST READY</span><span style="font:500 11px 'JetBrains Mono',monospace;color:#8a8a96">REQ-2291</span></div>
+<div style="font-size:22px;font-weight:800;letter-spacing:-.6px;margin-top:9px">Senior React Engineers</div>
+<div style="font-size:12.5px;color:#6b6b78;margin-top:5px">3 positions · 5–8 yrs · 6-month contract · Bangalore / Remote · ₹1.30–1.70L per month</div></div>
+<div style="display:flex;gap:8px"><div style="padding:8px 13px;border:1px solid #e0e0e8;border-radius:8px;font-size:12.5px;font-weight:600;background:#fff">Ask Talentvibes</div><div style="padding:8px 13px;border-radius:8px;font-size:12.5px;font-weight:700;background:#6d3ff0;color:#fff">Request interviews · 2</div></div>
+</div>
+<div style="flex:1;padding:14px 24px;overflow:hidden">
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:11px"><span style="font-size:12.5px;font-weight:700">6 masked profiles</span><span style="font-size:12px;color:#8a8a96">· ranked by proctored score</span><span style="margin-left:auto;font:500 11px 'JetBrains Mono',monospace;color:#8a8a96">J / K to move · E to shortlist</span></div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+<sc-for list="{{ rows }}" as="r" hint-placeholder-count="6">
+<div style="background:#fff;border:1px solid #e8e8ee;border-radius:12px;padding:13px;box-shadow:0 1px 2px rgba(16,16,20,.04)">
+<div style="display:flex;align-items:flex-start;justify-content:space-between">
+<div><div style="font:700 15px 'JetBrains Mono',monospace;letter-spacing:-.5px">{{ r.id }}</div><div style="font-size:11.5px;color:#8a8a96;margin-top:3px">{{ r.exp }} · {{ r.city }}</div></div>
+<div style="text-align:right"><div style="font-size:19px;font-weight:800;letter-spacing:-.6px;color:{{ r.dot }}">{{ r.score }}</div><div style="font:500 9px 'JetBrains Mono',monospace;color:#8a8a96;letter-spacing:.06em">PROCTORED</div></div>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:9px">
+<sc-for list="{{ r.skills }}" as="s" hint-placeholder-count="3"><span style="padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;background:#f3f3f7;color:#4a4a58">{{ s }}</span></sc-for>
+</div>
+<div style="margin-top:10px;padding-top:9px;border-top:1px dashed #e8e8ee;display:flex;flex-direction:column;gap:5px">
+<sc-for list="{{ r.bars }}" as="b" hint-placeholder-count="4">
+<div style="display:flex;align-items:center;gap:8px"><div style="font-size:10.5px;color:#8a8a96;width:74px">{{ b.label }}</div><div style="flex:1;height:4px;border-radius:3px;background:#eeeef3;overflow:hidden"><div style="height:4px;border-radius:3px;background:#6d3ff0;width:{{ b.w }}"></div></div><div style="font:600 10.5px 'JetBrains Mono',monospace;color:#4a4a58">{{ b.v }}</div></div>
+</sc-for>
+</div>
+<div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:13px;font-weight:700">{{ r.rate }}</div><div style="font-size:10.5px;color:#8a8a96">per month</div></div><div style="display:flex;align-items:center;gap:5px;padding:4px 8px;border-radius:20px;background:{{ r.softbg }}"><div style="width:5px;height:5px;border-radius:50%;background:{{ r.dot }}"></div><span style="font-size:10.5px;font-weight:600;color:{{ r.dot }}">{{ r.avail }}</span></div></div>
+<div style="margin-top:10px;display:flex;gap:6px"><div style="flex:1;text-align:center;padding:7px;border-radius:8px;background:#101014;color:#fff;font-size:12px;font-weight:600">Interview</div><div style="padding:7px 11px;border-radius:8px;border:1px solid #e0e0e8;font-size:12px;color:#6b6b78">Pass</div></div>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="1c">
+<div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a><span><b>Broker's Desk</b> — warm paper ground, Instrument Serif headlines over Instrument Sans, horizontal top nav, very generous whitespace, two candidates per row as tall "dossier" cards. Feels advisory rather than transactional — the broker relationship is the visual centre.</span></div>
+<div class="dv-card" style="width:1120px">
+<div style="height:760px;font-family:'Instrument Sans',sans-serif;background:#faf7f2;color:#1c1a17;display:flex;flex-direction:column">
+<div style="display:flex;align-items:center;gap:28px;padding:15px 32px;background:#fffdfa;border-bottom:1px solid #e8e2d8">
+<div style="display:flex;align-items:center;gap:9px"><div style="width:9px;height:9px;border-radius:50%;background:#1c1a17"></div><div style="font-family:'Instrument Serif',serif;font-size:19px">Talentvibes</div></div>
+<div style="display:flex;gap:22px;font-size:13px;color:#6a6358"><span>Dashboard</span><span>Requirements</span><span style="color:#1c1a17;font-weight:600;border-bottom:2px solid #b3541e;padding-bottom:2px">Shortlists</span><span>Interviews</span><span>Engagements</span></div>
+<div style="margin-left:auto;display:flex;align-items:center;gap:12px"><div style="font-size:12px;color:#6a6358">Acme Finserv</div><div style="width:26px;height:26px;border-radius:50%;background:#e8e2d8"></div></div>
+</div>
+<div style="padding:26px 32px 18px;display:flex;align-items:flex-end;justify-content:space-between;border-bottom:1px solid #e8e2d8">
+<div style="max-width:640px">
+<div style="font-size:11px;letter-spacing:.12em;color:#8a8175;text-transform:uppercase">Requirement 2291 · shortlist prepared 22 August</div>
+<div style="font-family:'Instrument Serif',serif;font-size:38px;line-height:1.05;margin-top:10px;letter-spacing:-.5px">Six people, screened for<br><span style="font-style:italic">Senior React Engineers</span></div>
+<div style="font-size:13px;color:#6a6358;margin-top:12px;line-height:1.6">3 positions · 5–8 years · 6-month contract · Bangalore or remote · start 15 September<br>Budget ₹1.30–1.70L per month · notice period up to 30 days accepted</div>
+</div>
+<div style="width:250px;background:#fffdfa;border:1px solid #e8e2d8;border-radius:12px;padding:15px">
+<div style="font-size:11px;letter-spacing:.1em;color:#8a8175;text-transform:uppercase">Your broker</div>
+<div style="font-family:'Instrument Serif',serif;font-size:21px;margin-top:6px">Priya Nair</div>
+<div style="font-size:12px;color:#6a6358;line-height:1.5;margin-top:5px">“Two of these six clear your budget and can start on the 15th. Shall I hold them?”</div>
+<div style="margin-top:11px;display:flex;gap:7px"><div style="flex:1;text-align:center;padding:7px;border-radius:7px;background:#1c1a17;color:#fffdfa;font-size:12px;font-weight:600">Reply</div><div style="padding:7px 11px;border-radius:7px;border:1px solid #ddd5c8;font-size:12px">Call</div></div>
+</div>
+</div>
+<div style="flex:1;padding:20px 32px;overflow:hidden">
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px"><div style="font-size:12.5px;font-weight:600">Masked profiles</div><div style="font-size:12.5px;color:#8a8175">Names, photographs and supplier identity withheld by design</div><div style="margin-left:auto;display:flex;gap:7px;font-size:12px"><span style="padding:5px 11px;border-radius:20px;background:#1c1a17;color:#fffdfa">All six</span><span style="padding:5px 11px;border-radius:20px;border:1px solid #ddd5c8;color:#6a6358">Available now</span><span style="padding:5px 11px;border-radius:20px;border:1px solid #ddd5c8;color:#6a6358">In budget</span></div></div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+<sc-for list="{{ rows3 }}" as="r" hint-placeholder-count="3">
+<div style="background:#fffdfa;border:1px solid #e8e2d8;border-radius:14px;padding:18px">
+<div style="display:flex;align-items:baseline;justify-content:space-between"><div style="font-family:'Instrument Serif',serif;font-size:26px;letter-spacing:-.5px">{{ r.id }}</div><div style="font-size:11.5px;color:#8a8175">{{ r.city }}</div></div>
+<div style="font-size:12.5px;color:#6a6358;margin-top:4px">{{ r.exp }} experience · {{ r.avail }}</div>
+<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:13px">
+<sc-for list="{{ r.skills }}" as="s" hint-placeholder-count="3"><span style="padding:3px 9px;border-radius:20px;font-size:11.5px;background:#f2ece2;color:#5a5247">{{ s }}</span></sc-for>
+</div>
+<div style="margin-top:16px;display:flex;align-items:flex-end;gap:14px">
+<div><div style="font-family:'Instrument Serif',serif;font-size:40px;line-height:1;letter-spacing:-1px">{{ r.score }}</div><div style="font-size:10.5px;letter-spacing:.1em;color:#8a8175;text-transform:uppercase;margin-top:3px">Proctored</div></div>
+<div style="flex:1;display:flex;flex-direction:column;gap:5px;padding-bottom:3px">
+<sc-for list="{{ r.bars }}" as="b" hint-placeholder-count="4">
+<div style="display:flex;align-items:center;gap:8px"><div style="font-size:11px;color:#8a8175;width:76px">{{ b.label }}</div><div style="flex:1;height:2px;background:#e8e2d8"><div style="height:2px;background:#b3541e;width:{{ b.w }}"></div></div><div style="font-size:11px;color:#5a5247">{{ b.v }}</div></div>
+</sc-for>
+</div>
+</div>
+<div style="margin-top:16px;padding-top:14px;border-top:1px solid #eee7dc;display:flex;align-items:center;justify-content:space-between">
+<div><div style="font-size:14px;font-weight:600">{{ r.rate }}</div><div style="font-size:11px;color:#8a8175">per month, all-in</div></div>
+<div style="display:flex;gap:7px"><div style="padding:7px 11px;border-radius:8px;border:1px solid #ddd5c8;font-size:12px;color:#6a6358">Pass</div><div style="padding:7px 13px;border-radius:8px;background:#b3541e;color:#fff;font-size:12px;font-weight:600">Interview</div></div>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="1d">
+<div class="dv-olabel"><a class="dv-oid" href="#1d">1d</a><span><b>Console</b> — maximum density, mono-forward (IBM Plex Mono), hairline grid, teal signal colour, 30px rows, inline expand for the score breakdown. Built for ops people who live in the tool all day; the same language scales straight into the Ops Console and matching workspace.</span></div>
+<div class="dv-card" style="width:1120px">
+<div style="height:760px;font-family:'IBM Plex Mono',monospace;background:#0f1113;color:#dfe3e6;display:flex;flex-direction:column">
+<div style="display:flex;align-items:center;gap:0;border-bottom:1px solid #1e2226;background:#141719">
+<div style="padding:9px 14px;border-right:1px solid #1e2226;font-size:12px;font-weight:600;letter-spacing:-.2px;color:#fff">tv://client/acme</div>
+<div style="display:flex">
+<span style="padding:9px 14px;font-size:11.5px;color:#6f7a80;border-right:1px solid #1e2226">dash</span>
+<span style="padding:9px 14px;font-size:11.5px;color:#6f7a80;border-right:1px solid #1e2226">reqs</span>
+<span style="padding:9px 14px;font-size:11.5px;color:#0f1113;background:#2dd4bf;font-weight:600;border-right:1px solid #1e2226">shortlists</span>
+<span style="padding:9px 14px;font-size:11.5px;color:#6f7a80;border-right:1px solid #1e2226">interviews</span>
+<span style="padding:9px 14px;font-size:11.5px;color:#6f7a80;border-right:1px solid #1e2226">engagements</span>
+</div>
+<div style="margin-left:auto;padding:9px 14px;font-size:11px;color:#6f7a80">broker: p.nair · sla 2h</div>
+</div>
+<div style="display:flex;flex:1;min-height:0">
+<div style="width:250px;flex:none;border-right:1px solid #1e2226;padding:14px;background:#121517">
+<div style="font-size:10px;letter-spacing:.12em;color:#5c676d">REQUIREMENT</div>
+<div style="font-size:15px;font-weight:600;color:#fff;margin-top:8px;letter-spacing:-.3px">REQ-2291</div>
+<div style="font-size:12px;color:#9aa5ab;margin-top:4px;line-height:1.5">Senior React Engineers</div>
+<div style="margin-top:14px;display:flex;flex-direction:column;gap:7px;font-size:11.5px">
+<div style="display:flex;justify-content:space-between"><span style="color:#5c676d">positions</span><span>3</span></div>
+<div style="display:flex;justify-content:space-between"><span style="color:#5c676d">exp band</span><span>5–8y</span></div>
+<div style="display:flex;justify-content:space-between"><span style="color:#5c676d">engagement</span><span>C2H · 6mo</span></div>
+<div style="display:flex;justify-content:space-between"><span style="color:#5c676d">location</span><span>BLR / remote</span></div>
+<div style="display:flex;justify-content:space-between"><span style="color:#5c676d">start</span><span>15 Sep 2026</span></div>
+<div style="display:flex;justify-content:space-between"><span style="color:#5c676d">budget</span><span style="color:#2dd4bf">₹1.30–1.70L</span></div>
+<div style="display:flex;justify-content:space-between"><span style="color:#5c676d">notice ok</span><span>≤30d</span></div>
+</div>
+<div style="margin-top:16px;padding-top:14px;border-top:1px solid #1e2226;font-size:10px;letter-spacing:.12em;color:#5c676d">STACK REQUESTED</div>
+<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:9px">
+<span style="padding:2px 7px;border:1px solid #24292d;font-size:11px;color:#9aa5ab">react</span><span style="padding:2px 7px;border:1px solid #24292d;font-size:11px;color:#9aa5ab">typescript</span><span style="padding:2px 7px;border:1px solid #24292d;font-size:11px;color:#9aa5ab">node.js</span><span style="padding:2px 7px;border:1px solid #24292d;font-size:11px;color:#9aa5ab">graphql</span>
+</div>
+<div style="margin-top:18px;padding:11px;border:1px solid #1e2226;background:#0f1113"><div style="font-size:10px;letter-spacing:.1em;color:#5c676d">MASKING</div><div style="font-size:11.5px;color:#9aa5ab;line-height:1.5;margin-top:6px">name · photo · vendor<br>withheld until interview confirm</div></div>
+</div>
+<div style="flex:1;min-width:0;display:flex;flex-direction:column">
+<div style="display:flex;align-items:center;gap:12px;padding:9px 16px;border-bottom:1px solid #1e2226;font-size:11.5px;background:#121517"><span style="color:#fff">6 profiles</span><span style="color:#5c676d">filter:</span><span style="padding:2px 8px;background:#173b38;color:#2dd4bf">score&gt;=76</span><span style="padding:2px 8px;border:1px solid #24292d;color:#9aa5ab">avail:any</span><span style="padding:2px 8px;border:1px solid #24292d;color:#9aa5ab">rate:in-band</span><span style="margin-left:auto;color:#5c676d">sort score desc</span></div>
+<div style="display:grid;grid-template-columns:96px 1fr 56px 200px 120px 116px 108px;padding:7px 16px;font-size:10px;letter-spacing:.08em;color:#5c676d;border-bottom:1px solid #1e2226">
+<div>ID</div><div>SKILLS</div><div>EXP</div><div>SCORE · BREAKDOWN</div><div>RATE/MO</div><div>AVAILABILITY</div><div style="text-align:right">ACTION</div>
+</div>
+<div style="flex:1;overflow:hidden">
+<sc-for list="{{ rows }}" as="r" hint-placeholder-count="6">
+<div style="display:grid;grid-template-columns:96px 1fr 56px 200px 120px 116px 108px;align-items:center;padding:11px 16px;border-bottom:1px solid #1a1e21;font-size:12px">
+<div style="color:#fff;font-weight:600">{{ r.id }}</div>
+<div style="display:flex;flex-wrap:wrap;gap:4px;padding-right:12px"><sc-for list="{{ r.skills }}" as="s" hint-placeholder-count="3"><span style="padding:1px 6px;border:1px solid #24292d;font-size:10.5px;color:#9aa5ab">{{ s }}</span></sc-for></div>
+<div style="color:#9aa5ab">{{ r.exp }}</div>
+<div style="display:flex;align-items:center;gap:9px;padding-right:12px"><span style="color:#2dd4bf;font-weight:600;font-size:13px">{{ r.score }}</span>
+<div style="flex:1;display:flex;gap:8px"><sc-for list="{{ r.bars }}" as="b" hint-placeholder-count="4"><div style="flex:1"><div style="font-size:9px;color:#5c676d">{{ b.short }}</div><div style="height:2px;background:#22282c;margin-top:3px"><div style="height:2px;background:#2dd4bf;width:{{ b.w }}"></div></div></div></sc-for></div>
+</div>
+<div style="color:#dfe3e6">{{ r.rate }}</div>
+<div style="display:flex;align-items:center;gap:6px"><div style="width:5px;height:5px;background:{{ r.dot }}"></div><span style="color:#9aa5ab;font-size:11.5px">{{ r.avail }}</span></div>
+<div style="display:flex;gap:5px;justify-content:flex-end"><span style="padding:3px 7px;border:1px solid #24292d;font-size:11px;color:#6f7a80">pass</span><span style="padding:3px 7px;background:#2dd4bf;color:#0f1113;font-size:11px;font-weight:600">interview</span></div>
+</div>
+</sc-for>
+</div>
+<div style="padding:8px 16px;border-top:1px solid #1e2226;background:#121517;font-size:11px;color:#5c676d;display:flex;gap:18px"><span>[i] interview</span><span>[x] pass</span><span>[?] ask talentvibes</span><span style="margin-left:auto">2 selected · ₹2.95L combined</span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="1e">
+<div class="dv-olabel"><a class="dv-oid" href="#1e">1e</a><span><b>Dossier</b> — editorial contrast. Archivo at heavy weights, black header band, masked ID set as the display type, one saturated blue for signal. Icon rail nav, single-column list of wide cards with the score plotted as a horizontal spine. The most presentation-ready of the five.</span></div>
+<div class="dv-card" style="width:1120px">
+<div style="height:760px;font-family:Archivo,sans-serif;background:#fff;color:#0a0a0a;display:flex">
+<div style="width:60px;flex:none;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;padding:14px 0;gap:6px">
+<div style="width:26px;height:26px;background:#1d4ed8;border-radius:3px"></div>
+<div style="height:14px"></div>
+<div style="width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#6b7280;font-size:11px;font-weight:700">DB</div>
+<div style="width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#6b7280;font-size:11px;font-weight:700">RQ</div>
+<div style="width:34px;height:34px;border-radius:8px;background:#1d4ed8;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700">SL</div>
+<div style="width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#6b7280;font-size:11px;font-weight:700">IV</div>
+<div style="width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#6b7280;font-size:11px;font-weight:700">EN</div>
+<div style="margin-top:auto;width:28px;height:28px;border-radius:50%;background:#2a2a2a"></div>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;min-width:0">
+<div style="background:#0a0a0a;color:#fff;padding:22px 28px 20px">
+<div style="display:flex;align-items:flex-start;justify-content:space-between">
+<div><div style="font-size:10.5px;letter-spacing:.16em;color:#8b93a1;font-weight:600">SHORTLIST · REQ-2291 · DELIVERED 22 AUG 2026</div>
+<div style="font-size:34px;font-weight:900;letter-spacing:-1.2px;margin-top:8px;line-height:1">SENIOR REACT ENGINEERS</div>
+<div style="display:flex;gap:20px;margin-top:13px;font-size:12px;color:#b6bcc7">
+<span><b style="color:#fff">3</b> positions</span><span><b style="color:#fff">5–8</b> yrs</span><span><b style="color:#fff">₹1.30–1.70L</b> /month</span><span><b style="color:#fff">Bangalore</b> / remote</span><span>Start <b style="color:#fff">15 Sep</b></span></div></div>
+<div style="text-align:right"><div style="font-size:44px;font-weight:900;letter-spacing:-1.6px;line-height:1">06</div><div style="font-size:10.5px;letter-spacing:.14em;color:#8b93a1;font-weight:600">MASKED PROFILES</div>
+<div style="margin-top:12px;padding:8px 15px;background:#1d4ed8;font-size:12.5px;font-weight:700">REQUEST 2 INTERVIEWS</div></div>
+</div>
+</div>
+<div style="display:flex;align-items:center;gap:14px;padding:11px 28px;border-bottom:2px solid #0a0a0a;font-size:12px;font-weight:600"><span>ALL 6</span><span style="color:#9aa1ad;font-weight:500">AVAILABLE NOW · 3</span><span style="color:#9aa1ad;font-weight:500">SCORE ≥ 85 · 2</span><span style="color:#9aa1ad;font-weight:500">IN BUDGET · 4</span><span style="margin-left:auto;color:#9aa1ad;font-weight:500">RANKED BY PROCTORED SCORE</span></div>
+<div style="flex:1;overflow:hidden">
+<sc-for list="{{ rows4 }}" as="r" hint-placeholder-count="4">
+<div style="display:flex;align-items:center;gap:22px;padding:16px 28px;border-bottom:1px solid #e6e8ec">
+<div style="width:132px;flex:none"><div style="font-size:24px;font-weight:900;letter-spacing:-1px">{{ r.id }}</div><div style="font-size:11px;color:#6b7280;font-weight:600;letter-spacing:.04em;margin-top:2px">{{ r.city }} · {{ r.exp }}</div></div>
+<div style="width:190px;flex:none;display:flex;flex-wrap:wrap;gap:5px"><sc-for list="{{ r.skills }}" as="s" hint-placeholder-count="3"><span style="padding:3px 8px;background:#f1f3f6;font-size:11px;font-weight:600;color:#3b414c">{{ s }}</span></sc-for></div>
+<div style="flex:1;min-width:0"><div style="display:flex;align-items:baseline;gap:8px"><span style="font-size:22px;font-weight:900;letter-spacing:-.8px">{{ r.score }}</span><span style="font-size:10.5px;letter-spacing:.12em;color:#6b7280;font-weight:600">PROCTORED · {{ r.attempt }}</span></div>
+<div style="display:flex;gap:12px;margin-top:8px"><sc-for list="{{ r.bars }}" as="b" hint-placeholder-count="4"><div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:10px;font-weight:600;color:#6b7280"><span>{{ b.label }}</span><span style="color:#0a0a0a">{{ b.v }}</span></div><div style="height:5px;background:#eceef2;margin-top:4px"><div style="height:5px;background:#1d4ed8;width:{{ b.w }}"></div></div></div></sc-for></div></div>
+<div style="width:120px;flex:none;text-align:right"><div style="font-size:14px;font-weight:800">{{ r.rate }}</div><div style="font-size:10.5px;color:#6b7280;font-weight:600">PER MONTH</div><div style="margin-top:5px;display:inline-flex;align-items:center;gap:5px"><div style="width:6px;height:6px;background:{{ r.dot }}"></div><span style="font-size:11px;font-weight:600;color:#3b414c">{{ r.avail }}</span></div></div>
+<div style="width:104px;flex:none;display:flex;flex-direction:column;gap:5px"><div style="text-align:center;padding:7px;background:#0a0a0a;color:#fff;font-size:11.5px;font-weight:700">INTERVIEW</div><div style="text-align:center;padding:7px;border:1px solid #d3d7de;font-size:11.5px;font-weight:600;color:#6b7280">PASS</div></div>
+</div>
+</sc-for>
+</div>
+<div style="padding:11px 28px;background:#f6f7f9;border-top:1px solid #e6e8ec;font-size:11.5px;color:#6b7280;font-weight:500">Candidate names, photographs and supplier identity are withheld. Talentvibes brokers all contact — <a href="#1e" style="color:#1d4ed8;font-weight:700;text-decoration:none">ask a question about any profile</a>.</div>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Try next: "build out <a class="dv-oid" href="#1d">1d</a> across all three portals" · "mix <a class="dv-oid" href="#1e">1e</a>'s header with <a class="dv-oid" href="#1b">1b</a>'s cards" · "show me the Ops matching workspace in <a class="dv-oid" href="#1a">1a</a> and <a class="dv-oid" href="#1c">1c</a>"</p>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  renderVals() {
+    const mk = (id, city, skills, exp, score, rate, avail, dot, softbg, b, attempt) => ({
+      id, city, skills, exp, score, rate, avail, dot, softbg, attempt,
+      bars: [
+        { label: "Coding", short: "COD", v: b[0], w: b[0] + "%" },
+        { label: "DSA", short: "DSA", v: b[1], w: b[1] + "%" },
+        { label: "System design", short: "SYS", v: b[2], w: b[2] + "%" },
+        { label: "Communication", short: "COM", v: b[3], w: b[3] + "%" }
+      ]
+    });
+    const G = "#16a34a", A = "#c2410c", B = "#1d4ed8";
+    const rows = [
+      mk("TV-6620", "Jaipur", ["QA Automation", "Playwright", "Selenium", "CI/CD"], "5.4y", 91, "₹1.10–1.25L", "Available now", G, "#e9f7ee", [93, 88, 86, 92], "attempt 1"),
+      mk("TV-4821", "Bangalore", ["React", "TypeScript", "Node.js"], "6.2y", 88, "₹1.35–1.55L", "Available now", G, "#e9f7ee", [91, 84, 82, 90], "attempt 1"),
+      mk("TV-5302", "Pune", ["Salesforce", "Apex", "LWC"], "3.8y", 85, "₹0.85–1.00L", "From 1 Oct", A, "#fdf0e7", [88, 80, 79, 87], "attempt 2"),
+      mk("TV-5107", "Pune", ["Java Spring Boot", "Kafka", "AWS"], "8.0y", 82, "₹1.80–2.05L", "From 15 Sep", A, "#fdf0e7", [84, 78, 88, 76], "attempt 1"),
+      mk("TV-4488", "Bangalore", ["SAP ABAP", "Fiori", "HANA"], "9.1y", 79, "₹2.10–2.40L", "Available now", G, "#e9f7ee", [80, 72, 84, 78], "attempt 1"),
+      mk("TV-3964", "Hyderabad", [".NET Core", "Azure", "SQL Server"], "4.5y", 76, "₹0.95–1.10L", "30-day notice", B, "#e8eefc", [79, 74, 70, 82], "attempt 2")
+    ];
+    return { rows, rows3: rows.slice(0, 3), rows4: rows.slice(0, 4) };
+  }
+}
+</script>
+</body>
+</html>
