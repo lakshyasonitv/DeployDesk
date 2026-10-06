@@ -1,5 +1,5 @@
 import { Shell, PageHeader, Scroll, Button, SectionLabel } from "@/src/lib/ui/Shell";
-import { getDemoSession } from "@/src/lib/auth/session";
+import { getDemoSession, getPortalSwitcherOptions } from "@/src/lib/auth/session";
 import { getVendorAssessments } from "@/src/read-models/vendor";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
 import { VendorAside } from "../aside";
@@ -29,13 +29,14 @@ const ACTION: Record<string, string> = {
 
 export default async function VendorAssessmentsPage() {
   const session = await getDemoSession("vendor");
+  const switcher = await getPortalSwitcherOptions();
   const [a, aside] = await Promise.all([
     getVendorAssessments(session.orgId),
     VendorAside(session.orgId),
   ]);
 
   return (
-    <Shell portal="vendor" user={{ name: session.userName, org: session.orgName }} activeKey="assessments" asideTitle="FRESHNESS ALERTS" asideItems={aside.items} badges={aside.badges}>
+    <Shell portal="vendor" switcher={switcher} user={{ name: session.userName, org: session.orgName }} activeKey="assessments" asideTitle="FRESHNESS ALERTS" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Assessments"
         subtitle="Proctored by Talentvibes. Scores are visible to you and to clients — you cannot edit them."

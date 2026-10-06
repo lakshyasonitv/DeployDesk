@@ -1,5 +1,5 @@
 import { Shell, PageHeader, Scroll, Button, SectionLabel } from "@/src/lib/ui/Shell";
-import { getDemoSession } from "@/src/lib/auth/session";
+import { getDemoSession, getPortalSwitcherOptions } from "@/src/lib/auth/session";
 import { getOpsDuplicates } from "@/src/read-models/ops";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
 import { OpsAside } from "../aside";
@@ -32,13 +32,14 @@ const stamp = (iso: string) =>
 
 export default async function DuplicatesPage() {
   const session = await getDemoSession("ops");
+  const switcher = await getPortalSwitcherOptions();
   const [flags, aside] = await Promise.all([getOpsDuplicates(), OpsAside()]);
   const open = flags.filter((f) => f.status === "open");
   const blocking = flags.filter((f) => f.blocks);
   const secondary = flags.filter((f) => !f.blocks);
 
   return (
-    <Shell portal="ops" user={{ name: session.userName, org: `${session.orgName} · ${session.role}` }} activeKey="duplicates" asideTitle="TODAY'S QUEUE" asideItems={aside.items} badges={aside.badges}>
+    <Shell portal="ops" switcher={switcher} user={{ name: session.userName, org: `${session.orgName} · ${session.role}` }} activeKey="duplicates" asideTitle="TODAY'S QUEUE" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Duplicate candidates"
         subtitle="Same person submitted by two suppliers · resolve before a shortlist goes out"

@@ -1,5 +1,5 @@
 import { Shell, PageHeader, Scroll, SectionLabel } from "@/src/lib/ui/Shell";
-import { getDemoSession } from "@/src/lib/auth/session";
+import { getDemoSession, getPortalSwitcherOptions } from "@/src/lib/auth/session";
 import { getVendorImports } from "@/src/read-models/vendor";
 import { db } from "@/src/db/client";
 import * as s from "@/src/db/schema";
@@ -20,6 +20,7 @@ export const metadata = { title: "Add bench resource · Bench Exchange" };
 
 export default async function AddResourcePage() {
   const session = await getDemoSession("vendor");
+  const switcher = await getPortalSwitcherOptions();
   // Sequential. VendorAside alone issues several queries; fanning out alongside it
   // exhausted the pool. See the note in src/read-models/ops/index.ts.
   const aside = await VendorAside(session.orgId);
@@ -33,7 +34,7 @@ export default async function AddResourcePage() {
   const vendorCode = org[0]?.code ?? "";
 
   return (
-    <Shell portal="vendor" user={{ name: session.userName, org: session.orgName }} activeKey="add" asideTitle="FRESHNESS ALERTS" asideItems={aside.items} badges={aside.badges}>
+    <Shell portal="vendor" switcher={switcher} user={{ name: session.userName, org: session.orgName }} activeKey="add" asideTitle="FRESHNESS ALERTS" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Add bench resource"
         subtitle={`Listed as a masked profile. ${vendorName} is never exposed to a client.`}

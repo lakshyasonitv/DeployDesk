@@ -1,5 +1,5 @@
 import { Shell, PageHeader, Scroll, Button, Card, SectionLabel, Pill } from "@/src/lib/ui/Shell";
-import { getDemoSession } from "@/src/lib/auth/session";
+import { getDemoSession, getPortalSwitcherOptions } from "@/src/lib/auth/session";
 import { getClientInterviews, getClientFeedbackDue } from "@/src/read-models/client";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
 import { ShellAside } from "../aside";
@@ -15,6 +15,7 @@ export const metadata = { title: "Interviews · Bench Exchange" };
 
 export default async function ClientInterviewsPage() {
   const session = await getDemoSession("client");
+  const switcher = await getPortalSwitcherOptions();
   const interviews = await getClientInterviews(session.orgId);
   const feedback = await getClientFeedbackDue(session.orgId);
   const aside = await ShellAside(session.orgId);
@@ -23,7 +24,7 @@ export default async function ClientInterviewsPage() {
   const waiting = interviews.filter((i) => i.waitingLabel);
 
   return (
-    <Shell portal="client" user={{ name: session.userName, org: session.orgName }} activeKey="interviews" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
+    <Shell portal="client" switcher={switcher} user={{ name: session.userName, org: session.orgName }} activeKey="interviews" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Interviews & feedback"
         subtitle="Talentvibes schedules every round and issues the meeting link. Your panel never contacts the supplier."

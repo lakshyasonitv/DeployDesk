@@ -20,37 +20,52 @@ function computeAlgoScore(components: number[]): number {
 }
 
 /**
- * Seed `sla_due_at` so the DERIVED state matches the fixture's intended colour.
- * The label itself is never stored — docs/DOMAIN.md lists sla_state as derived.
- *
- * Where the fixture label carries an explicit number ("SLA 4h", "Overdue 2h") we use it,
- * then verify the derivation agrees; if it lands on the wrong side of the 25% boundary we
- * fall back to a value that is unambiguously inside the intended band. The colour being
- * right matters more than the hour being identical.
+ * Seed `sla_due_at` AND `sla_window_hours` so the DERIVED state matches the fixture's
+ * intended colour and KEEPS matching it as time passes. The state itself is never
+ * stored — docs/DOMAIN.md lists sla_state as derived.
  */
-function slaDueAtFor(req: Requirement): { dueAt: Date | null; paused: boolean } {
-  const windowHours =
+function slaDueAtFor(req: Requirement): {
+  dueAt: Date | null;
+  paused: boolean;
+  windowHours: number;
+} {
+  const stageWindow =
     SLA_WINDOW_HOURS[req.stage0 as keyof typeof SLA_WINDOW_HOURS] ?? SLA_WINDOW_HOURS.matching;
 
   if (req.slaKind === "idle") {
-    // Clock paused on entry to `shortlisted`. Not a breach.
-    return { dueAt: hoursAhead(windowHours * 0.5), paused: true };
+    // Clock paused on entry to `shortlisted`. Not a breach, and it cannot decay.
+    return { dueAt: hoursAhead(stageWindow * 0.5), paused: true, windowHours: stageWindow };
   }
   if (req.slaKind === "late") {
     const m = /(\d+)\s*h/i.exec(req.sla);
-    return { dueAt: hoursAgo(m ? Number(m[1]) : 2), paused: false };
+    return { dueAt: hoursAgo(m ? Number(m[1]) : 2), paused: false, windowHours: stageWindow };
   }
 
+  /**
+   * How many hours of runway the fixture states, e.g. "SLA 12h". Where it says nothing,
+   * fall back to something comfortably inside the intended band.
+   */
   const stated = /(?:SLA|by)\s*(\d+)\s*h/i.exec(req.sla);
-  if (stated) {
-    const hours = Number(stated[1]);
-    const candidate = hoursAhead(hours);
-    if (slaFor(candidate, windowHours, { now: SEED_NOW }).state === req.slaKind) {
-      return { dueAt: candidate, paused: false };
-    }
-  }
-  const fraction = req.slaKind === "warn" ? 0.15 : 0.6;
-  return { dueAt: hoursAhead(windowHours * fraction), paused: false };
+  const remaining = stated ? Number(stated[1]) : req.slaKind === "warn" ? 6 : 24;
+
+  /**
+   * Derive the WINDOW from the remaining time, instead of forcing the remaining time
+   * into a fixed per-stage window.
+   *
+   * This fixes a real defect. `warn` means 25% or less of the window is left, so a
+   * warn-state requirement in the documented 4-hour `new` window had a deadline under an
+   * hour out and aged into `late` within the hour — db:verify went from 21/21 to 19/21
+   * as the day wore on, reporting breaches the design never intended.
+   *
+   * Placing the stated runway at 20% of the window for `warn` (and 60% for `ok`) means
+   * the state holds for as long as the runway itself, which is hours or days rather than
+   * minutes. It also resolves a conflict in the source material: the fixture labels
+   * REQ-2302 "SLA 12h · warn", which implies a window near 60 hours, not 4.
+   */
+  const fraction = req.slaKind === "warn" ? 0.2 : 0.6;
+  const windowHours = Math.max(stageWindow, Math.round(remaining / fraction));
+
+  return { dueAt: hoursAhead(remaining), paused: false, windowHours };
 }
 
 export async function seedDemand(org: OrgSeed, skills: SkillMap, res: ResourceSeed) {
@@ -58,7 +73,7 @@ export async function seedDemand(org: OrgSeed, skills: SkillMap, res: ResourceSe
   const reqRows: Array<typeof s.requirements.$inferInsert> = REQS.map((r) => {
     const loc = parseLocation(r.loc);
     const [budgetMin, budgetMax] = parseBandToPaise(r.budget);
-    const { dueAt } = slaDueAtFor(r);
+    const { dueAt, windowHours } = slaDueAtFor(r);
     const postedAt = parseAgeToDate(r.age);
     const clientOrg = org.byName.get(r.client)!;
     const owner = org.opsByShort.get(r.owner)!;
@@ -84,6 +99,7 @@ export async function seedDemand(org: OrgSeed, skills: SkillMap, res: ResourceSe
       clientNote: r.note, // CLIENT + OPS ONLY — leak-test bait
       stage: r.stage0 as typeof s.requirements.$inferInsert.stage,
       slaDueAt: dueAt,
+      slaWindowHours: windowHours,
       postedAt,
       closedAt: null,
     };

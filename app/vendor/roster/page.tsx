@@ -1,5 +1,5 @@
 import { Shell } from "@/src/lib/ui/Shell";
-import { getDemoSession } from "@/src/lib/auth/session";
+import { getDemoSession, getPortalSwitcherOptions } from "@/src/lib/auth/session";
 import { getVendorRoster } from "@/src/read-models/vendor";
 import { VendorAside } from "../aside";
 import { RosterTable } from "./RosterTable";
@@ -15,6 +15,7 @@ export const metadata = { title: "Bench roster · Bench Exchange" };
 
 export default async function RosterPage() {
   const session = await getDemoSession("vendor");
+  const switcher = await getPortalSwitcherOptions();
   const [{ resources, counts, total }, aside] = await Promise.all([
     getVendorRoster(session.orgId),
     VendorAside(session.orgId),
@@ -22,7 +23,7 @@ export default async function RosterPage() {
 
   return (
     <Shell
-      portal="vendor" user={{ name: session.userName, org: session.orgName }}
+      portal="vendor" switcher={switcher} user={{ name: session.userName, org: session.orgName }}
       activeKey="roster"
       asideTitle="FRESHNESS ALERTS"
       asideItems={aside.items}

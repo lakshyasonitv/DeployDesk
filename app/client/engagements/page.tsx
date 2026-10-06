@@ -1,5 +1,5 @@
 import { Shell, PageHeader, Scroll, Button, StatCard, SectionLabel } from "@/src/lib/ui/Shell";
-import { getDemoSession } from "@/src/lib/auth/session";
+import { getDemoSession, getPortalSwitcherOptions } from "@/src/lib/auth/session";
 import { getClientOverview } from "@/src/read-models/client";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
 import { ShellAside } from "../aside";
@@ -24,13 +24,14 @@ const STATUS: Record<string, { bg: string; fg: string; label: string }> = {
 
 export default async function ClientEngagementsPage() {
   const session = await getDemoSession("client");
+  const switcher = await getPortalSwitcherOptions();
   const [overview, aside] = await Promise.all([
     getClientOverview(session.orgId, session.userName),
     ShellAside(session.orgId),
   ]);
 
   return (
-    <Shell portal="client" user={{ name: session.userName, org: session.orgName }} activeKey="engagements" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
+    <Shell portal="client" switcher={switcher} user={{ name: session.userName, org: session.orgName }} activeKey="engagements" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Engagements"
         subtitle="You contract with Talentvibes for every placement. One invoice, one counterparty."

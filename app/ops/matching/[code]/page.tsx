@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { sql } from "drizzle-orm";
 import { Shell } from "@/src/lib/ui/Shell";
-import { getDemoSession } from "@/src/lib/auth/session";
+import { getDemoSession, getPortalSwitcherOptions } from "@/src/lib/auth/session";
 import { getOpsMatchingWorkspace, getOpsPipeline, getOpsDuplicates } from "@/src/read-models/ops";
 import { db } from "@/src/db/client";
 import { OpsAside } from "../../aside";
@@ -14,6 +14,7 @@ import { Workspace } from "./Workspace";
 export default async function MatchingPage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
   const session = await getDemoSession("ops");
+  const switcher = await getPortalSwitcherOptions();
 
   const workspace = await getOpsMatchingWorkspace(code.toUpperCase());
   if (!workspace) notFound();
@@ -43,7 +44,7 @@ export default async function MatchingPage({ params }: { params: Promise<{ code:
     }));
 
   return (
-    <Shell portal="ops" user={{ name: session.userName, org: `${session.orgName} · ${session.role}` }} activeKey="matching" asideTitle="TODAY'S QUEUE"
+    <Shell portal="ops" switcher={switcher} user={{ name: session.userName, org: `${session.orgName} · ${session.role}` }} activeKey="matching" asideTitle="TODAY'S QUEUE"
       asideItems={aside.items} badges={aside.badges}>
       <Workspace
         requirement={workspace.requirement}

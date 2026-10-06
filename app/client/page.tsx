@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Shell, PageHeader, Scroll, Button, StatCard, Card, SectionLabel, Pill } from "@/src/lib/ui/Shell";
-import { getDemoSession } from "@/src/lib/auth/session";
+import { getDemoSession, getPortalSwitcherOptions } from "@/src/lib/auth/session";
 import { getClientOverview } from "@/src/read-models/client";
 import { s, sx, TOKENS, stageMeta } from "@/src/lib/ui/style";
 import { ShellAside } from "./aside";
@@ -25,6 +25,7 @@ const ENGAGEMENT_STATUS: Record<string, { dot: string; label: string }> = {
 
 export default async function ClientDashboard() {
   const session = await getDemoSession("client");
+  const switcher = await getPortalSwitcherOptions();
   const [overview, aside] = await Promise.all([
     getClientOverview(session.orgId, session.userName),
     ShellAside(session.orgId),
@@ -34,7 +35,7 @@ export default async function ClientDashboard() {
     stage === "shortlisted" ? `Review ${count}` : stage === "interviewing" ? "Schedule" : "View";
 
   return (
-    <Shell portal="client" user={{ name: session.userName, org: session.orgName }} activeKey="overview" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
+    <Shell portal="client" switcher={switcher} user={{ name: session.userName, org: session.orgName }} activeKey="overview" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title={`Good morning, ${overview.greetingName}`}
         subtitle={`${overview.orgName} · ${overview.stats.openRequirements} open requirements · your broker ${overview.brokerName} responds in ~2h`}

@@ -1,5 +1,5 @@
 import { Shell, PageHeader, Scroll, Button, StatCard, Card, SectionLabel, Pill } from "@/src/lib/ui/Shell";
-import { getDemoSession } from "@/src/lib/auth/session";
+import { getDemoSession, getPortalSwitcherOptions } from "@/src/lib/auth/session";
 import { getVendorOverview } from "@/src/read-models/vendor";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
 import { VendorAside } from "./aside";
@@ -32,6 +32,7 @@ const FRESH_TILE = [
 
 export default async function VendorDashboard() {
   const session = await getDemoSession("vendor");
+  const switcher = await getPortalSwitcherOptions();
   const [o, aside] = await Promise.all([
     getVendorOverview(session.orgId, session.userName),
     VendorAside(session.orgId),
@@ -41,7 +42,7 @@ export default async function VendorDashboard() {
   const expiring = o.freshness.find((f) => f.label === "Expiring")?.n ?? 0;
 
   return (
-    <Shell portal="vendor" user={{ name: session.userName, org: session.orgName }} activeKey="overview" asideTitle="FRESHNESS ALERTS" asideItems={aside.items} badges={aside.badges}>
+    <Shell portal="vendor" switcher={switcher} user={{ name: session.userName, org: session.orgName }} activeKey="overview" asideTitle="FRESHNESS ALERTS" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title={`${o.orgName} · bench`}
         subtitle={`Supplier ID ${o.vendorCode} · reliability score ${o.reliability}/5 · ${o.placements} placements to date`}

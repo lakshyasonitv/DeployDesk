@@ -3,6 +3,7 @@ import { sql } from "drizzle-orm";
 import { db } from "@/src/db/client";
 import * as schema from "@/src/db/schema";
 import { getClientShortlist } from "@/src/read-models/client";
+import { getDemoSession } from "@/src/lib/auth/session";
 import { s, TOKENS, ACCENT_GRADIENT } from "@/src/lib/ui/style";
 
 /**
@@ -15,13 +16,25 @@ import { s, TOKENS, ACCENT_GRADIENT } from "@/src/lib/ui/style";
  * snapshot read path work in production.
  */
 
-const PORTALS = [
-  { href: "/client", label: "Client portal", sub: "Acme Finserv · Ananya Krishnan", key: "client" as const },
-  { href: "/vendor", label: "Vendor portal", sub: "Nimbus Softworks · Vikram Shetty", key: "vendor" as const },
-  { href: "/ops", label: "Ops console", sub: "Talentvibes · Priya Nair", key: "ops" as const },
-];
+const PORTAL_LABEL = {
+  client: "Client portal",
+  vendor: "Vendor portal",
+  ops: "Ops console",
+} as const;
 
 export default async function Home() {
+  // Who each portal signs in as, resolved from the database rather than written here.
+  const tenants = await Promise.all(
+    (["client", "vendor", "ops"] as const).map(async (portal) => {
+      try {
+        const sess = await getDemoSession(portal);
+        return { portal, sub: `${sess.orgName} · ${sess.userName}` };
+      } catch {
+        return { portal, sub: "not seeded" };
+      }
+    }),
+  );
+
   let counts: Array<{ table: string; n: number }> = [];
   let shortlistSummary = "";
   let error: string | null = null;
@@ -107,16 +120,16 @@ export default async function Home() {
         PORTALS
       </div>
       <div style={s("display:flex;flex-direction:column;gap:8px")}>
-        {PORTALS.map((p) => (
+        {tenants.map((t) => (
           <Link
-            key={p.href}
-            href={p.href}
+            key={t.portal}
+            href={`/${t.portal}`}
             style={s("display:flex;align-items:center;gap:11px;background:#fff;border:1px solid #e8e8ee;border-radius:11px;padding:13px 15px;color:#101014")}
           >
-            <div style={{ ...s("width:22px;height:22px;border-radius:6px;flex:none"), background: ACCENT_GRADIENT[p.key] }} />
+            <div style={{ ...s("width:22px;height:22px;border-radius:6px;flex:none"), background: ACCENT_GRADIENT[t.portal] }} />
             <div>
-              <div style={s("font-size:13.5px;font-weight:700")}>{p.label}</div>
-              <div style={s("font-size:11.5px;color:#8a8a96;margin-top:1px")}>{p.sub}</div>
+              <div style={s("font-size:13.5px;font-weight:700")}>{PORTAL_LABEL[t.portal]}</div>
+              <div style={s("font-size:11.5px;color:#8a8a96;margin-top:1px")}>{t.sub}</div>
             </div>
           </Link>
         ))}

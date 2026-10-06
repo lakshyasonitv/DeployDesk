@@ -1,5 +1,5 @@
 import { Shell, PageHeader, Scroll, Button, StatCard, SectionLabel } from "@/src/lib/ui/Shell";
-import { getDemoSession } from "@/src/lib/auth/session";
+import { getDemoSession, getPortalSwitcherOptions } from "@/src/lib/auth/session";
 import { getOpsMargin } from "@/src/read-models/ops";
 import { s, sx, TOKENS, MARGIN_COLOR } from "@/src/lib/ui/style";
 import { OpsAside } from "../aside";
@@ -15,6 +15,7 @@ const COLS = "150px 130px 1fr 118px 118px 118px 86px";
 
 export default async function MarginPage() {
   const session = await getDemoSession("ops");
+  const switcher = await getPortalSwitcherOptions();
   const [margin, aside] = await Promise.all([getOpsMargin(), OpsAside()]);
 
   const totals = margin.rows.reduce(
@@ -27,11 +28,11 @@ export default async function MarginPage() {
   );
 
   return (
-    <Shell portal="ops" user={{ name: session.userName, org: `${session.orgName} · ${session.role}` }} activeKey="margin" asideTitle="TODAY'S QUEUE" asideItems={aside.items} badges={aside.badges}>
+    <Shell portal="ops" switcher={switcher} user={{ name: session.userName, org: `${session.orgName} · ${session.role}` }} activeKey="margin" asideTitle="TODAY'S QUEUE" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Margin"
         subtitle="Vendor rate, client rate and spread on every live placement · visible to Talentvibes only"
-        actions={<><Button>August 2026</Button><Button primary accent="#101014">Export to finance</Button></>}
+        actions={<><Button>{new Date().toLocaleDateString("en-IN", { month: "long", year: "numeric" })}</Button><Button primary accent="#101014">Export to finance</Button></>}
       />
       <Scroll>
         <div style={s("display:grid;grid-template-columns:repeat(4,1fr);gap:12px")}>

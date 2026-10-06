@@ -1,5 +1,5 @@
 import { Shell, PageHeader, Scroll, Button, StatCard, SectionLabel } from "@/src/lib/ui/Shell";
-import { getDemoSession } from "@/src/lib/auth/session";
+import { getDemoSession, getPortalSwitcherOptions } from "@/src/lib/auth/session";
 import { getVendorEarnings } from "@/src/read-models/vendor";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
 import { VendorAside } from "../aside";
@@ -24,6 +24,7 @@ const STATUS_PILL: Record<string, { bg: string; fg: string }> = {
 
 export default async function VendorEarningsPage() {
   const session = await getDemoSession("vendor");
+  const switcher = await getPortalSwitcherOptions();
   const [e, aside] = await Promise.all([
     getVendorEarnings(session.orgId),
     VendorAside(session.orgId),
@@ -33,7 +34,7 @@ export default async function VendorEarningsPage() {
   const ending = e.rows.filter((r) => r.status === "PRO-RATA").length;
 
   return (
-    <Shell portal="vendor" user={{ name: session.userName, org: session.orgName }} activeKey="earnings" asideTitle="FRESHNESS ALERTS" asideItems={aside.items} badges={aside.badges}>
+    <Shell portal="vendor" switcher={switcher} user={{ name: session.userName, org: session.orgName }} activeKey="earnings" asideTitle="FRESHNESS ALERTS" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Earnings"
         subtitle="Your contracted rate per placement. Talentvibes contracts separately with the client."
@@ -45,7 +46,7 @@ export default async function VendorEarningsPage() {
             sub={`${e.stats.activePlacements} active placements`} />
           <StatCard label="RUN-RATE · MONTHLY" value={e.stats.runRateLabel} sub="at your contracted rates" />
           <StatCard label="ACTIVE PLACEMENTS" value={e.stats.activePlacements} sub="across the exchange" />
-          <StatCard label="PAYMENT CYCLE" value="7th" sub="net 30 · on time" />
+          <StatCard label="INVOICES RAISED" value={e.rows.length} sub="net 30 terms" />
         </div>
 
         <div style={s("margin-top:16px;background:#fff;border:1px solid #e8e8ee;border-radius:12px;overflow:hidden")}>

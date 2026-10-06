@@ -90,7 +90,9 @@ export const TOKENS = {
   sidebarDim: "#6c6c78",
   sidebarActive: "#1e1e26",
   primary: "#6d3ff0",
-  mono: "'JetBrains Mono',monospace",
+  // Resolves to the self-hosted next/font face, with the literal name as a fallback for
+  // anything rendered before the CSS variable is available.
+  mono: "var(--font-mono), 'JetBrains Mono', monospace",
 } as const;
 
 export const ACCENT = { client: "#a78bfa", vendor: "#34d399", ops: "#fbbf24" } as const;

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Shell, PageHeader, Scroll, Button, SectionLabel } from "@/src/lib/ui/Shell";
-import { getDemoSession } from "@/src/lib/auth/session";
+import { getDemoSession, getPortalSwitcherOptions } from "@/src/lib/auth/session";
 import { getClientRequirements } from "@/src/read-models/client";
 import { s, sx, TOKENS, stageMeta } from "@/src/lib/ui/style";
 import { ShellAside } from "../aside";
@@ -12,13 +12,14 @@ const COLS = "96px 1fr 60px 128px 118px 124px 86px";
 
 export default async function ClientRequirementsPage() {
   const session = await getDemoSession("client");
+  const switcher = await getPortalSwitcherOptions();
   const [rows, aside] = await Promise.all([
     getClientRequirements(session.orgId),
     ShellAside(session.orgId),
   ]);
 
   return (
-    <Shell portal="client" user={{ name: session.userName, org: session.orgName }} activeKey="requirements" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
+    <Shell portal="client" switcher={switcher} user={{ name: session.userName, org: session.orgName }} activeKey="requirements" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Requirements"
         subtitle={`${rows.length} requirements · Talentvibes sources from every supplier bench on the exchange`}

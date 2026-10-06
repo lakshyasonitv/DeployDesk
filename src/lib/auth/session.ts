@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { db } from "../../db/client";
 import * as s from "../../db/schema";
 
@@ -77,3 +77,41 @@ export async function getDemoSession(portal: Portal): Promise<DemoSession> {
     role: row.role,
   };
 }
+
+
+/**
+ * The demo portal switcher's labels, resolved from the database.
+ *
+ * These used to be a hardcoded list ("Client · Acme Finserv") in Shell.tsx, which meant
+ * renaming an organisation left the switcher showing the old name. In production the
+ * switcher is driven by org_capabilities (ADR-012) and only appears for an organisation
+ * holding more than one capability.
+ */
+export async function getPortalSwitcherOptions(): Promise<
+  Array<{ portal: Portal; href: string; label: string }>
+> {
+  // ONE query for all three, not one per portal. A loop of three here would have added
+  // three round trips to every page in the app, which is the opposite of the point.
+  const emails = (["client", "vendor", "ops"] as Portal[]).map((p) => DEMO_TENANT[p].email);
+  const rows = await db
+    .select({ email: s.users.email, orgName: s.organizations.name })
+    .from(s.users)
+    .innerJoin(s.organizations, eq(s.organizations.id, s.users.orgId))
+    .where(inArray(s.users.email, emails));
+
+  const byEmail = new Map(rows.map((r) => [r.email, r.orgName]));
+
+  return (["client", "vendor", "ops"] as Portal[])
+    .map((portal) => {
+      const orgName = byEmail.get(DEMO_TENANT[portal].email);
+      if (!orgName) return null;
+      return {
+        portal,
+        href: `/${portal}`,
+        label: portal === "ops" ? `${orgName} Ops` : `${title(portal)} · ${orgName}`,
+      };
+    })
+    .filter((x): x is { portal: Portal; href: string; label: string } => x !== null);
+}
+
+const title = (p: string) => p.charAt(0).toUpperCase() + p.slice(1);

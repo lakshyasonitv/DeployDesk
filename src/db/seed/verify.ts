@@ -91,11 +91,15 @@ async function main() {
 
   /* ---------------- SLA: exactly one breach, two idle ---------------- */
   const reqs = await db
-    .select({ code: s.requirements.code, stage: s.requirements.stage, slaDueAt: s.requirements.slaDueAt })
+    .select({
+      code: s.requirements.code, stage: s.requirements.stage,
+      slaDueAt: s.requirements.slaDueAt, slaWindowHours: s.requirements.slaWindowHours,
+    })
     .from(s.requirements);
   const states = reqs.map((r) => {
     const paused = r.stage === "shortlisted";
-    const windowHours = SLA_WINDOW_HOURS[r.stage as keyof typeof SLA_WINDOW_HOURS] ?? 36;
+    const windowHours =
+      r.slaWindowHours ?? SLA_WINDOW_HOURS[r.stage as keyof typeof SLA_WINDOW_HOURS] ?? 36;
     return { code: r.code, state: slaFor(r.slaDueAt, windowHours, { paused }).state };
   });
   const late = states.filter((x) => x.state === "late");

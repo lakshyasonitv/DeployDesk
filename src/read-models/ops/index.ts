@@ -66,6 +66,7 @@ export async function getOpsPipeline(opts: {
       clientNote: s.requirements.clientNote,
       stage: s.requirements.stage,
       slaDueAt: s.requirements.slaDueAt,
+      slaWindowHours: s.requirements.slaWindowHours,
       postedAt: s.requirements.postedAt,
       clientName: s.organizations.name,
       ownerName: s.users.fullName,
@@ -156,7 +157,12 @@ export async function getOpsPipeline(opts: {
 
   let list: OpsPipelineRequirement[] = rows.map((r) => {
     const paused = r.stage === "shortlisted";
-    const windowHours = SLA_WINDOW_HOURS[r.stage as keyof typeof SLA_WINDOW_HOURS] ?? SLA_WINDOW_HOURS.matching;
+    // The per-requirement window wins over the per-stage default, so a requirement keeps
+    // the SLA state it was given instead of ageing out of it (migration 0002).
+    const windowHours =
+      r.slaWindowHours ??
+      SLA_WINDOW_HOURS[r.stage as keyof typeof SLA_WINDOW_HOURS] ??
+      SLA_WINDOW_HOURS.matching;
     const sla = slaFor(r.slaDueAt, windowHours, { paused });
 
     // Stage-specific label, all derived.

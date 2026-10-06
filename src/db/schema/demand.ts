@@ -31,6 +31,13 @@ export const requirements = pgTable("requirements", {
   clientNote: text("client_note"), // CLIENT + OPS ONLY. Never reaches a vendor response.
   stage: requirementStage().notNull().default("draft"),
   slaDueAt: timestamp("sla_due_at", { withTimezone: true }),
+  /**
+   * Overrides the per-stage SLA window from docs/DOMAIN.md. NULL falls back to the
+   * default for the stage. Added by migration 0002: a `warn` requirement in the 4-hour
+   * `new` window had under an hour of runway and aged into `late` within the hour, so
+   * the window has to be a property of the requirement, not only of its stage.
+   */
+  slaWindowHours: integer("sla_window_hours"),
   postedAt: timestamp("posted_at", { withTimezone: true }),
   closedAt: timestamp("closed_at", { withTimezone: true }),
   createdAt: ts(),

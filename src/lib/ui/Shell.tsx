@@ -61,16 +61,18 @@ export interface ShellUser {
   org: string;
 }
 
-const SWITCHER: Array<{ portal: Portal; href: string; label: string }> = [
-  { portal: "client", href: "/client", label: "Client · Acme Finserv" },
-  { portal: "vendor", href: "/vendor", label: "Vendor · Nimbus" },
-  { portal: "ops", href: "/ops", label: "Talentvibes Ops" },
-];
+/** Demo switcher entries, resolved from the database by getPortalSwitcherOptions(). */
+export interface SwitcherOption {
+  portal: Portal;
+  href: string;
+  label: string;
+}
 
 export function Shell({
   portal,
   activeKey,
   user,
+  switcher = [],
   badges = {},
   asideTitle,
   asideItems = [],
@@ -79,6 +81,7 @@ export function Shell({
   portal: Portal;
   activeKey: string;
   user: ShellUser;
+  switcher?: SwitcherOption[];
   badges?: Record<string, string | number | undefined>;
   asideTitle: string;
   asideItems?: AsideItem[];
@@ -148,11 +151,13 @@ export function Shell({
         </div>
 
         <div style={s("margin-top:auto;padding:12px;border-top:1px solid #26262c")}>
-          <div style={sx("font-size:9px;font-weight:700;letter-spacing:.14em;color:#5c5c68;padding:0 4px 8px", { fontFamily: TOKENS.mono })}>
-            DEMO · SWITCH PORTAL
-          </div>
+          {switcher.length > 1 ? (
+            <div style={sx("font-size:9px;font-weight:700;letter-spacing:.14em;color:#5c5c68;padding:0 4px 8px", { fontFamily: TOKENS.mono })}>
+              DEMO · SWITCH PORTAL
+            </div>
+          ) : null}
           <div style={s("display:flex;flex-direction:column;gap:3px")}>
-            {SWITCHER.map((p) => {
+            {switcher.map((p) => {
               const active = p.portal === portal;
               return (
                 <Link
