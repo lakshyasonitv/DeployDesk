@@ -32,25 +32,35 @@ at `github.com/lakshyasonitv/DeployDesk`. Working tree clean.
   vendor payment-cycle figure. Business rules (SLA windows, margin thresholds) and design
   copy remain constants on purpose — see the note in 04-tasks.md before "fixing" them.
 
-### Deployment: why it felt slow
+### Deployment: live and fast
 
-Measured rather than guessed. **The region is correct** — the deployed functions run in
-`bom1`, co-located with the Mumbai database, confirmed by `x-vercel-id` on a live
-response. Two real causes:
+**URL: https://deploy-desk-peach.vercel.app** — unprotected, serving the current build.
 
-1. **The URL being tested is a PREVIEW deployment with Vercel Deployment Protection on,**
-   so every request 302s to `vercel.com/sso-api` and back before the app runs. Use the
-   production deployment, or turn Deployment Protection off. Note
-   `deploy-desk.vercel.app` is a 182-byte placeholder belonging to something else, not
-   this app.
-2. **No loading states** — fixed in Sprint 4. TTFB went 0.30-0.60s → ~0.01s.
+The slowness is resolved. It was a region mismatch: functions executed in `iad1`
+(Washington DC) against the ap-south-1 (Mumbai) database, so every query paid a ~200ms
+cross-continent round trip. `x-vercel-id` read `bom1::iad1`. The code-level
+`preferredRegion = ["bom1"]` was deployed and ignored — Hobby plan runs all functions in
+the project's single configured region. The user changed Settings → Functions → Function
+Region to Mumbai. Now `bom1::bom1`, and measured live:
 
-### SLA decay: fixed
+| Route | before (iad1) | after (bom1) |
+|---|---|---|
+| `/` | 2.5-2.8s | **0.19s** |
+| `/ops/margin` | 0.59-1.16s | 0.16s steady |
+| `/client` | 0.36-1.0s | 0.17-0.21s |
+| `/vendor/roster` | 0.37-0.42s | 0.17-0.23s |
 
-`db:verify` used to drift to 19/21 during the day. The window is now derived from the
-runway each fixture states and stored in `requirements.sla_window_hours`. The shortest
-runway is 4 hours instead of 36 minutes, so a demo day holds. Re-seeding
-(`npm run db:seed`, ~4s) is still worth doing if the data is more than a few hours old.
+**Always confirm the function region with `x-vercel-id`, not with the code export.**
+First cold hit after idle can still be ~0.26-0.79s; steady state is ~0.17s.
+
+### SLA decay: fixed and verified
+
+`db:verify` used to drift to 19/21 during the day; it now holds at **21/21**. The window
+is derived from the runway each fixture states and stored in
+`requirements.sla_window_hours`, which the seed writes and both the ops read model and the
+verifier prefer over the per-stage default. Seeded data stays correct for about 4 hours
+(the shortest stated runway) against 36 minutes before. Re-seed
+(`npm run db:seed`, ~4s) if it is older than that.
 
 ## How to run this from a cold start
 

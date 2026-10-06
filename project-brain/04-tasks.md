@@ -140,16 +140,24 @@ user runs themselves.
 
 ### Follow-ups this sprint created
 
-- [ ] **Wire `sla_window_hours`.** Migration 0002 added the column but nothing reads or
-      writes it, so warn-state requirements still age into `late` and `db:verify` still
-      drops to 20/21 a few hours after seeding. Needs: the seed to populate it, and
-      `slaFor()` to prefer it over the per-stage default.
-- [ ] **Re-seed before any demo** (`npm run db:seed`, ~4s) until the above lands.
-- [ ] **Rotate all application secrets.** The CVE advisory recommends it for any app that
-      was online unpatched. This one never deployed successfully, so exposure is unlikely,
-      but the Supabase password was separately shared in chat twice.
-- [ ] Remove the `../tv-bench-BEFORE` worktree — `git worktree remove ../tv-bench-BEFORE`.
-      Its `node_modules` junction has already been deleted.
+- [x] **Wire `sla_window_hours`** — DONE in Sprint 4 (`f77c17d`). The schema declares it,
+      the seed writes the window it chose, and both the ops read model and the verifier
+      prefer it over the per-stage default. `db:verify` is back to 21/21.
+- [~] **Re-seed before a demo.** The underlying defect is fixed, so this is now ordinary
+      hygiene rather than a workaround. Measured: seeded SLA data stays correct for about
+      **4 hours** (the shortest stated runway, REQ-2274's own "SLA 4h"), against 36
+      minutes before. A requirement with four hours left *should* breach in four hours —
+      that is correct behaviour, not decay. Re-seed (`npm run db:seed`, ~4s) if the data
+      is more than a few hours old.
+- [ ] **Rotate the Supabase database password — STILL OUTSTANDING, and the user's to do.**
+      It was shared in chat twice. Verified NOT in the repo: `.env.local` is gitignored and
+      `git grep` finds the password in no tracked file, so nothing leaked through GitHub.
+      The CVE advisory also recommends rotating secrets for any app that was online
+      unpatched; this one only ever deployed after the patch, so that path is unlikely.
+      After rotating, `.env.local` needs the new connection strings and so do the Vercel
+      env vars.
+- [x] Removed the `../tv-bench-BEFORE` worktree and pruned it. Its `node_modules` junction
+      was deleted earlier. Do not recreate a shared-junction worktree — see Gotchas.
 
 ---
 
@@ -161,11 +169,28 @@ planned Sprint 4 was deferred one slot. Measured before changing anything.
 **Not the cause:** the region. The deployed functions do run in `bom1`, co-located with
 the Mumbai database — confirmed by `x-vercel-id: bom1::…` on a live response.
 
-**Was a cause, and is the user's to fix:** the URL they tested
-(`deploy-desk-e2kmqgktr-…vercel.app`) is a **preview** deployment with Vercel Deployment
-Protection on, so every request 302s to `vercel.com/sso-api` and back before the app runs.
-`deploy-desk.vercel.app` is a 182-byte placeholder page belonging to something else, not
-this app.
+**Was the dominant cause, now FIXED by the user:** the functions were executing in
+`iad1` (Washington DC) while the database is in ap-south-1 (Mumbai) — `x-vercel-id` read
+`bom1::iad1`, edge in Mumbai, function in Virginia. Every query paid a ~200ms
+cross-continent round trip, and timings scaled with query count, not page complexity:
+`/vendor/roster` at 3 queries took 0.37s while `/` at ~8 took 2.5-2.8s.
+
+`preferredRegion = ["bom1"]` was in the deployed build and Vercel ignored it, which is
+Hobby-plan behaviour: all functions run in the project's single configured region.
+The user changed **Settings → Functions → Function Region** to Mumbai. Now `bom1::bom1`,
+and measured live:
+
+| Route | iad1 | bom1 |
+|---|---|---|
+| `/` | 2.5-2.8s | **0.19s** |
+| `/ops/margin` | 0.59-1.16s | 0.16s steady |
+| `/client` | 0.36-1.0s | 0.17-0.21s |
+| `/vendor/roster` | 0.37-0.42s | 0.17-0.23s |
+
+**Lesson worth keeping:** co-locate compute with the database, and verify it with
+`x-vercel-id` rather than trusting the code-level `preferredRegion` export. Also note the
+earlier red herring — the first URL tested was a *preview* deployment with Deployment
+Protection on, which 302s to `vercel.com/sso-api` and back on every request.
 
 **Was the real in-code cause:** no `loading.tsx` anywhere. Every page is `force-dynamic`,
 so a click left the previous screen up until the server finished — 130-600ms of looking
