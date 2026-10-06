@@ -91,5 +91,50 @@ Hard-won surprises and traps. Everything here is non-obvious from reading the co
 - **A vendor hitting a client route is a 404, not a 403.** A 403 confirms the route
   exists. See `../ARCHITECTURE.md` → **Tenancy and authorisation**.
 
-- **Not a git repository yet.** `project-brain/` must be versioned with the code once
-  `git init` happens. Until then there is no history and no undo.
+- **The connection pool must be wider than 1, and the query count must stay low.**
+  Two separate lessons, learned the hard way on the same file (`src/db/client.ts`):
+  (1) `max: 1` plus concurrent queries over a Supavisor transaction-mode connection
+  stalls indefinitely, and because the pool is one socket wide it takes every route down,
+  not just the one that stalled. (2) Raising `max` is not a licence to fan out: `/ops`
+  issues roughly eight concurrent queries and still exhausts a pool of 5 on the SECOND
+  request. Prefer fewer queries over more parallelism.
+
+- **Parallelising queries was a Sydney-era fix and is now counterproductive.** When the
+  database was in ap-southeast-2, a warm round trip cost ~410ms and a new connection ~3s,
+  so `Promise.all` looked like an obvious win — except each concurrent query opened a cold
+  connection, making five-in-parallel (3.1s) *slower* than five in sequence. After moving
+  to ap-south-1 a warm query is ~30ms, so sequential is both fast and safe. Measure before
+  parallelising; the numbers are in `app/layout.tsx`.
+
+- **Database region and function region must stay aligned.** Supabase cannot move a
+  project's region, so changing it means a new project and a re-migrate. `preferredRegion`
+  in `app/layout.tsx` is pinned to `bom1` to match ap-south-1. If one moves, move both.
+
+- **40 columns in the database are camelCase, against the `snake_case` convention.**
+  `createdAt`, `updatedAt` and similar were created verbatim from the TypeScript keys
+  because the schema uses Drizzle's implicit-name API without `casing: "snake_case"`.
+  The application works, since Drizzle quotes identifiers consistently, but hand-written
+  SQL and RLS policies will reference the wrong names — and RLS is the next workstream.
+  Fix is `casing: "snake_case"` plus an append-only `ALTER TABLE ... RENAME COLUMN`
+  migration. **Written for approval, not yet applied** (see the database-safety decision
+  in `02-decisions.md`).
+
+- **`drizzle-kit push` needs a TTY** and fails in this harness. Schema changes go through
+  `db:generate` plus the migrator in `src/db/migrate.ts`, which is what working agreement
+  1 requires anyway.
+
+- **`db.<ref>.supabase.co` has no IPv4 address** on either project tried, so the "direct
+  connection" string Supabase shows does not resolve from every network. `DIRECT_URL`
+  points at the SESSION pooler on 5432 instead, which supports the session-level features
+  migrations need. The transaction pooler on 6543 is for the app only.
+
+- **Never build a production bundle while `next dev` is running.** They share `.next` and
+  the build fails with `Cannot find module for page`. Stop the dev server and delete
+  `.next` first.
+
+- **Bash heredocs fail on larger TypeScript and TSX files** in this environment
+  (`unexpected EOF`). Use the Write tool for code; heredocs are fine for short appends.
+
+- **Remote is `github.com/lakshyasonitv/DeployDesk`.** Commits must be authored as
+  Lakshya Soni; an earlier run used the session account's name by mistake and had to be
+  rewritten before pushing. Repo-local `user.name`/`user.email` are set accordingly.

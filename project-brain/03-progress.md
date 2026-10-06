@@ -11,84 +11,91 @@ last_log: 2026-10-06
 
 ## Current state
 
-**Goal set on 2026-10-06: deploy a working demo of all 15 screens to Supabase + Vercel,
-today.** The backend foundation and the seed are written and typecheck clean; no UI exists
-yet and nothing is deployed. Build order from here is sequential — see "Start here next
-time".
+**All 15 design screens are written and the production build is clean. One live defect is
+open: the `/ops` route hangs on its second request.** A second, larger workstream
+(dual-role organisations) has been specified and scoped but not started.
 
-What is real and verified:
+Working and verified:
 
-- **Repo** — the ten spec docs now live in `docs/`, so the paths `CLAUDE.md` already used
-  resolve (all ten checked). Git initialised, one commit. **Not pushed** — see Blocked.
-- **Next.js app** scaffolded by hand (`create-next-app` refuses the directory name because
-  it contains a space). 93 packages installed. Folder layout matches
-  `docs/ARCHITECTURE.md`, including the three separate read-model folders ADR-003 requires.
-- **Schema** — ~25 tables across six files in `src/db/schema/`, transcribed from
-  `docs/DATA-MODEL.md`: tenancy, supply, demand, matching, ops. `npx tsc --noEmit` passes.
-- **Derived-value library** — freshness (10/14-day thresholds, decay bar), SLA (25% warn
-  boundary, `idle` pause), experience and age formatting. Nothing stored that
-  `docs/DOMAIN.md` lists as derived.
-- **Money** — bigint paise throughout, parsers for the fixtures' `₹1.38L` / `₹92K` /
-  `₹1,38,000` forms, and `deriveRateBand()` implementing ADR-004 with the vendor rate
-  deliberately absent from its signature.
-- **Fixture extraction** — the prototype's data pulled out mechanically into
-  `src/db/seed/prototype-fixtures.json` (63 KB) rather than retyped: 24 requirements,
-  21 pool candidates, 27 distinct masked IDs, 23 per-screen arrays. Counts cross-checked
-  against `docs/SEED-DATA.md` (1 SLA breach, 2 idle, 7 vendors, 5 clients, 3 owners).
-- **Seed** — written in full across seven modules: orgs/users/skills, bench resources
-  (fixtures + generated filler to 42 on the Nimbus bench), requirements, matches,
-  the REQ-2291 shortlist, interviews, engagements, invoices, duplicate flags, the
-  two-sided broker threads with a relayed message, audit rows, and the
-  `sensitive_columns` tripwire registry. **Never executed** — no database yet.
-- **Read models** — client and vendor portals done. Ops not started.
+- **Database** — Supabase, now in **ap-south-1 (Mumbai)**, project `fmgwcspsuljefhfdcqen`.
+  30 tables, migrated and seeded. `npm run db:verify` → **21/21 pass**.
+  `npm run test:leak` → **12/12 pass** against live data.
+- **Region move paid off enormously.** The project started in ap-southeast-2 (Sydney):
+  warm query ~410ms from India, ~3s per new connection, full seed 41.7s. In Mumbai the
+  same warm query is **~30ms** and the seed takes **4.7s**. Client and vendor pages went
+  from 4–16s to 0.4–3.2s. Functions are pinned to `bom1` to stay co-located.
+- **Build** — `next build` compiles 24 routes, all correctly dynamic (`ƒ`), no prerender
+  of database data.
+- **Screens** — all 15 from the design handoff, plus three extras (client requirements
+  list, shortlists index, engagements). Client and vendor routes all return 200 fast.
+- **Write paths** — three, each with Zod at the boundary, org from the session rather
+  than the request body, a tenancy check and an audit row: availability confirm, stage
+  move, and the masked-shortlist send transaction (duplicate + eligibility pre-checks,
+  snapshot, stage move, audit, all atomic).
 
 ## Start here next time
 
-**Sequential order. Do not start a step before the one above it is verified.**
+**1. Fix the `/ops` hang — this is the one thing blocking the demo.**
 
-1. **Unblock the database.** Needs the Supabase connection strings (see Blocked). Then
-   `npm run db:push` to create the schema, and `npm run db:seed`.
-2. **Verify the seed against the design** — spot-check that freshness states, the one SLA
-   breach (REQ-2295), the two below-floor margins (TV-3964 at 17.4%, TV-4488 at 14.2%) and
-   the six REQ-2291 shortlist bands all read correctly.
-3. **Ops read model** — the last of the three. Pipeline, matching workspace, talent pool,
-   margin, duplicates.
-4. **Deploy a skeleton early.** One trivial page that reads one row, pushed to Vercel, to
-   prove the whole pipe (pooler connection, env vars, build) before building 15 screens on
-   top of an unproven path.
-5. **UI** — shell and design tokens first, then screens in this order: client shortlist
-   review → ops matching workspace → vendor roster (the same candidate rendered three
-   ways, which is the demo), then the remaining twelve.
-6. **Leak test** — point it at the read-model functions, not the route handlers, because
-   the pages call the read models directly and that is the chokepoint both paths share.
+Diagnosed, not yet fixed. `/ops` returns 200 cold in 2.6s, then the *second* request
+hangs until the client gives up. `/ops/matching` is fine (10.4s cold, 0.68s warm), as are
+all client and vendor routes. The ops read models are fast in isolation (94–509ms for
+`getOpsPipeline`, measured standalone), so the queries are not the problem.
+
+Cause: too many concurrent queries for the pool. `/ops` runs
+`OpsAside()` → `Promise.all([getOpsPipeline(), getOpsDuplicates()])`, and
+`getOpsPipeline` itself runs a `Promise.all` of five more, plus the page's own
+`db.execute` — roughly eight concurrent queries against `max: 5`. Connections are not
+coming back for the second request.
+
+The fix is to **undo the parallelisation**, not to raise the pool further. That
+`Promise.all` was added when the database was in Sydney and each round trip cost 410ms;
+at Mumbai's ~30ms, running the five sequentially costs ~150ms total and removes the
+contention entirely. Also raise `max` to ~10 for headroom. See the note in
+`01-architecture.md` Gotchas.
+
+**2. Then the dual-role organisations workstream,** in the three stages the user set, with
+the existing 12 leak tests and 21 seed checks green after each:
+
+1. migrations and RLS files — **SQL shown to the user for approval before anything runs
+   against Supabase**;
+2. the matching function plus self-dealing bypass tests;
+3. UI last.
+
+Scope and the three decisions taken are in `02-decisions.md`.
 
 ## Milestones
 
-- [x] **Phase 0** — Foundations *(partial: app, schema, config done; CI and the restricted
-      DB role not done)*
-- [ ] **Database live** — schema pushed and seeded on Supabase
-- [ ] **Deployed skeleton** on Vercel, reading one real row
-- [ ] **Ops read model**
-- [ ] **UI shell** + design tokens
-- [ ] **15 screens** — 0 of 15 built
-- [ ] **Leak test** in CI
-- [ ] Phases 1–12 proper — see `../docs/BUILD-PLAN.md`
+- [x] Database live, migrated, seeded, verified (21/21)
+- [x] Three read models, one per portal, no shared base (ADR-003)
+- [x] Leak suite over the read models (12/12)
+- [x] All 15 design screens written
+- [x] Production build clean, 24 routes
+- [ ] **`/ops` second-request hang fixed**
+- [ ] Deployed — the user deploys from their own Vercel account; see Blocked
+- [ ] camelCase column rename migration approved and applied
+- [ ] Dual-role stage 1: migrations + RLS files
+- [ ] Dual-role stage 2: matching function + bypass tests
+- [ ] Dual-role stage 3: UI
+- [ ] RLS generally — still absent; read models are the only net today
 
 ## Blocked / waiting on
 
-1. **Supabase connection strings.** Have the project URL
-   (`cwjlrgzjloeqyailnfoj.supabase.co`) and the publishable key, but the publishable key
-   cannot create tables. Need, from Project Settings → Database → Connection string:
-   the **transaction pooler** URI (port 6543, for the app) and the **direct** URI
-   (port 5432, for migrations and seeding). The Supabase MCP connector is installed but
-   still unauthorised; `/mcp` would be the alternative.
-2. **Git push refused** by the permission classifier ("Remote Repoint") when pushing to
-   `github.com/lakshyasonitv/DeployDesk.git`. The remote is added and the repo is empty
-   and reachable. Needs either an approval or the user running the push.
-3. **Vercel token** not yet provided. Vercel MCP *is* authorised (team
-   `vaibhavalteryx-1351`), so deploying is possible without it, but each redeploy then
-   re-sends every file, which is slow when fixing build errors.
+1. **Deployment is the user's to do.** They asked that I not touch Vercel: the connection
+   I have is to a different account. Code is pushed to
+   `github.com/lakshyasonitv/DeployDesk`. They import the repo in their own Vercel
+   account and set four env vars: `DATABASE_URL` (transaction pooler, 6543),
+   `IDENTITY_PEPPER`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
+2. **A stray Vercel project exists on the wrong account** (`vaibhavalteryx-1351/deploydesk`),
+   created before the user said to stay off Vercel. Its two secret env values have been
+   overwritten with placeholders, so the credential is no longer stored there, but the
+   project itself can only be deleted by that account's owner.
+3. **The Supabase password has been shared in chat twice** and was briefly stored in that
+   stray project. Rotation was recommended and has not been confirmed done.
+4. **No `v2` prototype in the repo.** The user referred to
+   "Talentvibes Bench Exchange v2.dc.html"; only the v1 file is present. The UI was built
+   from v1 plus the 50KB handoff README.
 
-Not blocking, but outstanding: the ADR-004 band deviation and the ADR-011 scorer
-divergence both need flagging to the design owner, since the built screens will not match
-the mockups in those two specific ways — on purpose.
+Also outstanding, not blocking: the ADR-004 band deviation and the ADR-011 scorer
+divergence both need raising with the design owner, since the built screens deliberately
+differ from the mockups in those two ways.

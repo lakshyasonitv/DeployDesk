@@ -26,6 +26,51 @@
 - **Impact:** what this touches / constrains going forward
 -->
 
+## 2026-10-06 — Dual-role organisations: three decisions taken before building
+
+The user specified a dual-role workstream (one company acting as both supplier and
+client). Three questions were settled before any schema was written.
+
+**(a) Memberships — supersede narrowly, not wholesale.**
+- **Decision:** keep "a user belongs to exactly one organisation" (unique on `user_id`).
+  Change only two things: a membership holds a SET of roles (supply, demand, admin)
+  rather than a single role, and the portal switcher becomes a production feature rather
+  than a demo affordance. ADR-012 covers exactly those two points, and
+  `docs/DATA-MODEL.md` and `docs/ARCHITECTURE.md` get pointers to it.
+- **Why:** the original spec implied full cross-org membership, which would have reversed
+  a documented rule far more broadly than dual-role actually needs. The narrow version
+  gets the same UI outcome without loosening tenancy.
+- **Rejected:** building memberships and leaving the docs contradicting the schema; and
+  modelling dual-role purely at org level with no role set.
+- **Impact:** tenancy checks stay single-org, so existing read models and leak tests keep
+  working unchanged.
+
+**(b) `org_capabilities` is authoritative; `org_type` becomes derived.**
+- **Decision:** `can_supply` / `can_hire` are the source of truth, backfilled from the
+  existing `org_type` enum. Two guards: no application code writes `org_type` directly
+  (derive it by trigger or view, keeping it for ops filtering), and a constraint that the
+  Talentvibes org has neither capability, since it is the broker and not a participant.
+- **Why:** makes acceptance test 6 real — flipping `can_hire` makes the hiring workspace
+  appear with no migration and no second account.
+- **Impact:** `organizations` keeps its US spelling and all 30 tables' foreign keys. The
+  new tables sit alongside it.
+
+**(c) Sequencing.** Finish the 15 screens and verification first, commit a clean base,
+then dual-role in three stages: migrations and RLS files (SQL approved before it runs),
+then the matching function with self-dealing bypass tests, then UI. The 12 leak tests and
+21 seed checks must stay green after each stage.
+
+## 2026-10-06 — Database changes are file-first and approval-gated
+
+- **Decision:** from this point, every schema change is written as a migration file in the
+  repo and the SQL is shown to the user for approval before it touches Supabase. Seed data
+  goes in a separate file the user runs.
+- **Why:** the user set this as a hard constraint. Earlier in the same session I ran
+  `db:push`, `db:migrate` and `db:seed` directly against two live projects, which was fine
+  for a throwaway demo database and is not fine as a habit.
+- **Impact:** slower loop, and the right default once anything real is in the database.
+  The `db:*` npm scripts stay, but I propose rather than run them.
+
 ## 2026-10-06 — Inline styles copied from the prototype via a parser helper
 
 - **Decision:** port the prototype's markup keeping its inline `style="..."` strings

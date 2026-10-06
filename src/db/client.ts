@@ -32,11 +32,22 @@ const sql =
      * a page that reads two things in parallel hangs, and because the pool is one
      * socket wide it takes every other route down with it. Found exactly that way.
      */
-    max: 5,
+    max: 10,
     idle_timeout: 20,
     connect_timeout: 15,
-    // A stalled query should surface as an error, never as a hung request.
-    connection: { statement_timeout: 15_000 },
+    /**
+     * No `connection: { statement_timeout }` here, deliberately.
+     *
+     * It was set as a startup parameter to stop a stalled query hanging a request. In
+     * Supavisor TRANSACTION mode, client connections are multiplexed onto server
+     * connections, and the timeout leaked across statements: a query was cancelled with
+     * "canceling statement due to statement timeout" after 281ms against a 15s limit —
+     * i.e. it inherited a clock that had started on someone else's statement.
+     *
+     * The platform already bounds this: Vercel functions have their own timeout. If a
+     * per-query bound is ever needed, set it inside an explicit transaction rather than
+     * on the pooled connection.
+     */
   });
 
 if (process.env.NODE_ENV !== "production") globalThis.__tvSql = sql;

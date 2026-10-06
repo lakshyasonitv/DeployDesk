@@ -79,61 +79,67 @@ export async function getOpsPipeline(opts: {
   const ids = rows.map((r) => r.id);
 
   /**
-   * These five are independent of one another, so they run concurrently. The database
-   * is in ap-southeast-2 and this is a brokering desk screen: round trips dominate, and
-   * running them in sequence cost about 6.7s against roughly 2s in parallel.
+   * These five run SEQUENTIALLY, deliberately.
+   *
+   * They were briefly a `Promise.all` to hide the 410ms round trip to the old
+   * ap-southeast-2 database. That was a mistake twice over: each concurrent query opened
+   * a cold connection (~3s), so it was no faster; and once the pool was widened to allow
+   * it, this page's eight-or-so concurrent queries exhausted the pool and `/ops` hung on
+   * its second request, taking the rest of the app with it.
+   *
+   * Against ap-south-1 a warm query is ~30ms, so five in sequence costs ~150ms. Cheap
+   * enough that the contention is not worth buying back. Reduce the NUMBER of queries
+   * before reaching for concurrency again.
    */
-  const [skillRows, sourcedRows, engagementRows, interviewRows, feedbackDue] = await Promise.all([
-    ids.length
-      ? db
-          .select({
-            requirementId: s.requirementSkills.requirementId,
-            label: s.skills.label,
-            isPrimary: s.requirementSkills.isPrimary,
-          })
-          .from(s.requirementSkills)
-          .innerJoin(s.skills, eq(s.skills.id, s.requirementSkills.skillId))
-          .where(inArray(s.requirementSkills.requirementId, ids))
-      : Promise.resolve([]),
+  const skillRows = ids.length
+    ? await db
+        .select({
+          requirementId: s.requirementSkills.requirementId,
+          label: s.skills.label,
+          isPrimary: s.requirementSkills.isPrimary,
+        })
+        .from(s.requirementSkills)
+        .innerJoin(s.skills, eq(s.skills.id, s.requirementSkills.skillId))
+        .where(inArray(s.requirementSkills.requirementId, ids))
+    : [];
 
-    ids.length
-      ? db
-          .select({ requirementId: s.matches.requirementId, n: sql<number>`count(*)::int` })
-          .from(s.matches)
-          .where(inArray(s.matches.requirementId, ids))
-          .groupBy(s.matches.requirementId)
-      : Promise.resolve([]),
+  const sourcedRows = ids.length
+    ? await db
+        .select({ requirementId: s.matches.requirementId, n: sql<number>`count(*)::int` })
+        .from(s.matches)
+        .where(inArray(s.matches.requirementId, ids))
+        .groupBy(s.matches.requirementId)
+    : [];
 
-    // For `placed` rows the design shows the margin; for `interviewing`, the next round.
-    db
-      .select({
-        requirementId: s.engagements.requirementId,
-        vendorRatePaise: s.engagements.vendorRatePaise,
-        clientRatePaise: s.engagements.clientRatePaise,
-      })
-      .from(s.engagements),
+  // For `placed` rows the design shows the margin; for `interviewing`, the next round.
+  const engagementRows = await db
+    .select({
+      requirementId: s.engagements.requirementId,
+      vendorRatePaise: s.engagements.vendorRatePaise,
+      clientRatePaise: s.engagements.clientRatePaise,
+    })
+    .from(s.engagements);
 
-    ids.length
-      ? db
-          .select({
-            requirementId: s.interviews.requirementId,
-            roundNo: s.interviews.roundNo,
-            scheduledAt: s.interviews.scheduledAt,
-            status: s.interviews.status,
-          })
-          .from(s.interviews)
-          .where(inArray(s.interviews.requirementId, ids))
-          .orderBy(asc(s.interviews.scheduledAt))
-      : Promise.resolve([]),
+  const interviewRows = ids.length
+    ? await db
+        .select({
+          requirementId: s.interviews.requirementId,
+          roundNo: s.interviews.roundNo,
+          scheduledAt: s.interviews.scheduledAt,
+          status: s.interviews.status,
+        })
+        .from(s.interviews)
+        .where(inArray(s.interviews.requirementId, ids))
+        .orderBy(asc(s.interviews.scheduledAt))
+    : [];
 
-    ids.length
-      ? db
-          .select({ requirementId: s.interviews.requirementId, dueAt: s.interviewFeedback.dueAt, outcome: s.interviewFeedback.outcome })
-          .from(s.interviewFeedback)
-          .innerJoin(s.interviews, eq(s.interviews.id, s.interviewFeedback.interviewId))
-          .where(inArray(s.interviews.requirementId, ids))
-      : Promise.resolve([]),
-  ]);
+  const feedbackDue = ids.length
+    ? await db
+        .select({ requirementId: s.interviews.requirementId, dueAt: s.interviewFeedback.dueAt, outcome: s.interviewFeedback.outcome })
+        .from(s.interviewFeedback)
+        .innerJoin(s.interviews, eq(s.interviews.id, s.interviewFeedback.interviewId))
+        .where(inArray(s.interviews.requirementId, ids))
+    : [];
 
   const skillsBy = new Map<string, string[]>();
   for (const r of skillRows) {

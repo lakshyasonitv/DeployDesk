@@ -18,11 +18,13 @@ export default async function MatchingPage({ params }: { params: Promise<{ code:
   const workspace = await getOpsMatchingWorkspace(code.toUpperCase());
   if (!workspace) notFound();
 
-  const [aside, dupes, benchRows] = await Promise.all([
-    OpsAside(),
-    getOpsDuplicates(),
-    db.execute<{ n: number }>(sql`select count(*)::int as n from organizations where org_type='vendor'`) as unknown as Promise<Array<{ n: number }>>,
-  ]);
+  // Sequential: OpsAside alone issues several queries, and running it alongside others
+  // exhausted the connection pool. See src/read-models/ops/index.ts.
+  const aside = await OpsAside();
+  const dupes = await getOpsDuplicates();
+  const benchRows = (await db.execute<{ n: number }>(
+    sql`select count(*)::int as n from organizations where org_type = 'vendor'`,
+  )) as unknown as Array<{ n: number }>;
 
   // Which duplicate flags touch this requirement's pool.
   const poolIds = new Set(workspace.candidates.map((c) => c.maskedId));

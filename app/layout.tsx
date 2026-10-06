@@ -11,15 +11,15 @@ export const dynamic = "force-dynamic";
 /**
  * Run the functions in the same region as the database.
  *
- * The Supabase project is in ap-southeast-2 (Sydney). Measured from a laptop in India,
- * a warm round trip to it is ~410ms and opening a new connection costs ~3s of TLS
- * handshake — so a screen making six queries spends two and a half seconds purely on
- * the wire, and parallelising them makes it worse by opening more cold connections.
+ * The Supabase project is in ap-south-1 (Mumbai), so the functions run in bom1.
  *
- * Co-locating the compute collapses that to single-digit milliseconds per query. If the
- * Supabase project ever moves region, change this with it.
+ * This is worth keeping aligned. The project was originally in ap-southeast-2 (Sydney),
+ * where a warm query measured ~410ms from India and opening a connection cost ~3s of
+ * TLS handshake. Moving the database to Mumbai took the same warm query to ~30ms and the
+ * full seed from 41.7s to 4.7s. If the Supabase project ever moves region again, change
+ * this with it — co-location is where nearly all of that gain comes from.
  */
-export const preferredRegion = ["syd1"];
+export const preferredRegion = ["bom1"];
 
 export const metadata: Metadata = {
   title: "Bench Exchange · Talentvibes",

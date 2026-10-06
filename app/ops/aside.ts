@@ -3,7 +3,10 @@ import { ACCENT } from "@/src/lib/ui/style";
 
 /** Ops sidebar: today's queue and nav badges, both derived on read. */
 export async function OpsAside() {
-  const [pipeline, dupes] = await Promise.all([getOpsPipeline(), getOpsDuplicates()]);
+  // Sequential, not Promise.all: see the note in src/read-models/ops/index.ts. These
+  // two together issue enough queries to exhaust the pool when run concurrently.
+  const pipeline = await getOpsPipeline();
+  const dupes = await getOpsDuplicates();
   const openDupes = dupes.filter((d) => d.status === "open").length;
   const dueSoon = pipeline.requirements.filter((r) => r.sla.state === "warn").slice(0, 1)[0];
 
