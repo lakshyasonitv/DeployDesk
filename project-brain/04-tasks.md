@@ -30,7 +30,7 @@ All four gates green. 18 routes, 200 three times each.
 
 ---
 
-## SPRINT 2 — Performance: stop doing the same work twice · ⏳ NEXT
+## SPRINT 2 — Performance: stop doing the same work twice · ✅ DONE (commit `88b0436`)
 
 **Why this sprint exists:** the user reported the app feeling slow. Measured, it is two
 separate things, and only one is a defect.
@@ -68,12 +68,29 @@ Two causes, both mine:
 
 Tasks:
 
-- [ ] Wrap each read-model entry point in React's `cache()` so repeated calls inside one
-      request hit the database once. Fixes the duplication without editing any page.
-- [ ] Give each sidebar its own cheap `COUNT` query instead of running whole read models
-      for badge numbers.
-- [ ] Re-measure the table above and record the actual result here.
-- [ ] Re-run all four gates.
+- [x] Gave each sidebar its own `COUNT` query — `getClientSidebar`, `getVendorSidebar`,
+      `getOpsSidebar`. The ops one is a single query where it used to be nine.
+- [x] Pages that genuinely need the pipeline (`/ops`, `/ops/matching/:code`) now fetch it
+      themselves instead of borrowing it from the sidebar.
+- [~] **Dropped the React `cache()` wrapping.** Once the sidebars stopped calling the
+      heavy read models, no page called the same read model twice, so there was nothing
+      left to dedupe. A first attempt at it also broke the function closings
+      (`cache(async function X(` needs a matching `})`), which was reverted.
+- [x] Re-measured. **Queries per page:** `/ops/margin` 10 → **2** (471ms → 60ms),
+      `/ops/duplicates` → 4, `/client` 8 → 6, `/vendor/roster` 6 → 4. Sidebars are now
+      1 query (vendor, ops) or 2 (client).
+- [x] **Wall-clock, six-sample means** against a pinned pre-sprint build:
+      `/ops/margin` **+76%**, `/ops/duplicates` **+57%**, `/ops/pool` **+29%**,
+      `/ops` **+23%**, `/client/shortlists/REQ-2291` **+28%**.
+      `/client` −5% and `/vendor/roster` +4% — **flat, within noise.** Their latency was
+      never dominated by the sidebar, so the query saving does not show up as time. Worth
+      remembering: fewer queries only reads as "faster" where queries were the bottleneck.
+- [x] All four gates re-run and green.
+
+**Comparison setup, still running:** a pinned pre-sprint build is served from a git
+worktree at `../tv-bench-BEFORE` on **:3100** (its `node_modules` is a junction to the
+main repo's, and `.env.local` was copied in). The current build is on **:3000**. Remove
+with `git worktree remove ../tv-bench-BEFORE` when no longer needed.
 
 **Deliberately out of scope:** route caching or `revalidate`. Every page is
 `force-dynamic` on purpose — stale masked data on a shortlist is worse than a slow page —

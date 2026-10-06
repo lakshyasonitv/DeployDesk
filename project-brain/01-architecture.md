@@ -128,6 +128,21 @@ Hard-won surprises and traps. Everything here is non-obvious from reading the co
   points at the SESSION pooler on 5432 instead, which supports the session-level features
   migrations need. The transaction pooler on 6543 is for the app only.
 
+- **Seeded SLA states decay within the hour, and `db:verify` catches it.** The check
+  "exactly one SLA breach" starts failing a few hours after seeding: REQ-2302 is stage
+  `new`, whose documented window is 4 business hours, and the fixture wants it in `warn` —
+  which by definition means 25% or less remaining, so its deadline sits under an hour out
+  and ages into `late`. Re-seed (`npm run db:seed`, ~4s) before a demo. The durable fix is
+  a per-requirement SLA window column, which also resolves the underlying conflict: the
+  fixture's own label for that row is "SLA 12h = warn", which implies a window of ~48h,
+  not 4h. Proposed for the Sprint 3 migration batch.
+
+- **Fewer queries only reads as "faster" where queries were the bottleneck.** Sprint 2 cut
+  `/client` from 8 queries to 6 and `/vendor/roster` from 6 to 4, and both pages' wall
+  time did not move (−5% and +4%, inside noise over six samples). The ops pages, where the
+  sidebar was 9 of 10 queries, gained 23-76%. Measure wall time, not just query count,
+  before claiming a win.
+
 - **Judge performance on `next start`, not `npm run dev`.** Dev mode compiles each route
   on first visit and runs React's development build. The same pages measured 1.5-3.1s cold
   in dev and 0.26-0.60s in production. Several "it's slow" reports trace to this alone.
