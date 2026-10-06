@@ -24,7 +24,7 @@ interface Requirement {
 const COMPONENT_SHORT = ["SKILL", "TEST", "EXP FIT", "RATE", "FRESH", "VENDOR"];
 
 function barColor(v: number) {
-  return v >= 80 ? "#b45309" : v >= 60 ? "#d9a066" : "#e0b3b3";
+  return v >= 80 ? "var(--warn)" : v >= 60 ? "var(--warn)" : "var(--danger-tint)";
 }
 
 export function Workspace({
@@ -103,14 +103,14 @@ export function Workspace({
   return (
     <>
       {/* ---------------- header ---------------- */}
-      <div style={s("padding:18px 26px 14px;background:#fff;border-bottom:1px solid #e8e8ee;flex:none;position:relative")}>
+      <div style={s("padding:18px 26px 14px;background:var(--surface);border-bottom:1px solid var(--border);flex:none;position:relative")}>
         <div style={s("display:flex;align-items:flex-end;justify-content:space-between;gap:16px")}>
           <div style={s("min-width:0")}>
             <div style={s("display:flex;align-items:center;gap:9px;margin-bottom:6px")}>
               <span style={sx("padding:3px 8px;border-radius:5px;font-size:9px;font-weight:700;letter-spacing:.08em", { background: st.bg, color: st.fg, fontFamily: TOKENS.mono })}>
                 {st.label}
               </span>
-              <span style={s("font-size:11.5px;color:#8a8a96")}>
+              <span style={s("font-size:11.5px;color:var(--t4)")}>
                 {requirement.clientName} · owner {requirement.ownerShort}
               </span>
             </div>
@@ -118,17 +118,17 @@ export function Workspace({
               <div style={s("font-size:22px;font-weight:800;letter-spacing:-.6px")}>Matching workspace</div>
               <button onClick={() => setPickerOpen((v) => !v)}
                 style={sx("display:flex;align-items:center;gap:7px;padding:5px 10px;border-radius:8px;font-size:11.5px;cursor:pointer;font-family:inherit", {
-                  background: pickerOpen ? "#fff8ef" : "#fff",
-                  border: `1px solid ${pickerOpen ? "#f0dcc0" : "#e0e0e8"}`,
+                  background: pickerOpen ? "var(--warn-tint)" : "var(--surface)",
+                  border: `1px solid ${pickerOpen ? "var(--warn-tint)" : "var(--border-2)"}`,
                 })}>
                 <span style={sx("font-weight:700", { fontFamily: TOKENS.mono })}>{requirement.code}</span>
-                <span style={s("color:#8a8a96;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
+                <span style={s("color:var(--t4);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
                   {requirement.roleTitle}
                 </span>
-                <span style={s("color:#8a8a96")}>▾</span>
+                <span style={s("color:var(--t4)")}>▾</span>
               </button>
             </div>
-            <div style={s("font-size:12.5px;color:#6b6b78;margin-top:4px")}>
+            <div style={s("font-size:12.5px;color:var(--t3);margin-top:4px")}>
               {initial.length
                 ? `${initial.length} candidates sourced from ${sourcedBenches} of ${benchCount} benches`
                 : "no candidates sourced yet — matching starts here"}
@@ -136,12 +136,12 @@ export function Workspace({
           </div>
           <div style={s("display:flex;gap:8px;flex:none")}>
             <button onClick={reset}
-              style={s("padding:8px 13px;border:1px solid #e0e0e8;border-radius:8px;font-size:12.5px;font-weight:600;background:#fff;cursor:pointer;font-family:inherit")}>
+              style={s("padding:8px 13px;border:1px solid var(--border-2);border-radius:8px;font-size:12.5px;font-weight:600;background:var(--surface);cursor:pointer;font-family:inherit")}>
               Reset to algorithm
             </button>
             <button onClick={send} disabled={!included.length || sending}
-              style={sx("padding:8px 13px;border:0;border-radius:8px;font-size:12.5px;font-weight:700;color:#fff;font-family:inherit", {
-                background: included.length ? "#101014" : "#c9c9d2",
+              style={sx("padding:8px 13px;border:0;border-radius:8px;font-size:12.5px;font-weight:700;color:var(--surface);font-family:inherit", {
+                background: included.length ? "var(--t1)" : "var(--border-2)",
                 cursor: included.length && !sending ? "pointer" : "default",
               })}>
               {sending ? "Sending…" : `Send masked shortlist · ${included.length}`}
@@ -150,8 +150,8 @@ export function Workspace({
         </div>
 
         {pickerOpen ? (
-          <div style={s("position:absolute;top:92px;left:26px;width:430px;background:#fff;border:1px solid #e8e8ee;border-radius:12px;box-shadow:0 16px 40px rgba(16,16,20,.16);z-index:30;overflow:hidden")}>
-            <div style={sx("padding:10px 13px;background:#fafafc;border-bottom:1px solid #e8e8ee;font-size:9px;font-weight:700;letter-spacing:.12em;color:#8a8a96", { fontFamily: TOKENS.mono })}>
+          <div style={s("position:absolute;top:92px;left:26px;width:430px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 16px 40px rgba(16,16,20,.16);z-index:30;overflow:hidden")}>
+            <div style={sx("padding:10px 13px;background:var(--surface-2);border-bottom:1px solid var(--border);font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
               SELECT A REQUIREMENT · {pickerOptions.length} ON YOUR DESK
             </div>
             <div style={s("max-height:330px;overflow:auto")}>
@@ -160,25 +160,25 @@ export function Workspace({
                 const active = o.code === requirement.code;
                 return (
                   <a key={o.code} href={`/ops/matching/${o.code}`}
-                    style={sx("display:grid;grid-template-columns:76px 1fr 96px 74px;gap:9px;align-items:center;padding:9px 13px;border-bottom:1px solid #f4f4f8;color:#101014", { background: active ? "#fff8ef" : "#fff" })}>
+                    style={sx("display:grid;grid-template-columns:76px 1fr 96px 74px;gap:9px;align-items:center;padding:9px 13px;border-bottom:1px solid var(--surface-3);color:var(--t1)", { background: active ? "var(--warn-tint)" : "var(--surface)" })}>
                     <span style={sx("font-size:10.5px;font-weight:700", { fontFamily: TOKENS.mono })}>{o.code}</span>
                     <span style={s("min-width:0")}>
                       <span style={s("display:block;font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>{o.roleTitle}</span>
-                      <span style={s("display:block;font-size:10px;color:#8a8a96;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
+                      <span style={s("display:block;font-size:10px;color:var(--t4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
                         {o.clientName} · ×{o.quantity} · {o.ownerShort}
                       </span>
                     </span>
                     <span style={sx("padding:2px 6px;border-radius:4px;font-size:8.5px;font-weight:700;letter-spacing:.06em;text-align:center", { background: ost.bg, color: ost.fg, fontFamily: TOKENS.mono })}>
                       {ost.label}
                     </span>
-                    <span style={sx("font-size:10px;font-weight:600;text-align:right", { color: SLA_COLOR[o.slaState as keyof typeof SLA_COLOR] ?? "#8a8a96" })}>
+                    <span style={sx("font-size:10px;font-weight:600;text-align:right", { color: SLA_COLOR[o.slaState as keyof typeof SLA_COLOR] ?? "var(--t4)" })}>
                       {o.slaLabel}
                     </span>
                   </a>
                 );
               })}
             </div>
-            <div style={s("padding:9px 13px;font-size:10.5px;color:#8a8a96;background:#fafafc")}>
+            <div style={s("padding:9px 13px;font-size:10.5px;color:var(--t4);background:var(--surface-2)")}>
               Only requirements in Matching, Shortlisted or New appear here.
             </div>
           </div>
@@ -186,22 +186,22 @@ export function Workspace({
       </div>
 
       {toast ? (
-        <div style={s("background:#101014;color:#fff;padding:10px 26px;display:flex;align-items:center;gap:11px;flex:none")}>
-          <span style={s("width:7px;height:7px;border-radius:50%;background:#16a34a;flex:none")} />
+        <div style={s("background:var(--t1);color:var(--surface);padding:10px 26px;display:flex;align-items:center;gap:11px;flex:none")}>
+          <span style={s("width:7px;height:7px;border-radius:50%;background:var(--ok);flex:none")} />
           <span style={s("font-size:12.5px;flex:1")}>{toast}</span>
-          <button onClick={() => setToast(null)} style={s("border:0;background:transparent;font-size:12px;color:#8a8a96;cursor:pointer;font-family:inherit")}>Dismiss</button>
+          <button onClick={() => setToast(null)} style={s("border:0;background:transparent;font-size:12px;color:var(--t4);cursor:pointer;font-family:inherit")}>Dismiss</button>
         </div>
       ) : null}
 
       {/* ---------------- body ---------------- */}
       <div style={s("flex:1;min-height:0;display:flex;overflow:hidden")}>
         {/* left: requirement facts + weighting */}
-        <div style={s("width:320px;flex:none;background:#fff;border-right:1px solid #e8e8ee;overflow:auto;padding:16px")}>
-          <div style={sx("font-size:9px;font-weight:700;letter-spacing:.14em;color:#8a8a96", { fontFamily: TOKENS.mono })}>
+        <div style={s("width:320px;flex:none;background:var(--surface);border-right:1px solid var(--border);overflow:auto;padding:16px")}>
+          <div style={sx("font-size:9px;font-weight:700;letter-spacing:.14em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
             REQUIREMENT
           </div>
           <div style={s("font-size:15px;font-weight:800;margin-top:7px;line-height:1.3")}>{requirement.roleTitle}</div>
-          <div style={s("font-size:11.5px;color:#8a8a96;margin-top:3px")}>
+          <div style={s("font-size:11.5px;color:var(--t4);margin-top:3px")}>
             {requirement.clientName} · {requirement.quantity} position{requirement.quantity === 1 ? "" : "s"} · owner {requirement.ownerShort}
           </div>
 
@@ -210,44 +210,44 @@ export function Workspace({
             <Fact k="Experience" v={requirement.experienceBand} />
             <Fact k="Location" v={requirement.locationLabel} />
             <Fact k="Start" v={requirement.startDate ?? "—"} />
-            <Fact k="Client budget" v={requirement.budgetLabel} color="#b45309" />
-            <Fact k="Target margin" v="≥ 22%" color="#0f7a4a" />
+            <Fact k="Client budget" v={requirement.budgetLabel} color="var(--warn)" />
+            <Fact k="Target margin" v="≥ 22%" color="var(--ok)" />
           </div>
 
-          <div style={sx("font-size:9px;font-weight:700;letter-spacing:.14em;color:#8a8a96;margin-top:18px", { fontFamily: TOKENS.mono })}>
+          <div style={sx("font-size:9px;font-weight:700;letter-spacing:.14em;color:var(--t4);margin-top:18px", { fontFamily: TOKENS.mono })}>
             WEIGHTING
           </div>
           <div style={s("margin-top:9px;display:flex;flex-direction:column;gap:7px")}>
             {weights.map((w) => (
               <div key={w.label}>
                 <div style={s("display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px")}>
-                  <span style={s("color:#4a4a58")}>{w.label}</span>
+                  <span style={s("color:var(--t2)")}>{w.label}</span>
                   <span style={sx("font-weight:700", { fontFamily: TOKENS.mono })}>{w.pct}</span>
                 </div>
-                <div style={s("height:4px;background:#eeeef3;border-radius:3px;overflow:hidden")}>
-                  <div style={sx("height:100%;background:#b45309;border-radius:3px", { width: w.pct })} />
+                <div style={s("height:4px;background:var(--border);border-radius:3px;overflow:hidden")}>
+                  <div style={sx("height:100%;background:var(--warn);border-radius:3px", { width: w.pct })} />
                 </div>
               </div>
             ))}
           </div>
 
           {requirement.clientNote ? (
-            <div style={s("margin-top:18px;background:#fff8ef;border:1px solid #f0dcc0;border-radius:10px;padding:11px")}>
-              <div style={sx("font-size:8.5px;font-weight:700;letter-spacing:.12em;color:#b45309", { fontFamily: TOKENS.mono })}>
+            <div style={s("margin-top:18px;background:var(--warn-tint);border:1px solid var(--warn-tint);border-radius:10px;padding:11px")}>
+              <div style={sx("font-size:8.5px;font-weight:700;letter-spacing:.12em;color:var(--warn)", { fontFamily: TOKENS.mono })}>
                 CLIENT NOTE · CLIENT + OPS ONLY
               </div>
-              <div style={s("font-size:11.5px;color:#4a4a58;margin-top:6px;line-height:1.5")}>
+              <div style={s("font-size:11.5px;color:var(--t2);margin-top:6px;line-height:1.5")}>
                 {requirement.clientNote}
               </div>
             </div>
           ) : null}
 
           {duplicateCount > 0 ? (
-            <div style={s("margin-top:12px;background:#fdecec;border:1px solid #f6cfcf;border-radius:10px;padding:11px")}>
-              <div style={s("font-size:11.5px;font-weight:700;color:#b91c1c")}>
+            <div style={s("margin-top:12px;background:var(--danger-tint);border:1px solid var(--danger-tint);border-radius:10px;padding:11px")}>
+              <div style={s("font-size:11.5px;font-weight:700;color:var(--danger)")}>
                 {duplicateCount} duplicate flag{duplicateCount === 1 ? "" : "s"} touch this pool
               </div>
-              <a href="/ops/duplicates" style={s("display:inline-block;font-size:11px;font-weight:700;color:#b91c1c;margin-top:5px")}>
+              <a href="/ops/duplicates" style={s("display:inline-block;font-size:11px;font-weight:700;color:var(--danger);margin-top:5px")}>
                 Resolve before sending →
               </a>
             </div>
@@ -255,15 +255,15 @@ export function Workspace({
         </div>
 
         {/* right: ranked candidates */}
-        <div style={s("flex:1;min-width:0;background:#f7f7f9;overflow:auto;padding:14px 18px 22px")}>
+        <div style={s("flex:1;min-width:0;background:var(--bg);overflow:auto;padding:14px 18px 22px")}>
           <div style={s("display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:11px")}>
             <div style={s("font-size:12.5px")}>
               <strong style={s("font-weight:700")}>Ranked candidates · {rows.length}</strong>
-              <span style={s("color:#8a8a96")}>
+              <span style={s("color:var(--t4)")}>
                 {manual ? " · manual override active, algorithm ranking saved" : " · algorithm ranking"}
               </span>
             </div>
-            <div style={sx("font-size:10.5px;color:#8a8a96", { fontFamily: TOKENS.mono })}>
+            <div style={sx("font-size:10.5px;color:var(--t4)", { fontFamily: TOKENS.mono })}>
               Drag a row or use ▲▼ to reorder · client sees this order
             </div>
           </div>
@@ -277,15 +277,15 @@ export function Workspace({
                 <div key={c.maskedId}
                   draggable onDragStart={() => setDragging(c.maskedId)} onDragEnd={() => setDragging(null)}
                   onDragOver={(e) => e.preventDefault()} onDrop={() => drop(c.maskedId)}
-                  style={sx("background:#fff;border-radius:11px;padding:11px;display:flex;gap:11px;align-items:flex-start", {
-                    border: `1px solid ${dragging === c.maskedId ? "#b45309" : "#e8e8ee"}`,
+                  style={sx("background:var(--surface);border-radius:11px;padding:11px;display:flex;gap:11px;align-items:flex-start", {
+                    border: `1px solid ${dragging === c.maskedId ? "var(--warn)" : "var(--border)"}`,
                     opacity: dragging === c.maskedId ? 0.5 : 1,
                     flexWrap: "wrap",
                   })}>
                   {/* rank */}
                   <div style={s("width:34px;flex:none;text-align:center")}>
                     <div style={s("font-size:19px;font-weight:800;line-height:1")}>{idx + 1}</div>
-                    <div style={sx("font-size:8px;font-weight:700;letter-spacing:.1em;color:#8a8a96;margin-top:2px", { fontFamily: TOKENS.mono })}>RANK</div>
+                    <div style={sx("font-size:8px;font-weight:700;letter-spacing:.1em;color:var(--t4);margin-top:2px", { fontFamily: TOKENS.mono })}>RANK</div>
                     <div style={s("display:flex;flex-direction:column;gap:3px;margin-top:6px")}>
                       <button onClick={() => moveBy(c.maskedId, -1)} style={miniBtn}>▲</button>
                       <button onClick={() => moveBy(c.maskedId, 1)} style={miniBtn}>▼</button>
@@ -297,14 +297,14 @@ export function Workspace({
                     <div style={s("display:flex;align-items:center;gap:6px;flex-wrap:wrap")}>
                       <span style={sx("font-size:12px;font-weight:700", { fontFamily: TOKENS.mono })}>{c.maskedId}</span>
                       <span style={sx("padding:2px 6px;border-radius:4px;font-size:8px;font-weight:700;letter-spacing:.06em", {
-                        background: inSet ? "#e8f6ef" : "#f3f3f7", color: inSet ? "#0f7a4a" : "#8a8a96", fontFamily: TOKENS.mono,
+                        background: inSet ? "var(--ok-tint)" : "var(--surface-3)", color: inSet ? "var(--ok)" : "var(--t4)", fontFamily: TOKENS.mono,
                       })}>
                         {inSet ? "IN SHORTLIST" : "HELD BACK"}
                       </span>
                     </div>
                     <div style={s("font-size:12.5px;font-weight:700;margin-top:4px")}>{c.fullName}</div>
-                    <div style={s("font-size:10.5px;color:#8a8a96;margin-top:2px")}>{c.vendorName}</div>
-                    <div style={sx("font-size:10.5px;color:#4a4a58;margin-top:3px", { fontFamily: TOKENS.mono })}>
+                    <div style={s("font-size:10.5px;color:var(--t4);margin-top:2px")}>{c.vendorName}</div>
+                    <div style={sx("font-size:10.5px;color:var(--t2);margin-top:3px", { fontFamily: TOKENS.mono })}>
                       {c.experienceLabel} · {c.vendorRateLabel}/mo
                     </div>
                   </div>
@@ -312,22 +312,22 @@ export function Workspace({
                   {/* reason + components */}
                   <div style={s("flex:1;min-width:230px")}>
                     <div style={s("display:flex;align-items:baseline;gap:8px")}>
-                      <span style={s("font-size:20px;font-weight:800;color:#b45309;line-height:1")}>{c.algoScore}</span>
-                      <span style={sx("font-size:8.5px;font-weight:700;letter-spacing:.1em;color:#8a8a96", { fontFamily: TOKENS.mono })}>MATCH SCORE</span>
+                      <span style={s("font-size:20px;font-weight:800;color:var(--warn);line-height:1")}>{c.algoScore}</span>
+                      <span style={sx("font-size:8.5px;font-weight:700;letter-spacing:.1em;color:var(--t4)", { fontFamily: TOKENS.mono })}>MATCH SCORE</span>
                       {c.eligibility !== "eligible" ? (
-                        <span style={sx("padding:2px 6px;border-radius:4px;font-size:8px;font-weight:700;background:#fdecec;color:#b91c1c", { fontFamily: TOKENS.mono })}>
+                        <span style={sx("padding:2px 6px;border-radius:4px;font-size:8px;font-weight:700;background:var(--danger-tint);color:var(--danger)", { fontFamily: TOKENS.mono })}>
                           {c.eligibility.replace("blocked_", "").toUpperCase()}
                         </span>
                       ) : null}
                     </div>
-                    <div style={s("font-size:11.5px;color:#4a4a58;margin-top:4px")}>{c.reasonLine}</div>
+                    <div style={s("font-size:11.5px;color:var(--t2);margin-top:4px")}>{c.reasonLine}</div>
                     <div style={s("display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin-top:9px")}>
                       {c.components.map((comp, i) => (
                         <div key={comp.label}>
-                          <div style={sx("font-size:7.5px;font-weight:700;letter-spacing:.07em;color:#8a8a96", { fontFamily: TOKENS.mono })}>
+                          <div style={sx("font-size:7.5px;font-weight:700;letter-spacing:.07em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
                             {COMPONENT_SHORT[i]}
                           </div>
-                          <div style={s("height:4px;background:#eeeef3;border-radius:3px;margin-top:3px;overflow:hidden")}>
+                          <div style={s("height:4px;background:var(--border);border-radius:3px;margin-top:3px;overflow:hidden")}>
                             <div style={sx("height:100%;border-radius:3px", { width: `${comp.value}%`, background: barColor(comp.value) })} />
                           </div>
                           <div style={sx("font-size:9px;font-weight:700;margin-top:2px", { fontFamily: TOKENS.mono })}>{comp.value}</div>
@@ -340,19 +340,19 @@ export function Workspace({
                   <div style={s("width:96px;flex:none;display:flex;flex-direction:column;gap:5px")}>
                     <button onClick={() => toggleInclude(c.maskedId)}
                       style={sx("padding:6px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;border:0", {
-                        background: inSet ? "#0f7a4a" : "#101014", color: "#fff",
+                        background: inSet ? "var(--ok)" : "var(--t1)", color: "var(--surface)",
                       })}>
                       {inSet ? "Included" : "Include"}
                     </button>
                     <button onClick={() => setExpanded(open ? null : c.maskedId)}
-                      style={s("padding:6px;border:1px solid #e0e0e8;border-radius:7px;font-size:11px;font-weight:600;background:#fff;cursor:pointer;font-family:inherit")}>
+                      style={s("padding:6px;border:1px solid var(--border-2);border-radius:7px;font-size:11px;font-weight:600;background:var(--surface);cursor:pointer;font-family:inherit")}>
                       {open ? "Hide" : "Profile"}
                     </button>
                   </div>
 
                   {/* expanded detail — the full unmasked record */}
                   {open ? (
-                    <div style={s("width:100%;margin-top:4px;padding-top:11px;border-top:1px dashed #e8e8ee")}>
+                    <div style={s("width:100%;margin-top:4px;padding-top:11px;border-top:1px dashed var(--border)")}>
                       <div style={s("display:grid;grid-template-columns:repeat(4,1fr);gap:11px")}>
                         <Detail k="CITY" v={c.city} />
                         <Detail k="NOTICE" v={c.noticeLabel} />
@@ -364,7 +364,7 @@ export function Workspace({
                         <Detail k="MARGIN AT THAT RATE" v={c.marginPctLabel} color={mc.fg} />
                       </div>
                       {c.lastProjectNote ? (
-                        <div style={s("margin-top:10px;background:#fafafc;border-radius:8px;padding:9px;font-size:11.5px;color:#4a4a58;line-height:1.5")}>
+                        <div style={s("margin-top:10px;background:var(--surface-2);border-radius:8px;padding:9px;font-size:11.5px;color:var(--t2);line-height:1.5")}>
                           {c.lastProjectNote}
                         </div>
                       ) : null}
@@ -374,7 +374,7 @@ export function Workspace({
               );
             })}
             {rows.length === 0 ? (
-              <div style={s("background:#fff;border:1px dashed #e0e0e8;border-radius:12px;padding:34px;text-align:center;color:#8a8a96;font-size:12.5px")}>
+              <div style={s("background:var(--surface);border:1px dashed var(--border-2);border-radius:12px;padding:34px;text-align:center;color:var(--t4);font-size:12.5px")}>
                 No candidates sourced for this requirement yet.
               </div>
             ) : null}
@@ -386,16 +386,16 @@ export function Workspace({
 }
 
 const miniBtn = {
-  width: "22px", height: "16px", borderRadius: "4px", border: "1px solid #eaeaef",
-  background: "#fff", fontSize: "8px", lineHeight: "1", cursor: "pointer",
-  color: "#4a4a58", fontFamily: "inherit", padding: 0,
+  width: "22px", height: "16px", borderRadius: "4px", border: "1px solid var(--border)",
+  background: "var(--surface)", fontSize: "8px", lineHeight: "1", cursor: "pointer",
+  color: "var(--t2)", fontFamily: "inherit", padding: 0,
 } as const;
 
 function Fact({ k, v, color }: { k: string; v: string; color?: string }) {
   return (
-    <div style={s("display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid #f4f4f8")}>
-      <span style={s("font-size:11.5px;color:#8a8a96")}>{k}</span>
-      <span style={sx("font-size:11.5px;font-weight:700;text-align:right", { color: color ?? "#101014" })}>{v}</span>
+    <div style={s("display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--surface-3)")}>
+      <span style={s("font-size:11.5px;color:var(--t4)")}>{k}</span>
+      <span style={sx("font-size:11.5px;font-weight:700;text-align:right", { color: color ?? "var(--t1)" })}>{v}</span>
     </div>
   );
 }
@@ -403,8 +403,8 @@ function Fact({ k, v, color }: { k: string; v: string; color?: string }) {
 function Detail({ k, v, color }: { k: string; v: string; color?: string }) {
   return (
     <div>
-      <div style={sx("font-size:8px;font-weight:700;letter-spacing:.1em;color:#8a8a96", { fontFamily: TOKENS.mono })}>{k}</div>
-      <div style={sx("font-size:11.5px;font-weight:700;margin-top:3px", { color: color ?? "#101014" })}>{v}</div>
+      <div style={sx("font-size:8px;font-weight:700;letter-spacing:.1em;color:var(--t4)", { fontFamily: TOKENS.mono })}>{k}</div>
+      <div style={sx("font-size:11.5px;font-weight:700;margin-top:3px", { color: color ?? "var(--t1)" })}>{v}</div>
     </div>
   );
 }

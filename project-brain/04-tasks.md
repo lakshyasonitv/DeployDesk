@@ -321,17 +321,18 @@ All pass. Worth keeping because several are the ones a future change could break
 
 ---
 
-## SPRINT 7 — Migrate to the v2 design handoff · ⚠️ NOT STARTED, NEEDS A SCOPE DECISION
+## SPRINT 7 — Migrate to the v2 design handoff · **7a DONE**, 7b–7e to go
 
-The user added `design_handoff_bench_exchange_v2/` on 2026-10-07 and asked for the
-necessary changes. **Do not start writing until the user picks a scope** — this is a full
-re-skin of a working, deployed, demo-ready build, and the user has a demo. Full assessment
-is in `journal/2026-10-07.md`; the short version is 885 hardcoded hex values across 69
-files where v2 wants CSS variables.
+The user chose **Full v2** on 2026-10-07 after being shown the risk, and chose to keep
+**rate bands everywhere** rather than take v2's exact-rate-on-placements allowance. Staged
+into 7a–7e so every stage ends at the four gates and there is always a stable commit to
+demo from.
 
-### Three options, to offer in this order
+**7a (foundation) is complete and verified** — see the Sprint 7a block below. 7b–7e remain.
 
-- [ ] **Option 1 — Foundation** (one sprint; mechanical, scriptable, git-revertible).
+### The staging
+
+- [x] **7a — Foundation** ✅ 2026-10-07 (one sprint; mechanical, scriptable, git-revertible).
       Drop in `tokens.css`; add the `data-tvtheme` light/dark toggle persisted in
       `localStorage("tvbx-theme")`; switch fonts to Plus Jakarta Sans + IBM Plex Mono;
       convert colours to `var(--token)`. **Recommended first.**
@@ -356,10 +357,10 @@ files where v2 wants CSS variables.
       ~20 mappings, then a manual pass on the tail, then verify **both** themes render —
       and the dark sidebar is a deliberate v1 design choice, not a token, so it needs a
       decision rather than a substitution.
-- [ ] **Option 2 — Foundation + shell** (one sprint). The above plus the 260px sidebar with
+- [ ] **7b — Shell** (one sprint). The above plus the 260px sidebar with
       HIRING / YOUR BENCH / BROKERING DESK groups, Lucide icons, the ⌘K command palette,
       toasts with Undo (6s auto-hide), the top-bar portal switcher and the help re-explainer.
-- [ ] **Option 3 — Full v2** (several sprints). All 16 screens re-skinned to `SCREENS.md`
+- [ ] **7c–7e — Screens** (several sprints). All 16 screens re-skinned to `SCREENS.md`
       copy, plain language throughout ("People working", not "Engagements"), responsive from
       ~900px, and the three data-model decisions below resolved.
 
@@ -400,6 +401,53 @@ reliability scores, 90-day assessment validity. Only `noticeAccepted` differs co
 
 ---
 
+### SPRINT 7a — Foundation · ✅ DONE (2026-10-07)
+
+All four gates green: **19 routes 200** (including both dynamic routes), `db:verify`
+**25/25**, `test:leak` **30/30**, build and typecheck clean.
+
+- [x] `app/globals.css` — the full v2 token set, light on `:root` and dark on
+      `[data-tvtheme="dark"]`, with `color-mix` tints derived from `--brand`. Verified in
+      the **served** stylesheet, not just the source: `--brand:#0b6ed9`, `--t1:#0f1729`,
+      `--bg:#080a0f` under `[data-tvtheme=dark]`, `color-mix`, `tabular-nums`, and both
+      `tvin` and `tv-shimmer` keyframes.
+- [x] Fonts — **Plus Jakarta Sans + IBM Plex Mono**, self-hosted via `next/font/google`
+      (not a `fonts.googleapis.com` link, which would put a third-party round trip on the
+      critical path). Served CSS shows both faces with size-adjusted fallbacks.
+- [x] Light/dark toggle — `src/lib/ui/ThemeToggle.tsx`, the two 32×30 sun/moon segments,
+      persisted in `localStorage("tvbx-theme")`. **The theme is applied by a blocking
+      inline script in `app/layout.tsx`, not by the component**, or a dark-mode user gets a
+      white flash on every navigation; the component only syncs its own highlight.
+- [x] `style.ts` — `TOKENS`, `STAGES`, `SLA_COLOR`, `MARGIN_COLOR` all onto `var(--…)`.
+      Per-portal `ACCENT` collapsed to the single `--brand` (v2 rule 3: colour means status
+      only). Added `GROUP_LABEL` (HIRING / YOUR BENCH / BROKERING DESK).
+- [x] Shell rewritten by hand — 260px **light** sidebar, 30px brand logo tile, 38px search
+      and nav rows, Lucide icons at 17px/1.75, plain-language nav labels, badge pills, the
+      attention list with sub-lines, a 32px initials avatar, and the new **60px top bar**
+      carrying the breadcrumb, the demo portal switcher, the theme toggle and help.
+- [x] `Skeleton.tsx` rewritten to the same geometry, so the loading state no longer jumps.
+- [x] **790 scripted hex→token replacements across 23 files.** Script kept at
+      `scripts/migrate-colours-to-tokens.py` — it is idempotent, so it is safe to re-run
+      after adding a screen that still carries literals.
+
+**Three traps this sprint hit, all worth remembering:**
+
+1. **The shell could not be scripted.** v1's sidebar was dark (`#111114`) with `#fff` text.
+   `#fff` maps to `--surface`, and the v2 sidebar *is* `--surface` — so a blanket
+   substitution produced white text on a white sidebar. Shell and Skeleton were migrated by
+   hand for exactly this reason, and `Skeleton.tsx` had already been broken this way by the
+   script before being rewritten.
+2. **`color:#fff` is not always `--surface`.** On a `--t1` or status background it must
+   become `--surface` (v2's "Dark button" recipe: dark bg, surface text) so it inverts
+   correctly in dark mode. On a `--brand` background v2 says white **stays literal white**.
+   Three brand buttons were converted wrongly by the script and restored by hand
+   (`PostForm` ×1, `ShortlistBoard` ×2). The only two live hex values left in any `.ts`/
+   `.tsx` file are those `color:#fff` on brand; everything else is in a comment.
+3. **An automated check caught what review would not.** A scan for declarations whose
+   `color` and `background` resolve to the *same* token found the invisible-text class of
+   bug directly — it reports **0** now. Re-run it after any further colour work:
+   it is the only cheap guard against a token swap making text vanish.
+
 ## Backlog — not assigned to a sprint
 
 - [x] **Deployment is the user's.** Import `lakshyasonitv/DeployDesk` into their own ✅ 2026-10-07
@@ -414,6 +462,13 @@ reliability scores, 90-day assessment validity. Only `noticeAccepted` differs co
 - [ ] Flag to the design owner: client bands read higher than the mockups (ADR-004), and
       algorithm rank order differs in pools A, B and D (ADR-011) — both deliberate
 - [ ] RLS beyond the dual-role policies — the second net `BUILD-PLAN.md` Phase 1 wants
+- [ ] **drizzle-orm 0.44.7 has a HIGH advisory** — GHSA-gpj5-g38j-94v9, SQL injection via
+      improperly escaped SQL identifiers, fixed in 0.45.2+. **Exposure here is low**: the
+      vector is dynamically built identifiers, and the codebase has **zero** uses of
+      `sql.raw` or `sql.identifier` (the two that existed were replaced with parameterised
+      `inArray` earlier). Still worth upgrading, but 0.45.x is a breaking change, so it
+      needs its own task with the 30 leak tests and 25 seed checks as the safety net — not
+      a mid-sprint `npm audit fix --force`.
 - [ ] CI: typecheck, lint, migration check, leak suite
 - [ ] Restricted application DB role, so the app never connects as the service role
 - [ ] Real Supabase Auth replacing `src/lib/auth/session.ts`, including the portal check

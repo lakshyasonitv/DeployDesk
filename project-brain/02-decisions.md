@@ -180,3 +180,36 @@ then the matching function with self-dealing bypass tests, then UI. The 12 leak 
   it is what the label means: 13 people still waiting on a result.
 - **Rejected:** aligning the two definitions and leaving both call sites. That fixes today's
   number and leaves tomorrow's drift in place.
+
+
+## 2026-10-07 — Adopt the v2 handoff in full, in five staged sprints
+
+- **Decision:** migrate to `design_handoff_bench_exchange_v2/` completely — all 16 screens,
+  the plain-language copy, responsive from ~900px, and the Ask Talentvibes drawer. Staged
+  as **7a** foundation (tokens, light/dark, fonts, hex→var), **7b** shell (260px sidebar,
+  Lucide, ⌘K palette, toasts, portal switcher), then **7c–e** the screens. Each stage ends
+  at the four gates, per the standing sprint rule.
+- **Why:** the user chose full v2 after being shown the risk that the current build stops
+  being demo-stable for several sprints. v2 declares colours, type, copy and interactions
+  final, so partial adoption would leave the app permanently between two design systems.
+- **Rejected:** foundation-only and foundation+shell. Both were offered with measured costs
+  and declined in favour of the complete migration.
+- **Impact:** the staging is what keeps this safe. Each sprint is committed and verified, so
+  there is always a stable commit to demo from, and 7a is a mechanical diff that can be
+  reverted wholesale. **Note:** repointing `TOKENS` alone is not enough — 151 colours go
+  through tokens against 885 bare hex literals, so light/dark is all-or-nothing and the
+  conversion must cover the bare literals in the same sprint.
+
+## 2026-10-07 — The client never sees an exact client rate, placements included
+
+- **Decision:** rate **bands** everywhere on the client side. v2's visibility matrix allows
+  "band on shortlists, exact on placements"; we do not take it.
+- **Why:** it is the only v2 delta that *loosens* masking, and the user declined it. A
+  dual-role organisation seeing an exact client rate on one side is a margin-inference
+  risk, which is the same reasoning behind `flat_declared_fee`.
+- **Rejected:** exact rate on placements only (v2's own rule), and exact-except-for-dual-role
+  (more faithful to intent, but a conditional masking rule is a rule that gets applied
+  wrongly later).
+- **Impact:** `docs/MASKING.md` stands unchanged; no ADR needed for a loosening that is not
+  happening. When implementing v2's "People working" screen, keep the band field — do not
+  follow `DATA_MODEL.md` here.

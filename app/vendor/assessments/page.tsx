@@ -14,12 +14,12 @@ import { VendorAside } from "../aside";
 export const metadata = { title: "Assessments · DeployDesk" };
 
 const STATUS_PILL: Record<string, { bg: string; fg: string; label: string }> = {
-  scored: { bg: "#e8f6ef", fg: "#0f7a4a", label: "SCORED" },
-  in_progress: { bg: "#fff3e4", fg: "#b45309", label: "IN PROGRESS" },
-  invited: { bg: "#fff3e4", fg: "#b45309", label: "INVITE SENT" },
-  not_started: { bg: "#f3f3f7", fg: "#8a8a96", label: "NOT STARTED" },
-  expired: { bg: "#fdecec", fg: "#b91c1c", label: "EXPIRED" },
-  abandoned: { bg: "#f3f3f7", fg: "#8a8a96", label: "ABANDONED" },
+  scored: { bg: "var(--ok-tint)", fg: "var(--ok)", label: "SCORED" },
+  in_progress: { bg: "var(--warn-tint)", fg: "var(--warn)", label: "IN PROGRESS" },
+  invited: { bg: "var(--warn-tint)", fg: "var(--warn)", label: "INVITE SENT" },
+  not_started: { bg: "var(--surface-3)", fg: "var(--t4)", label: "NOT STARTED" },
+  expired: { bg: "var(--danger-tint)", fg: "var(--danger)", label: "EXPIRED" },
+  abandoned: { bg: "var(--surface-3)", fg: "var(--t4)", label: "ABANDONED" },
 };
 
 const ACTION: Record<string, string> = {
@@ -40,18 +40,18 @@ export default async function VendorAssessmentsPage() {
       <PageHeader
         title="Assessments"
         subtitle="Proctored by Talentvibes. Scores are visible to you and to clients — you cannot edit them."
-        actions={<Button primary accent="#0d9488">Invite {a.summary.notStarted} to test</Button>}
+        actions={<Button primary accent="var(--teal)">Invite {a.summary.notStarted} to test</Button>}
       />
       <Scroll>
         <div style={s("display:grid;grid-template-columns:repeat(4,1fr);gap:12px")}>
           {[
-            ["Scored", a.summary.scored, "#059669"],
-            ["In progress", a.summary.inProgress, "#c2410c"],
-            ["Not started", a.summary.notStarted, "#8a8a96"],
-            ["Expired", a.summary.expired, "#b91c1c"],
+            ["Scored", a.summary.scored, "var(--ok)"],
+            ["In progress", a.summary.inProgress, "var(--warn)"],
+            ["Not started", a.summary.notStarted, "var(--t4)"],
+            ["Expired", a.summary.expired, "var(--danger)"],
           ].map(([label, n, color]) => (
-            <div key={label as string} style={s("background:#fff;border:1px solid #e8e8ee;border-radius:12px;padding:14px")}>
-              <div style={sx("font-size:9.5px;font-weight:700;letter-spacing:.12em;color:#8a8a96", { fontFamily: TOKENS.mono })}>
+            <div key={label as string} style={s("background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px")}>
+              <div style={sx("font-size:9.5px;font-weight:700;letter-spacing:.12em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
                 {(label as string).toUpperCase()}
               </div>
               <div style={sx("font-size:24px;font-weight:800;letter-spacing:-.7px;margin-top:6px;line-height:1", { color: color as string })}>
@@ -65,13 +65,13 @@ export default async function VendorAssessmentsPage() {
           {a.cards.map((c) => {
             const pill = STATUS_PILL[c.status] ?? STATUS_PILL.not_started;
             return (
-              <div key={c.maskedId} style={s("background:#fff;border:1px solid #e8e8ee;border-radius:12px;padding:14px")}>
+              <div key={c.maskedId} style={s("background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px")}>
                 <div style={s("display:flex;align-items:flex-start;justify-content:space-between;gap:9px")}>
                   <div style={s("min-width:0")}>
                     <div style={s("font-size:12.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
                       {c.fullName}
                     </div>
-                    <div style={sx("font-size:10.5px;color:#8a8a96;margin-top:2px", { fontFamily: TOKENS.mono })}>
+                    <div style={sx("font-size:10.5px;color:var(--t4);margin-top:2px", { fontFamily: TOKENS.mono })}>
                       {c.maskedId}{c.track ? ` · ${c.track}` : ""}
                     </div>
                   </div>
@@ -81,10 +81,10 @@ export default async function VendorAssessmentsPage() {
                 </div>
 
                 <div style={s("display:flex;align-items:baseline;gap:9px;margin-top:11px")}>
-                  <div style={sx("font-size:30px;font-weight:800;letter-spacing:-1px;line-height:1", { color: c.overall != null ? pill.fg : "#c9c9d2" })}>
+                  <div style={sx("font-size:30px;font-weight:800;letter-spacing:-1px;line-height:1", { color: c.overall != null ? pill.fg : "var(--border-2)" })}>
                     {c.overall ?? "—"}
                   </div>
-                  <div style={sx("font-size:8.5px;font-weight:700;letter-spacing:.1em;color:#8a8a96", { fontFamily: TOKENS.mono })}>
+                  <div style={sx("font-size:8.5px;font-weight:700;letter-spacing:.1em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
                     {c.overall != null && c.testedOn
                       ? `PROCTORED · ${fmt(c.testedOn)}`
                       : c.status === "not_started" ? "INVITE NOT SENT"
@@ -96,11 +96,11 @@ export default async function VendorAssessmentsPage() {
                 <div style={s("margin-top:11px;display:flex;flex-direction:column;gap:4px")}>
                   {([["Coding", c.sections.coding], ["DSA", c.sections.dsa], ["System design", c.sections.systemDesign], ["Communication", c.sections.communication]] as Array<[string, number | null]>).map(([label, v]) => (
                     <div key={label} style={s("display:flex;align-items:center;gap:7px")}>
-                      <div style={s("font-size:9.5px;color:#8a8a96;width:72px;flex:none")}>{label}</div>
-                      <div style={s("flex:1;height:4px;background:#eeeef3;border-radius:3px;overflow:hidden")}>
+                      <div style={s("font-size:9.5px;color:var(--t4);width:72px;flex:none")}>{label}</div>
+                      <div style={s("flex:1;height:4px;background:var(--border);border-radius:3px;overflow:hidden")}>
                         <div style={sx("height:100%;border-radius:3px", {
                           width: `${v ?? 0}%`,
-                          background: (v ?? 0) >= 85 ? "#16a34a" : (v ?? 0) >= 70 ? "#0d9488" : "#c2410c",
+                          background: (v ?? 0) >= 85 ? "var(--ok)" : (v ?? 0) >= 70 ? "var(--teal)" : "var(--warn)",
                         })} />
                       </div>
                       <div style={sx("font-size:9.5px;font-weight:700;width:20px;text-align:right", { fontFamily: TOKENS.mono })}>
@@ -110,11 +110,11 @@ export default async function VendorAssessmentsPage() {
                   ))}
                 </div>
 
-                <div style={s("display:flex;align-items:center;justify-content:space-between;gap:9px;margin-top:12px;padding-top:10px;border-top:1px solid #f1f1f5")}>
-                  <div style={s("font-size:10px;color:#8a8a96")}>
+                <div style={s("display:flex;align-items:center;justify-content:space-between;gap:9px;margin-top:12px;padding-top:10px;border-top:1px solid var(--surface-3)")}>
+                  <div style={s("font-size:10px;color:var(--t4)")}>
                     {c.validUntil ? `valid until ${fmt(c.validUntil)}` : "attempt " + c.attemptNo}
                   </div>
-                  <div style={s("font-size:11px;font-weight:700;color:#0d9488")}>
+                  <div style={s("font-size:11px;font-weight:700;color:var(--teal)")}>
                     {ACTION[c.status] ?? "View"}
                   </div>
                 </div>
@@ -123,9 +123,9 @@ export default async function VendorAssessmentsPage() {
           })}
         </div>
 
-        <div style={s("margin-top:14px;background:#f0fdfa;border:1px solid #cfe9dd;border-radius:12px;padding:13px")}>
+        <div style={s("margin-top:14px;background:var(--teal-tint);border:1px solid var(--ok-tint);border-radius:12px;padding:13px")}>
           <SectionLabel>WHY SCORES ARE READ-ONLY</SectionLabel>
-          <div style={s("font-size:12px;color:#0f766e;line-height:1.6")}>
+          <div style={s("font-size:12px;color:var(--teal);line-height:1.6")}>
             Every score comes from the proctoring provider and is written by a signed webhook.
             Neither you nor the client can influence it — that independence is what makes the
             score worth showing on a masked profile.

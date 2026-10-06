@@ -16,11 +16,11 @@ export const metadata = { title: "Overview · DeployDesk" };
 const TABLE_COLS = "96px 1fr 78px 128px 132px 96px";
 
 const ENGAGEMENT_STATUS: Record<string, { dot: string; label: string }> = {
-  active: { dot: "#16a34a", label: "Active" },
-  onboarding: { dot: "#1d4ed8", label: "Onboarding" },
-  ending: { dot: "#c2410c", label: "Ending" },
-  ended: { dot: "#8a8a96", label: "Ended" },
-  terminated: { dot: "#b91c1c", label: "Terminated" },
+  active: { dot: "var(--ok)", label: "Active" },
+  onboarding: { dot: "var(--info)", label: "Onboarding" },
+  ending: { dot: "var(--warn)", label: "Ending" },
+  ended: { dot: "var(--t4)", label: "Ended" },
+  terminated: { dot: "var(--danger)", label: "Terminated" },
 };
 
 export default async function ClientDashboard() {
@@ -45,7 +45,7 @@ export default async function ClientDashboard() {
         <div style={s("display:grid;grid-template-columns:repeat(4,1fr);gap:12px")}>
           <StatCard label="OPEN REQUIREMENTS" value={overview.stats.openRequirements}
             sub={`${overview.stats.positions} positions in total`} />
-          <StatCard label="AWAITING REVIEW" value={overview.stats.awaitingReview} delta="new" deltaColor="#6d3ff0"
+          <StatCard label="AWAITING REVIEW" value={overview.stats.awaitingReview} delta="new" deltaColor="var(--brand)"
             sub={`${overview.stats.maskedProfiles} masked profiles`} />
           <StatCard label="IN INTERVIEW" value={overview.stats.inInterview}
             sub={`${overview.stats.feedbackDue} feedback form${overview.stats.feedbackDue === 1 ? "" : "s"} due`} />
@@ -55,23 +55,23 @@ export default async function ClientDashboard() {
 
         <div style={s("display:grid;grid-template-columns:1.55fr 1fr;gap:16px;margin-top:16px;align-items:start")}>
           {/* open requirements */}
-          <div style={s("background:#fff;border:1px solid #e8e8ee;border-radius:12px;overflow:hidden")}>
-            <div style={s("padding:13px 15px;border-bottom:1px solid #f1f1f5")}>
+          <div style={s("background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden")}>
+            <div style={s("padding:13px 15px;border-bottom:1px solid var(--surface-3)")}>
               <SectionLabel>OPEN REQUIREMENTS</SectionLabel>
             </div>
-            <div style={sx("display:grid;padding:8px 15px;background:#fafafc;border-bottom:1px solid #e8e8ee", { gridTemplateColumns: TABLE_COLS, gap: "10px" })}>
+            <div style={sx("display:grid;padding:8px 15px;background:var(--surface-2);border-bottom:1px solid var(--border)", { gridTemplateColumns: TABLE_COLS, gap: "10px" })}>
               {["REQ", "ROLE", "QTY", "BUDGET/MO", "STAGE", "ACTION"].map((h) => (
-                <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:#8a8a96", { fontFamily: TOKENS.mono })}>{h}</div>
+                <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--t4)", { fontFamily: TOKENS.mono })}>{h}</div>
               ))}
             </div>
             {overview.openRequirements.map((r) => {
               const st = stageMeta(r.stage);
               return (
-                <div key={r.code} style={sx("display:grid;padding:11px 15px;border-bottom:1px solid #f1f1f5;align-items:center", { gridTemplateColumns: TABLE_COLS, gap: "10px" })}>
+                <div key={r.code} style={sx("display:grid;padding:11px 15px;border-bottom:1px solid var(--surface-3);align-items:center", { gridTemplateColumns: TABLE_COLS, gap: "10px" })}>
                   <div style={sx("font-size:11px;font-weight:700", { fontFamily: TOKENS.mono })}>{r.code}</div>
                   <div style={s("min-width:0")}>
                     <div style={s("font-size:12.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>{r.roleTitle}</div>
-                    <div style={s("font-size:10.5px;color:#8a8a96;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
+                    <div style={s("font-size:10.5px;color:var(--t4);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
                       {r.experienceBand} · {r.locationLabel}{r.startDate ? ` · start ${fmtDay(r.startDate)}` : ""}
                     </div>
                   </div>
@@ -83,14 +83,14 @@ export default async function ClientDashboard() {
                     </span>
                   </div>
                   <Link href={r.stage === "shortlisted" ? `/client/shortlists/${r.code}` : "/client/requirements"}
-                    style={s("font-size:11.5px;font-weight:700;color:#6d3ff0")}>
+                    style={s("font-size:11.5px;font-weight:700;color:var(--brand)")}>
                     {actionFor(r.stage, r.shortlistCount)}
                   </Link>
                 </div>
               );
             })}
             {overview.openRequirements.length === 0 ? (
-              <div style={s("padding:26px;text-align:center;color:#8a8a96;font-size:12.5px")}>
+              <div style={s("padding:26px;text-align:center;color:var(--t4);font-size:12.5px")}>
                 No open requirements. Post one and your broker starts sourcing.
               </div>
             ) : null}
@@ -101,24 +101,24 @@ export default async function ClientDashboard() {
             <Card pad="13px">
               <div style={s("display:flex;align-items:center;justify-content:space-between;margin-bottom:10px")}>
                 <SectionLabel>AWAITING YOUR REVIEW</SectionLabel>
-                <Pill bg="#f1ecff" fg="#6d3ff0">{overview.awaitingReview.length}</Pill>
+                <Pill bg="var(--brand-tint)" fg="var(--brand)">{overview.awaitingReview.length}</Pill>
               </div>
               <div style={s("display:flex;flex-direction:column;gap:7px")}>
                 {overview.awaitingReview.map((a) => (
                   <Link key={a.code} href={`/client/shortlists/${a.code}`}
-                    style={s("display:block;background:#fafafc;border:1px solid #f1f1f5;border-radius:9px;padding:10px;color:#101014")}>
+                    style={s("display:block;background:var(--surface-2);border:1px solid var(--surface-3);border-radius:9px;padding:10px;color:var(--t1)")}>
                     <div style={s("display:flex;align-items:center;justify-content:space-between;gap:8px")}>
                       <span style={sx("font-size:10.5px;font-weight:700", { fontFamily: TOKENS.mono })}>{a.code}</span>
-                      <span style={s("font-size:10px;color:#8a8a96")}>{a.sentAgo}</span>
+                      <span style={s("font-size:10px;color:var(--t4)")}>{a.sentAgo}</span>
                     </div>
                     <div style={s("font-size:12px;font-weight:700;margin-top:4px")}>{a.roleTitle}</div>
-                    <div style={s("font-size:10.5px;color:#8a8a96;margin-top:2px")}>
+                    <div style={s("font-size:10.5px;color:var(--t4);margin-top:2px")}>
                       {a.count} masked profiles{a.averageScore != null ? ` · avg score ${a.averageScore}` : ""}
                     </div>
                   </Link>
                 ))}
                 {overview.awaitingReview.length === 0 ? (
-                  <div style={s("font-size:11.5px;color:#8a8a96;padding:6px 0")}>Nothing waiting on you.</div>
+                  <div style={s("font-size:11.5px;color:var(--t4);padding:6px 0")}>Nothing waiting on you.</div>
                 ) : null}
               </div>
             </Card>
@@ -130,14 +130,14 @@ export default async function ClientDashboard() {
                   const st = ENGAGEMENT_STATUS[e.status] ?? ENGAGEMENT_STATUS.active;
                   return (
                     <div key={e.maskedId} style={s("display:flex;align-items:center;gap:10px")}>
-                      <div style={sx("width:34px;height:34px;border-radius:8px;background:#f1ecff;flex:none;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#6d3ff0", { fontFamily: TOKENS.mono })}>
+                      <div style={sx("width:34px;height:34px;border-radius:8px;background:var(--brand-tint);flex:none;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--brand)", { fontFamily: TOKENS.mono })}>
                         TV
                       </div>
                       <div style={s("flex:1;min-width:0")}>
                         <div style={s("font-size:11.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
                           <span style={{ fontFamily: TOKENS.mono }}>{e.maskedId}</span> · {e.roleTitle}
                         </div>
-                        <div style={s("font-size:10.5px;color:#8a8a96;margin-top:1px")}>
+                        <div style={s("font-size:10.5px;color:var(--t4);margin-top:1px")}>
                           {e.sinceLabel} · {e.rateLabel}/mo
                         </div>
                       </div>
@@ -149,7 +149,7 @@ export default async function ClientDashboard() {
                   );
                 })}
                 {overview.engagements.length === 0 ? (
-                  <div style={s("font-size:11.5px;color:#8a8a96")}>No active engagements yet.</div>
+                  <div style={s("font-size:11.5px;color:var(--t4)")}>No active engagements yet.</div>
                 ) : null}
               </div>
             </Card>

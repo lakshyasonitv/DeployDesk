@@ -18,8 +18,8 @@ export const metadata = { title: "Earnings · DeployDesk" };
 const COLS = "168px 1fr 96px 120px 120px 130px";
 
 const STATUS_PILL: Record<string, { bg: string; fg: string }> = {
-  BILLED: { bg: "#e8f6ef", fg: "#0f7a4a" },
-  "PRO-RATA": { bg: "#e8eefc", fg: "#1d4ed8" },
+  BILLED: { bg: "var(--ok-tint)", fg: "var(--ok)" },
+  "PRO-RATA": { bg: "var(--info-tint)", fg: "var(--info)" },
 };
 
 export default async function VendorEarningsPage() {
@@ -38,7 +38,7 @@ export default async function VendorEarningsPage() {
       <PageHeader
         title="Earnings"
         subtitle="Your contracted rate per placement. Talentvibes contracts separately with the client."
-        actions={<><Button>Download statement</Button><Button primary accent="#0d9488">Raise invoice</Button></>}
+        actions={<><Button>Download statement</Button><Button primary accent="var(--teal)">Raise invoice</Button></>}
       />
       <Scroll>
         <div style={s("display:grid;grid-template-columns:repeat(4,1fr);gap:12px")}>
@@ -49,22 +49,22 @@ export default async function VendorEarningsPage() {
           <StatCard label="INVOICES RAISED" value={e.rows.length} sub="net 30 terms" />
         </div>
 
-        <div style={s("margin-top:16px;background:#fff;border:1px solid #e8e8ee;border-radius:12px;overflow:hidden")}>
-          <div style={sx("display:grid;padding:9px 15px;background:#fafafc;border-bottom:1px solid #e8e8ee", { gridTemplateColumns: COLS, gap: "10px" })}>
+        <div style={s("margin-top:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden")}>
+          <div style={sx("display:grid;padding:9px 15px;background:var(--surface-2);border-bottom:1px solid var(--border)", { gridTemplateColumns: COLS, gap: "10px" })}>
             {["RESOURCE", "ROLE", "SINCE", "YOUR RATE/MO", "THIS MONTH", "STATUS"].map((h) => (
-              <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:#8a8a96", { fontFamily: TOKENS.mono })}>{h}</div>
+              <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--t4)", { fontFamily: TOKENS.mono })}>{h}</div>
             ))}
           </div>
           {e.rows.map((r) => {
             const pill = STATUS_PILL[r.status] ?? STATUS_PILL.BILLED;
             return (
-              <div key={r.maskedId + r.since} style={sx("display:grid;padding:11px 15px;border-bottom:1px solid #f1f1f5;align-items:center", { gridTemplateColumns: COLS, gap: "10px" })}>
+              <div key={r.maskedId + r.since} style={sx("display:grid;padding:11px 15px;border-bottom:1px solid var(--surface-3);align-items:center", { gridTemplateColumns: COLS, gap: "10px" })}>
                 <div style={s("min-width:0")}>
                   <div style={s("font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>{r.fullName}</div>
-                  <div style={sx("font-size:10px;color:#8a8a96;margin-top:2px", { fontFamily: TOKENS.mono })}>{r.maskedId}</div>
+                  <div style={sx("font-size:10px;color:var(--t4);margin-top:2px", { fontFamily: TOKENS.mono })}>{r.maskedId}</div>
                 </div>
-                <div style={s("font-size:12px;color:#4a4a58;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>{r.roleTitle}</div>
-                <div style={s("font-size:11px;color:#6b6b78")}>{r.since ? fmt(r.since) : "—"}</div>
+                <div style={s("font-size:12px;color:var(--t2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>{r.roleTitle}</div>
+                <div style={s("font-size:11px;color:var(--t3)")}>{r.since ? fmt(r.since) : "—"}</div>
                 <div style={sx("font-size:11.5px;font-weight:700", { fontFamily: TOKENS.mono })}>{r.rateLabel}</div>
                 <div style={sx("font-size:11.5px;font-weight:600", { fontFamily: TOKENS.mono })}>{r.monthLabel}</div>
                 <div>
@@ -76,12 +76,12 @@ export default async function VendorEarningsPage() {
             );
           })}
           {e.rows.length === 0 ? (
-            <div style={s("padding:28px;text-align:center;color:#8a8a96;font-size:12.5px")}>
+            <div style={s("padding:28px;text-align:center;color:var(--t4);font-size:12.5px")}>
               No placements billed yet.
             </div>
           ) : null}
-          <div style={s("padding:12px 15px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fafafc")}>
-            <div style={s("font-size:11.5px;color:#8a8a96")}>
+          <div style={s("padding:12px 15px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--surface-2)")}>
+            <div style={s("font-size:11.5px;color:var(--t4)")}>
               {e.stats.activePlacements} active placements
               {ending ? ` · ${ending} billed pro-rata this month` : ""}
             </div>
@@ -91,9 +91,9 @@ export default async function VendorEarningsPage() {
           </div>
         </div>
 
-        <div style={s("margin-top:14px;background:#f0fdfa;border:1px solid #cfe9dd;border-radius:12px;padding:13px")}>
+        <div style={s("margin-top:14px;background:var(--teal-tint);border:1px solid var(--ok-tint);border-radius:12px;padding:13px")}>
           <SectionLabel>WHY YOU DO NOT SEE THE CLIENT</SectionLabel>
-          <div style={s("font-size:12px;color:#0f766e;line-height:1.6")}>
+          <div style={s("font-size:12px;color:var(--teal);line-height:1.6")}>
             {e.disclosure} Client identity, client rate and margin are not shared with suppliers —
             and your rate is not shared with clients. That symmetry is what keeps the exchange
             neutral for both sides.

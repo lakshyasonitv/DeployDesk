@@ -533,9 +533,9 @@ export async function getVendorSidebar(vendorOrgId: string) {
 
   return {
     items: [
-      { label: `${c.expiring} profiles expire within 4 days`, dot: "#f59e0b" },
-      { label: `${c.unconfirmed} unconfirmed over 14 days`, dot: "#ef4444" },
-      { label: `${c.pendingTests} assessments pending`, dot: "#3f3f4a" },
+      { label: `${c.expiring} profiles expire within 4 days`, dot: "var(--warn)" },
+      { label: `${c.unconfirmed} unconfirmed over 14 days`, dot: "var(--danger)" },
+      { label: `${c.pendingTests} assessments pending`, dot: "var(--t4)" },
     ],
     badges: {
       roster: c.total || undefined,

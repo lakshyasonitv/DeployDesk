@@ -15,7 +15,7 @@ export async function ShellAside(clientOrgId: string) {
   return {
     items: sidebar.items.map((r, i) => ({
       label: `${r.code} · ${shortRole(r.roleTitle)} ×${r.quantity}`,
-      dot: i === 0 ? ACCENT.client : "#3f3f4a",
+      dot: i === 0 ? ACCENT.client : "var(--t4)",
     })),
     badges: sidebar.badges,
   };

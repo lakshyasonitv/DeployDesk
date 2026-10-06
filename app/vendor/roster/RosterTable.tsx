@@ -13,18 +13,18 @@ import type { VendorRosterResource } from "@/src/read-models/vendor";
  */
 
 const FRESHNESS_STYLE = {
-  confirmed: { bg: "#e8f6ef", fg: "#0f7a4a", label: "CONFIRMED" },
-  expiring_soon: { bg: "#fff3e4", fg: "#b45309", label: "EXPIRING SOON" },
-  unconfirmed: { bg: "#fdecec", fg: "#b91c1c", label: "UNCONFIRMED" },
+  confirmed: { bg: "var(--ok-tint)", fg: "var(--ok)", label: "CONFIRMED" },
+  expiring_soon: { bg: "var(--warn-tint)", fg: "var(--warn)", label: "EXPIRING SOON" },
+  unconfirmed: { bg: "var(--danger-tint)", fg: "var(--danger)", label: "UNCONFIRMED" },
 } as const;
 
 const ASSESSMENT_STYLE: Record<string, { dot: string; label: string; sub: string }> = {
-  scored: { dot: "#16a34a", label: "Scored", sub: "proctored, valid 90 days" },
-  in_progress: { dot: "#c2410c", label: "In progress", sub: "started recently" },
-  invited: { dot: "#c2410c", label: "Invite sent", sub: "awaiting start" },
-  not_started: { dot: "#9aa0ab", label: "Not started", sub: "invite not sent" },
-  expired: { dot: "#b91c1c", label: "Expired", sub: "needs a retake" },
-  abandoned: { dot: "#9aa0ab", label: "Abandoned", sub: "not completed" },
+  scored: { dot: "var(--ok)", label: "Scored", sub: "proctored, valid 90 days" },
+  in_progress: { dot: "var(--warn)", label: "In progress", sub: "started recently" },
+  invited: { dot: "var(--warn)", label: "Invite sent", sub: "awaiting start" },
+  not_started: { dot: "var(--t4)", label: "Not started", sub: "invite not sent" },
+  expired: { dot: "var(--danger)", label: "Expired", sub: "needs a retake" },
+  abandoned: { dot: "var(--t4)", label: "Abandoned", sub: "not completed" },
 };
 
 const COLS = "170px 1fr 66px 118px 138px 186px 122px";
@@ -76,33 +76,33 @@ export function RosterTable({
     .map((r) => r.maskedId);
 
   const PILLS: Array<[Filter, string, number, string, string]> = [
-    ["all", "All", counts.all, "#101014", "#fff"],
-    ["listed", "Listed", counts.listed, "#f3f3f7", "#4a4a58"],
-    ["in_process", "In process", counts.in_process, "#f3f3f7", "#4a4a58"],
-    ["expiring", "Expiring", counts.expiring, "#fff3e4", "#b45309"],
-    ["unconfirmed", "Unconfirmed", counts.unconfirmed, "#fdecec", "#b91c1c"],
+    ["all", "All", counts.all, "var(--t1)", "var(--surface)"],
+    ["listed", "Listed", counts.listed, "var(--surface-3)", "var(--t2)"],
+    ["in_process", "In process", counts.in_process, "var(--surface-3)", "var(--t2)"],
+    ["expiring", "Expiring", counts.expiring, "var(--warn-tint)", "var(--warn)"],
+    ["unconfirmed", "Unconfirmed", counts.unconfirmed, "var(--danger-tint)", "var(--danger)"],
   ];
 
   return (
     <>
-      <div style={s("padding:20px 26px 16px;background:#fff;border-bottom:1px solid #e8e8ee;flex:none")}>
+      <div style={s("padding:20px 26px 16px;background:var(--surface);border-bottom:1px solid var(--border);flex:none")}>
         <div style={s("display:flex;align-items:flex-end;justify-content:space-between;gap:16px")}>
           <div>
             <div style={s("font-size:22px;font-weight:800;letter-spacing:-.6px")}>Bench roster</div>
-            <div style={s("font-size:12.5px;color:#6b6b78;margin-top:4px")}>
+            <div style={s("font-size:12.5px;color:var(--t3);margin-top:4px")}>
               {total} resources · {counts.listed} listed on the exchange · confirm availability
               every 14 days to stay in matching
             </div>
           </div>
           <div style={s("display:flex;gap:8px;flex:none")}>
-            <div style={s("padding:8px 13px;border:1px solid #e0e0e8;border-radius:8px;font-size:12.5px;font-weight:600;background:#fff")}>
+            <div style={s("padding:8px 13px;border:1px solid var(--border-2);border-radius:8px;font-size:12.5px;font-weight:600;background:var(--surface)")}>
               Export CSV
             </div>
             <button
               disabled={!expiringIds.length}
               onClick={() => startTransition(() => { void confirm(expiringIds, "bulk"); })}
-              style={sx("padding:8px 13px;border:0;border-radius:8px;font-size:12.5px;font-weight:700;color:#fff;font-family:inherit", {
-                background: expiringIds.length ? "#0f7a4a" : "#b9ccc2",
+              style={sx("padding:8px 13px;border:0;border-radius:8px;font-size:12.5px;font-weight:700;color:var(--surface);font-family:inherit", {
+                background: expiringIds.length ? "var(--ok)" : "var(--ok-tint)",
                 cursor: expiringIds.length ? "pointer" : "default",
               })}
             >
@@ -118,25 +118,25 @@ export function RosterTable({
               return (
                 <button key={key} onClick={() => setFilter(key)}
                   style={sx("padding:5px 11px;border-radius:999px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;border:0", {
-                    background: active ? bg : "#fff",
-                    color: active ? fg : "#6b6b78",
-                    boxShadow: active ? "none" : "inset 0 0 0 1px #e8e8ee",
+                    background: active ? bg : "var(--surface)",
+                    color: active ? fg : "var(--t3)",
+                    boxShadow: active ? "none" : "inset 0 0 0 1px var(--border)",
                   })}>
                   {label} {n}
                 </button>
               );
             })}
           </div>
-          <div style={sx("font-size:10.5px;color:#8a8a96;flex:none", { fontFamily: TOKENS.mono })}>
+          <div style={sx("font-size:10.5px;color:var(--t4);flex:none", { fontFamily: TOKENS.mono })}>
             Freshness recalculated nightly · 02:00 IST
           </div>
         </div>
       </div>
 
       <div style={s("flex:1;overflow:auto")}>
-        <div style={sx("display:grid;padding:9px 26px;background:#fafafc;border-bottom:1px solid #e8e8ee;position:sticky;top:0;z-index:2", { gridTemplateColumns: COLS, gap: "12px" })}>
+        <div style={sx("display:grid;padding:9px 26px;background:var(--surface-2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:2", { gridTemplateColumns: COLS, gap: "12px" })}>
           {["RESOURCE", "SKILLS", "EXP", "YOUR RATE", "ASSESSMENT", "AVAILABILITY FRESHNESS", "CONFIRM"].map((h) => (
-            <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:#8a8a96", { fontFamily: TOKENS.mono })}>
+            <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
               {h}
             </div>
           ))}
@@ -151,19 +151,19 @@ export function RosterTable({
           const as = ASSESSMENT_STYLE[r.assessment.status] ?? ASSESSMENT_STYLE.not_started;
           return (
             <div key={r.maskedId}
-              style={sx("display:grid;padding:11px 26px;border-bottom:1px solid #f1f1f5;align-items:center;background:#fff", { gridTemplateColumns: COLS, gap: "12px" })}>
+              style={sx("display:grid;padding:11px 26px;border-bottom:1px solid var(--surface-3);align-items:center;background:var(--surface)", { gridTemplateColumns: COLS, gap: "12px" })}>
               <div style={s("min-width:0")}>
                 <div style={s("font-size:12.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
                   {r.fullName}
                 </div>
-                <div style={sx("font-size:10.5px;color:#8a8a96;margin-top:2px", { fontFamily: TOKENS.mono })}>
+                <div style={sx("font-size:10.5px;color:var(--t4);margin-top:2px", { fontFamily: TOKENS.mono })}>
                   {r.maskedId} · {r.baseCity}
                 </div>
               </div>
 
               <div style={s("display:flex;flex-wrap:wrap;gap:4px;min-width:0")}>
                 {r.skills.slice(0, 4).map((sk) => (
-                  <span key={sk} style={s("padding:2px 7px;background:#f3f3f7;border-radius:5px;font-size:10.5px;font-weight:600;color:#4a4a58;white-space:nowrap")}>
+                  <span key={sk} style={s("padding:2px 7px;background:var(--surface-3);border-radius:5px;font-size:10.5px;font-weight:600;color:var(--t2);white-space:nowrap")}>
                     {sk}
                   </span>
                 ))}
@@ -182,7 +182,7 @@ export function RosterTable({
                     {as.label}{r.assessment.overall != null ? ` ${r.assessment.overall}` : ""}
                   </span>
                 </div>
-                <div style={s("font-size:10px;color:#8a8a96;margin-top:2px")}>{as.sub}</div>
+                <div style={s("font-size:10px;color:var(--t4);margin-top:2px")}>{as.sub}</div>
               </div>
 
               <div style={s("min-width:0")}>
@@ -190,24 +190,24 @@ export function RosterTable({
                   <span style={sx("display:inline-block;padding:2px 7px;border-radius:4px;font-size:8.5px;font-weight:700;letter-spacing:.08em;white-space:nowrap", { background: fs.bg, color: fs.fg, fontFamily: TOKENS.mono })}>
                     {fs.label}
                   </span>
-                  <span style={s("font-size:10.5px;color:#8a8a96")}>
+                  <span style={s("font-size:10.5px;color:var(--t4)")}>
                     {fresh.state === "confirmed" && isConfirmed ? "just now" : `${fresh.days}d ago`}
                   </span>
                 </div>
-                <div style={s("height:4px;background:#eeeef3;border-radius:3px;margin-top:6px;overflow:hidden")}>
+                <div style={s("height:4px;background:var(--border);border-radius:3px;margin-top:6px;overflow:hidden")}>
                   <div style={sx("height:100%;border-radius:3px", { width: `${fresh.decayBarWidthPct}%`, background: fs.fg })} />
                 </div>
               </div>
 
               <div>
                 {isConfirmed ? (
-                  <div style={s("padding:6px 10px;border-radius:7px;font-size:11px;font-weight:700;background:#f3f3f7;color:#8a8a96;text-align:center")}>
+                  <div style={s("padding:6px 10px;border-radius:7px;font-size:11px;font-weight:700;background:var(--surface-3);color:var(--t4);text-align:center")}>
                     Confirmed ✓
                   </div>
                 ) : (
                   <button
                     onClick={() => startTransition(() => { void confirm([r.maskedId], "single"); })}
-                    style={s("padding:6px 10px;border:0;border-radius:7px;font-size:11px;font-weight:700;background:#0f7a4a;color:#fff;cursor:pointer;width:100%;font-family:inherit")}
+                    style={s("padding:6px 10px;border:0;border-radius:7px;font-size:11px;font-weight:700;background:var(--ok);color:var(--surface);cursor:pointer;width:100%;font-family:inherit")}
                   >
                     Still available
                   </button>
@@ -218,13 +218,13 @@ export function RosterTable({
         })}
 
         <div style={s("padding:14px 26px;display:flex;align-items:center;justify-content:space-between;gap:12px")}>
-          <div style={s("font-size:12px;color:#8a8a96")}>
+          <div style={s("font-size:12px;color:var(--t4)")}>
             Showing {Math.min(visible, shown.length)} of {shown.length}
             {filter !== "all" ? ` ${filter.replace("_", " ")}` : ""}
           </div>
           {visible < shown.length ? (
             <button onClick={() => setVisible((v) => v + 12)}
-              style={s("padding:7px 13px;border:1px solid #e0e0e8;border-radius:8px;font-size:12px;font-weight:700;background:#fff;cursor:pointer;font-family:inherit")}>
+              style={s("padding:7px 13px;border:1px solid var(--border-2);border-radius:8px;font-size:12px;font-weight:700;background:var(--surface);cursor:pointer;font-family:inherit")}>
               Load more
             </button>
           ) : null}

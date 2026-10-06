@@ -11,11 +11,13 @@ last_log: 2026-10-07
 
 ## Current state
 
-**Sprints 1-5 complete and pushed.** Since then, on 2026-10-07: the four Sprint 5 bugs
-were each proved fixed with evidence, the `/vendor` dashboard went **481ms → 144ms**, and
-the product was renamed **DeployDesk by Talentvibes**. The user then added
-`design_handoff_bench_exchange_v2/`, which is a **full re-skin** and is blocked on a scope
-decision — see "Start here next time".
+**Sprints 1-5 complete and pushed.** On 2026-10-07: the four Sprint 5 bugs were each
+proved fixed with evidence, the `/vendor` dashboard went **481ms → 144ms**, the product was
+renamed **DeployDesk by Talentvibes**, and the user added
+`design_handoff_bench_exchange_v2/` and chose to adopt it **in full**. **Sprint 7a (the v2
+foundation) is done**: the whole token set with a working light/dark toggle, Plus Jakarta
+Sans + IBM Plex Mono, a rewritten 260px light shell with a 60px top bar, and 790 scripted
+hex-to-token replacements across 23 files.
 
 - **Database** — Supabase `fmgwcspsuljefhfdcqen`, ap-south-1 (Mumbai). **33 tables**
   (the original 30 plus groups, org_capabilities, memberships, org_blocks), 2 probing
@@ -116,40 +118,27 @@ percent-encoded (`@` becomes `%40`). Ask the user for credentials; do not guess.
 
 ## Start here next time
 
-**Get the user's decision on v2 scope. Do not start writing it.**
+**Sprint 7b — the shell's interactive parts.** 7a (the v2 foundation) is done, verified and
+committed; the user chose **Full v2**, staged 7a–7e. 7a left these as static markup:
 
-The user added `design_handoff_bench_exchange_v2/` on 2026-10-07 and asked for the necessary
-changes. It is high-fidelity, declares colours/type/copy/interactions final, and amounts to
-a re-skin of a working, deployed, demo-ready build — 885 hardcoded hex values across 69
-files where v2 wants CSS variables, plus light/dark theming, new fonts, a 260px sidebar,
-Lucide icons, a ⌘K palette, toasts with Undo, an "Ask Talentvibes" drawer, plain-language
-copy and responsiveness from ~900px. The user has a demo, so the scope is theirs to choose.
+1. the **Cmd-K command palette** — 620px modal, 86px from top, 45% dim overlay, results
+   grouped by portal; the sidebar search button should open it
+2. **toasts with Undo**, bottom-centre, `--t1` background, 6s auto-hide — v2 rule 4 wants
+   one on every state-changing action, so this pairs with the three write paths
+3. the **portal switcher dropdown** (322px menu; currently three inline top-bar links)
+4. the **Ask Talentvibes drawer** (client, 412px) — switching portal must close it
+5. the **ops dark internal-view strip** under the top bar
 
-Three options are written out in `04-tasks.md` under **SPRINT 7**, with a recommendation of
-**Option 1 (foundation only)** first: `tokens.css`, the `data-tvtheme` toggle, the font
-swap, and tokens mapped behind the existing `s()` helper, so screens keep working while the
-palette changes underneath. Additive and reversible, and it is most of what a demo audience
-actually perceives. Option 2 adds the shell; Option 3 is all 16 screens.
+Then **7c–7e**: the 16 screens against `SCREENS.md`, plain-language copy inside page bodies
+(7a only renamed the nav), and responsiveness from ~900px.
 
-Of v2's three data-model deltas, **two are resolved and should not be re-opened**: groups
-stay **declared in the MSA** (the brief said so verbatim; v2's PAN/GST rule was written
-without knowledge of it), and SLA `warn` stays at ≤25% of the window rather than v2's
-absolute 8h. **One genuinely needs the user:** whether the client may see the **exact**
-client rate on placements — the only v2 delta that *loosens* masking, so it needs an ADR.
-
-One correction worth carrying forward: the foundation is **not** cheap. Repointing `TOKENS`
-re-themes only ~15% of colour usage (151 token references against 885 bare hex literals,
-307 of them inside `s("...")` strings), so light/dark is all-or-nothing — see the measured
-breakdown in `04-tasks.md`. It is mechanical and scriptable, not half a sprint.
-
-One note that answers a question the user asked: **mobile is no longer out of scope.** v1
-targeted desktop ≥1280px and excluded it; v2 rule 5 requires ~900px up. It is part of the
-v2 migration now, not a separate decision.
+**Before any further colour work**, re-run the invisible-text scan — the check for
+declarations whose `color` and `background` resolve to the same token. It currently reports
+0 and it is the only cheap guard against a token swap making text disappear.
 
 ### Also still open: Sprint 6 — dual-role UI
 
-Unchanged by today, and independent of the v2 decision. Everything it needs exists in the
-data layer. Definition in `04-tasks.md`; the shape of it:
+Independent of the v2 work. Everything it needs exists in the data layer.
 
 - A supply-only org must see **one workspace and no hint a hiring side exists** — not a
   disabled "Hire" tab. `org_capabilities` says which sides an org holds; `memberships.roles`
@@ -159,18 +148,16 @@ data layer. Definition in `04-tasks.md`; the shape of it:
   and it is the reason dual-role orgs default to `flat_declared_fee`.
 - One broker thread per workspace, never mixed.
 - Ops console: dual-role badge, capability/group/fee/block-list controls, margin grouped
-  per org (billed as client, paid as supplier, net position), and the probing-flag
-  indicator. The ops-only own-bench note is already wired — `getOpsMatchingWorkspace()`
-  returns `ownBenchMatches`, which no screen renders yet.
+  per org, and the probing-flag indicator. `getOpsMatchingWorkspace()` already returns
+  `ownBenchMatches` (14 for Cygnet), which no screen renders yet.
 - Acceptance tests 1, 2, 5 and 6. Test 2 has data: Cygnet's admin holds
   `[supply, demand, admin]`.
 
-The demo tenant for this is **Cygnet Infotech Labs** — dual-role, 14 people on its own
-bench, and its own requirement `REQ-2320` at `/ops/matching/REQ-2320`.
+Demo tenant: **Cygnet Infotech Labs** at `/ops/matching/REQ-2320`.
 
 ### Verified state at the end of 2026-10-07
 
-All four gates green: 17 routes 200 against the production build (`/vendor` 0.27s),
-`db:verify` **25/25**, `test:leak` **30/30**, build and typecheck clean. The rename was
-checked in rendered HTML on `/`, `/client`, `/vendor` and `/ops`: "DeployDesk" appears and
-"Bench Exchange" appears nowhere in the output.
+All four gates green: **19 routes 200** (both dynamic routes included), `db:verify`
+**25/25**, `test:leak` **30/30**, build and typecheck clean. The v2 tokens, both palettes
+and both self-hosted font faces were verified in the **served** stylesheet, not just the
+source.

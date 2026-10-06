@@ -785,9 +785,9 @@ export async function getOpsSidebar() {
 
   return {
     items: [
-      { label: `${dupes} duplicate flag${dupes === 1 ? "" : "s"} to clear`, dot: "#ef4444" },
-      { label: `${Number(c?.shortlisted) || 0} shortlists awaiting a client`, dot: "#fbbf24" },
-      { label: `${Number(c?.matching) || 0} requirements in matching`, dot: "#3f3f4a" },
+      { label: `${dupes} duplicate flag${dupes === 1 ? "" : "s"} to clear`, dot: "var(--danger)" },
+      { label: `${Number(c?.shortlisted) || 0} shortlists awaiting a client`, dot: "var(--brand)" },
+      { label: `${Number(c?.matching) || 0} requirements in matching`, dot: "var(--t4)" },
     ],
     badges: {
       pipeline: Number(c?.total) || undefined,

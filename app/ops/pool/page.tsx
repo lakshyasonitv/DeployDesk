@@ -16,9 +16,9 @@ export const metadata = { title: "Talent pool · DeployDesk" };
 const COLS = "158px 148px 1fr 58px 74px 108px 108px 96px 126px";
 
 const FRESHNESS_PILL = {
-  confirmed: { bg: "#e8f6ef", fg: "#0f7a4a" },
-  expiring_soon: { bg: "#fff3e4", fg: "#b45309" },
-  unconfirmed: { bg: "#fdecec", fg: "#b91c1c" },
+  confirmed: { bg: "var(--ok-tint)", fg: "var(--ok)" },
+  expiring_soon: { bg: "var(--warn-tint)", fg: "var(--warn)" },
+  unconfirmed: { bg: "var(--danger-tint)", fg: "var(--danger)" },
 } as const;
 
 /**
@@ -37,8 +37,8 @@ const CHIPS = [
 ];
 
 function scoreColor(n: number | null) {
-  if (n == null) return "#9aa0ab";
-  return n >= 85 ? "#0f7a4a" : n >= 78 ? "#b45309" : "#8a8a96";
+  if (n == null) return "var(--t4)";
+  return n >= 85 ? "var(--ok)" : n >= 78 ? "var(--warn)" : "var(--t4)";
 }
 
 export default async function PoolPage() {
@@ -52,32 +52,32 @@ export default async function PoolPage() {
       <PageHeader
         title="Talent pool"
         subtitle={`${pool.poolTotal} profiles across the exchange · unmasked · ${withScores} of the ${pool.resultCount} shown have a proctored score`}
-        actions={<><Button>Save this view</Button><Button primary accent="#101014">Add to a requirement</Button></>}
+        actions={<><Button>Save this view</Button><Button primary accent="var(--t1)">Add to a requirement</Button></>}
       />
 
       <div style={s("padding:11px 26px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;flex:none")}>
         {CHIPS.map((c) => (
           <span key={c.label}
             style={sx("padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700", {
-              background: c.active ? "#fff3e4" : "#fff",
-              color: c.active ? "#b45309" : "#8a8a96",
-              border: `1px solid ${c.active ? "#f0dcc0" : "#e8e8ee"}`,
+              background: c.active ? "var(--warn-tint)" : "var(--surface)",
+              color: c.active ? "var(--warn)" : "var(--t4)",
+              border: `1px solid ${c.active ? "var(--warn-tint)" : "var(--border)"}`,
             })}>
             {c.label}: any
           </span>
         ))}
-        <span style={s("padding:4px 10px;border:1px dashed #d4d4de;border-radius:999px;font-size:11px;font-weight:600;color:#6b6b78")}>
+        <span style={s("padding:4px 10px;border:1px dashed var(--border-2);border-radius:999px;font-size:11px;font-weight:600;color:var(--t3)")}>
           + Add filter
         </span>
-        <span style={sx("margin-left:auto;font-size:10.5px;color:#8a8a96", { fontFamily: TOKENS.mono })}>
+        <span style={sx("margin-left:auto;font-size:10.5px;color:var(--t4)", { fontFamily: TOKENS.mono })}>
           {pool.resultCount} results · {pool.elapsedSeconds}s
         </span>
       </div>
 
       <div style={s("flex:1;overflow:auto")}>
-        <div style={sx("display:grid;padding:9px 26px;background:#fafafc;border-bottom:1px solid #e8e8ee;position:sticky;top:0;z-index:2", { gridTemplateColumns: COLS, gap: "10px" })}>
+        <div style={sx("display:grid;padding:9px 26px;background:var(--surface-2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:2", { gridTemplateColumns: COLS, gap: "10px" })}>
           {["NAME", "SUPPLIER", "SKILLS", "EXP", "SCORE", "VENDOR RATE", "CLIENT RATE", "CITY", "FRESHNESS"].map((h) => (
-            <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:#8a8a96", { fontFamily: TOKENS.mono })}>{h}</div>
+            <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--t4)", { fontFamily: TOKENS.mono })}>{h}</div>
           ))}
         </div>
 
@@ -85,21 +85,21 @@ export default async function PoolPage() {
           const fp = FRESHNESS_PILL[r.freshnessState as keyof typeof FRESHNESS_PILL] ?? FRESHNESS_PILL.confirmed;
           const rel = Number(r.vendorReliability);
           return (
-            <div key={r.maskedId} style={sx("display:grid;padding:10px 26px;border-bottom:1px solid #f1f1f5;align-items:center;background:#fff", { gridTemplateColumns: COLS, gap: "10px" })}>
+            <div key={r.maskedId} style={sx("display:grid;padding:10px 26px;border-bottom:1px solid var(--surface-3);align-items:center;background:var(--surface)", { gridTemplateColumns: COLS, gap: "10px" })}>
               <div style={s("min-width:0")}>
                 <div style={s("font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>{r.fullName}</div>
-                <div style={sx("font-size:10px;color:#8a8a96;margin-top:2px", { fontFamily: TOKENS.mono })}>{r.maskedId}</div>
+                <div style={sx("font-size:10px;color:var(--t4);margin-top:2px", { fontFamily: TOKENS.mono })}>{r.maskedId}</div>
               </div>
               <div style={s("min-width:0")}>
                 <div style={s("font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>{r.vendorName}</div>
                 <div style={s("display:flex;align-items:center;gap:5px;margin-top:2px")}>
-                  <span style={sx("width:5px;height:5px;border-radius:50%", { background: rel >= 4 ? "#16a34a" : rel >= 3.5 ? "#c2410c" : "#b91c1c" })} />
-                  <span style={s("font-size:10px;color:#8a8a96")}>rel {r.vendorReliability}</span>
+                  <span style={sx("width:5px;height:5px;border-radius:50%", { background: rel >= 4 ? "var(--ok)" : rel >= 3.5 ? "var(--warn)" : "var(--danger)" })} />
+                  <span style={s("font-size:10px;color:var(--t4)")}>rel {r.vendorReliability}</span>
                 </div>
               </div>
               <div style={s("display:flex;flex-wrap:wrap;gap:3px;min-width:0")}>
                 {r.skills.slice(0, 3).map((sk) => (
-                  <span key={sk} style={s("padding:2px 6px;background:#f3f3f7;border-radius:4px;font-size:10px;font-weight:600;color:#4a4a58;white-space:nowrap")}>{sk}</span>
+                  <span key={sk} style={s("padding:2px 6px;background:var(--surface-3);border-radius:4px;font-size:10px;font-weight:600;color:var(--t2);white-space:nowrap")}>{sk}</span>
                 ))}
               </div>
               <div style={s("font-size:11.5px;font-weight:600")}>{r.experienceLabel}</div>
@@ -107,11 +107,11 @@ export default async function PoolPage() {
                 {r.score ?? "—"}
               </div>
               <div style={sx("font-size:11.5px;font-weight:600", { fontFamily: TOKENS.mono })}>{r.vendorRateLabel}</div>
-              <div style={sx("font-size:11.5px;font-weight:600", { fontFamily: TOKENS.mono, color: r.clientRateLabel ? "#6d3ff0" : "#b0b0bc" })}>
+              <div style={sx("font-size:11.5px;font-weight:600", { fontFamily: TOKENS.mono, color: r.clientRateLabel ? "var(--brand)" : "var(--t4)" })}>
                 {/* Ops sees both sides. Shows the real proposed rate, or nothing. */}
                 {r.clientRateLabel ?? "not priced"}
               </div>
-              <div style={s("font-size:11.5px;color:#4a4a58")}>{r.city}</div>
+              <div style={s("font-size:11.5px;color:var(--t2)")}>{r.city}</div>
               <div>
                 <span style={sx("display:inline-block;padding:3px 8px;border-radius:999px;font-size:9.5px;font-weight:700", { background: fp.bg, color: fp.fg, fontFamily: TOKENS.mono })}>
                   {r.freshnessLabel}
@@ -122,7 +122,7 @@ export default async function PoolPage() {
         })}
 
         <div style={s("padding:14px 26px;display:flex;align-items:center;justify-content:space-between;gap:12px")}>
-          <div style={s("font-size:11.5px;color:#8a8a96")}>
+          <div style={s("font-size:11.5px;color:var(--t4)")}>
             Showing {pool.resultCount} of {pool.poolTotal} profiles on the exchange
           </div>
           <Button>Load more</Button>

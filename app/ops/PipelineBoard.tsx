@@ -93,23 +93,23 @@ export function PipelineBoard({
   return (
     <>
       {/* ---------------- header ---------------- */}
-      <div style={s("padding:20px 26px 14px;background:#fff;border-bottom:1px solid #e8e8ee;flex:none")}>
+      <div style={s("padding:20px 26px 14px;background:var(--surface);border-bottom:1px solid var(--border);flex:none")}>
         <div style={s("display:flex;align-items:flex-end;justify-content:space-between;gap:16px")}>
           <div>
             <div style={s("font-size:22px;font-weight:800;letter-spacing:-.6px")}>Requirement pipeline</div>
-            <div style={s("font-size:12.5px;color:#6b6b78;margin-top:4px")}>
+            <div style={s("font-size:12.5px;color:var(--t3);margin-top:4px")}>
               {rows.length} live requirements · {clientCount} clients · {vendorCount} supplier
               benches · {breaches} SLA breach{breaches === 1 ? "" : "es"} · drag a card between
               columns or use ← →
             </div>
           </div>
           <div style={s("display:flex;align-items:center;gap:8px;flex:none")}>
-            <div style={s("display:flex;background:#f1f1f4;border-radius:8px;padding:2px")}>
+            <div style={s("display:flex;background:var(--surface-3);border-radius:8px;padding:2px")}>
               {(["board", "list"] as const).map((v) => (
                 <button key={v} onClick={() => setView(v)}
                   style={sx("padding:6px 13px;border:0;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;text-transform:capitalize", {
-                    background: view === v ? "#fff" : "transparent",
-                    color: view === v ? "#101014" : "#6b6b78",
+                    background: view === v ? "var(--surface)" : "transparent",
+                    color: view === v ? "var(--t1)" : "var(--t3)",
                     boxShadow: view === v ? "0 1px 2px rgba(16,16,20,.08)" : "none",
                   })}>
                   {v}
@@ -117,7 +117,7 @@ export function PipelineBoard({
               ))}
             </div>
             <Link href="/ops/matching/REQ-2291"
-              style={s("padding:8px 13px;border-radius:8px;font-size:12.5px;font-weight:700;background:#101014;color:#fff")}>
+              style={s("padding:8px 13px;border-radius:8px;font-size:12.5px;font-weight:700;background:var(--t1);color:var(--surface)")}>
               Open matching workspace
             </Link>
           </div>
@@ -128,18 +128,18 @@ export function PipelineBoard({
           <input
             value={query} onChange={(e) => setQuery(e.target.value)}
             placeholder="Search REQ, role, client, owner, skill…"
-            style={s("padding:6px 11px;border:1px solid #e0e0e8;border-radius:8px;font-size:12px;width:270px;font-family:inherit;outline:none")}
+            style={s("padding:6px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:12px;width:270px;font-family:inherit;outline:none")}
           />
           <Toggle on={myDesk} onClick={() => setMyDesk((v) => !v)}>My desk · {ownerShortSelf}</Toggle>
           <Toggle on={atRisk} onClick={() => setAtRisk((v) => !v)}>SLA at risk</Toggle>
           <Toggle on={needsSourcing} onClick={() => setNeedsSourcing((v) => !v)}>Needs sourcing</Toggle>
           {anyFilter ? (
             <button onClick={() => { setQuery(""); setMyDesk(false); setAtRisk(false); setNeedsSourcing(false); }}
-              style={s("padding:5px 10px;border:0;background:transparent;font-size:11.5px;font-weight:600;color:#6d3ff0;cursor:pointer;font-family:inherit")}>
+              style={s("padding:5px 10px;border:0;background:transparent;font-size:11.5px;font-weight:600;color:var(--brand);cursor:pointer;font-family:inherit")}>
               Clear filters
             </button>
           ) : null}
-          <div style={sx("margin-left:auto;font-size:10.5px;color:#8a8a96", { fontFamily: TOKENS.mono })}>
+          <div style={sx("margin-left:auto;font-size:10.5px;color:var(--t4)", { fontFamily: TOKENS.mono })}>
             {filtered.length} of {rows.length} requirements shown
           </div>
         </div>
@@ -147,15 +147,15 @@ export function PipelineBoard({
 
       {/* ---------------- toast ---------------- */}
       {toast ? (
-        <div style={s("background:#101014;color:#fff;padding:10px 26px;display:flex;align-items:center;gap:11px;flex:none")}>
-          <span style={s("width:7px;height:7px;border-radius:50%;background:#16a34a;flex:none")} />
+        <div style={s("background:var(--t1);color:var(--surface);padding:10px 26px;display:flex;align-items:center;gap:11px;flex:none")}>
+          <span style={s("width:7px;height:7px;border-radius:50%;background:var(--ok);flex:none")} />
           <span style={s("font-size:12.5px;flex:1")}>{toast.msg}</span>
           <button onClick={undo}
-            style={sx("border:0;background:transparent;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit", { color: "#fbbf24" })}>
+            style={sx("border:0;background:transparent;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit", { color: "var(--brand)" })}>
             Undo
           </button>
           <button onClick={() => setToast(null)}
-            style={s("border:0;background:transparent;font-size:12px;color:#8a8a96;cursor:pointer;font-family:inherit")}>
+            style={s("border:0;background:transparent;font-size:12px;color:var(--t4);cursor:pointer;font-family:inherit")}>
             Dismiss
           </button>
         </div>
@@ -171,18 +171,18 @@ export function PipelineBoard({
               <div key={st.key}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={() => dragging && move(dragging, st.key)}
-                style={s("flex:1;min-width:0;background:#f2f2f5;border:1px solid #eaeaef;border-radius:12px;display:flex;flex-direction:column;overflow:hidden")}>
+                style={s("flex:1;min-width:0;background:var(--surface-3);border:1px solid var(--border);border-radius:12px;display:flex;flex-direction:column;overflow:hidden")}>
                 <div style={s("padding:11px 11px 7px;flex:none")}>
                   <div style={s("display:flex;align-items:center;gap:7px")}>
                     <span style={sx("width:7px;height:7px;border-radius:2px;flex:none", { background: st.color })} />
                     <span style={sx("font-size:9.5px;font-weight:700;letter-spacing:.12em;flex:1", { fontFamily: TOKENS.mono, color: st.fg })}>
                       {st.label}
                     </span>
-                    <span style={sx("padding:1px 7px;background:#fff;border:1px solid #e8e8ee;border-radius:20px;font-size:10px;font-weight:700", { fontFamily: TOKENS.mono })}>
+                    <span style={sx("padding:1px 7px;background:var(--surface);border:1px solid var(--border);border-radius:20px;font-size:10px;font-weight:700", { fontFamily: TOKENS.mono })}>
                       {col.length}
                     </span>
                   </div>
-                  <div style={sx("font-size:10.5px;margin-top:5px", { color: over ? "#b45309" : "#9a9aa6" })}>
+                  <div style={sx("font-size:10.5px;margin-top:5px", { color: over ? "var(--warn)" : "var(--t4)" })}>
                     {over ? `WIP ${col.length} · over the limit of ${WIP_LIMIT}, scroll for the rest`
                           : `${col.length} requirement${col.length === 1 ? "" : "s"}`}
                   </div>
@@ -190,7 +190,7 @@ export function PipelineBoard({
 
                 <div style={s("flex:1;min-height:0;overflow:auto;padding:0 9px 9px;display:flex;flex-direction:column;gap:8px")}>
                   {col.length === 0 ? (
-                    <div style={s("border:1px dashed #d4d4de;border-radius:9px;padding:18px;text-align:center;font-size:11px;color:#9a9aa6")}>
+                    <div style={s("border:1px dashed var(--border-2);border-radius:9px;padding:18px;text-align:center;font-size:11px;color:var(--t4)")}>
                       Drop a requirement here
                     </div>
                   ) : col.map((r) => (
@@ -198,27 +198,27 @@ export function PipelineBoard({
                       draggable
                       onDragStart={() => setDragging(r.code)}
                       onDragEnd={() => setDragging(null)}
-                      style={sx("background:#fff;border-radius:10px;padding:10px;cursor:grab", {
-                        border: `1px solid ${dragging === r.code ? "#b45309" : r.sla.state === "late" ? "#f0c9c9" : "#e8e8ee"}`,
+                      style={sx("background:var(--surface);border-radius:10px;padding:10px;cursor:grab", {
+                        border: `1px solid ${dragging === r.code ? "var(--warn)" : r.sla.state === "late" ? "var(--danger-tint)" : "var(--border)"}`,
                         opacity: dragging === r.code ? 0.5 : 1,
                       })}>
                       <div style={s("display:flex;align-items:center;justify-content:space-between;gap:7px")}>
                         <Link href={`/ops/matching/${r.code}`}
-                          style={sx("font-size:11px;font-weight:700;color:#101014", { fontFamily: TOKENS.mono })}>
+                          style={sx("font-size:11px;font-weight:700;color:var(--t1)", { fontFamily: TOKENS.mono })}>
                           {r.code}
                         </Link>
-                        <span style={s("font-size:10px;color:#9a9aa6")}>{r.ageLabel}</span>
+                        <span style={s("font-size:10px;color:var(--t4)")}>{r.ageLabel}</span>
                       </div>
                       <Link href={`/ops/matching/${r.code}`}
-                        style={s("display:block;font-size:12.5px;font-weight:700;margin-top:4px;color:#101014;line-height:1.3")}>
+                        style={s("display:block;font-size:12.5px;font-weight:700;margin-top:4px;color:var(--t1);line-height:1.3")}>
                         {r.roleTitle}
                       </Link>
-                      <div style={s("font-size:10.5px;color:#8a8a96;margin-top:3px")}>
+                      <div style={s("font-size:10.5px;color:var(--t4);margin-top:3px")}>
                         {r.clientName} · ×{r.quantity} · {r.ownerShort}
                       </div>
                       <div style={s("display:flex;flex-wrap:wrap;gap:3px;margin-top:7px")}>
                         {r.skills.slice(0, 3).map((sk) => (
-                          <span key={sk} style={s("padding:2px 6px;background:#f3f3f7;border-radius:4px;font-size:9.5px;font-weight:600;color:#4a4a58")}>
+                          <span key={sk} style={s("padding:2px 6px;background:var(--surface-3);border-radius:4px;font-size:9.5px;font-weight:600;color:var(--t2)")}>
                             {sk}
                           </span>
                         ))}
@@ -234,10 +234,10 @@ export function PipelineBoard({
                           </span>
                         </span>
                       </div>
-                      <div style={s("display:flex;align-items:center;gap:5px;margin-top:9px;padding-top:8px;border-top:1px solid #f1f1f5")}>
+                      <div style={s("display:flex;align-items:center;gap:5px;margin-top:9px;padding-top:8px;border-top:1px solid var(--surface-3)")}>
                         <Arrow dir="left" disabled={STAGE_KEYS.indexOf(r.stage) === 0} onClick={() => step(r.code, -1)} />
                         <Link href={`/ops/matching/${r.code}`}
-                          style={s("flex:1;text-align:center;font-size:10.5px;font-weight:700;color:#6d3ff0")}>
+                          style={s("flex:1;text-align:center;font-size:10.5px;font-weight:700;color:var(--brand)")}>
                           {STAGE_ACTION[r.stage] ?? "Open"}
                         </Link>
                         <Arrow dir="right" disabled={STAGE_KEYS.indexOf(r.stage) === STAGE_KEYS.length - 1} onClick={() => step(r.code, 1)} />
@@ -268,9 +268,9 @@ function ListView({
   );
   return (
     <div style={s("flex:1;overflow:auto")}>
-      <div style={sx("display:grid;padding:9px 26px;background:#fafafc;border-bottom:1px solid #e8e8ee;position:sticky;top:0;z-index:2", { gridTemplateColumns: LIST_COLS, gap: "10px" })}>
+      <div style={sx("display:grid;padding:9px 26px;background:var(--surface-2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:2", { gridTemplateColumns: LIST_COLS, gap: "10px" })}>
         {["REQ", "ROLE", "CLIENT", "QTY", "VALUE/MO", "OWNER", "STAGE · MOVE", "SLA", "ACTION"].map((h) => (
-          <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:#8a8a96", { fontFamily: TOKENS.mono })}>
+          <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
             {h}
           </div>
         ))}
@@ -279,25 +279,25 @@ function ListView({
         const st = stageMeta(r.stage);
         return (
           <div key={r.code}
-            style={sx("display:grid;padding:10px 26px;border-bottom:1px solid #f1f1f5;align-items:center", {
+            style={sx("display:grid;padding:10px 26px;border-bottom:1px solid var(--surface-3);align-items:center", {
               gridTemplateColumns: LIST_COLS, gap: "10px",
-              background: r.sla.state === "late" ? "#fffbfb" : "#fff",
+              background: r.sla.state === "late" ? "var(--danger-tint)" : "var(--surface)",
             })}>
-            <Link href={`/ops/matching/${r.code}`} style={sx("font-size:11px;font-weight:700;color:#101014", { fontFamily: TOKENS.mono })}>
+            <Link href={`/ops/matching/${r.code}`} style={sx("font-size:11px;font-weight:700;color:var(--t1)", { fontFamily: TOKENS.mono })}>
               {r.code}
             </Link>
             <div style={s("min-width:0")}>
               <div style={s("font-size:12.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
                 {r.roleTitle}
               </div>
-              <div style={sx("font-size:10px;color:#8a8a96;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap", { fontFamily: TOKENS.mono })}>
+              <div style={sx("font-size:10px;color:var(--t4);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap", { fontFamily: TOKENS.mono })}>
                 {r.skills.join(", ")} · {r.experienceBand} · {r.locationLabel}
               </div>
             </div>
             <div style={s("font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>{r.clientName}</div>
             <div style={sx("font-size:11.5px;font-weight:700", { fontFamily: TOKENS.mono })}>×{r.quantity}</div>
             <div style={sx("font-size:11.5px;font-weight:700", { fontFamily: TOKENS.mono })}>{r.valuePerMonthLabel}</div>
-            <div style={s("font-size:11.5px;color:#4a4a58")}>{r.ownerShort}</div>
+            <div style={s("font-size:11.5px;color:var(--t2)")}>{r.ownerShort}</div>
             <div style={s("display:flex;align-items:center;gap:5px")}>
               <Arrow dir="left" disabled={STAGE_KEYS.indexOf(r.stage) === 0} onClick={() => onStep(r.code, -1)} />
               <span style={sx("flex:1;text-align:center;padding:3px 7px;border-radius:5px;font-size:9px;font-weight:700;letter-spacing:.08em", { background: st.bg, color: st.fg, fontFamily: TOKENS.mono })}>
@@ -309,13 +309,13 @@ function ListView({
               <span style={sx("width:5px;height:5px;border-radius:50%;flex:none", { background: SLA_COLOR[r.sla.state] })} />
               <span style={sx("font-size:10.5px;font-weight:600", { color: SLA_COLOR[r.sla.state] })}>{r.sla.label}</span>
             </div>
-            <Link href={`/ops/matching/${r.code}`} style={s("font-size:11px;font-weight:700;color:#6d3ff0")}>
+            <Link href={`/ops/matching/${r.code}`} style={s("font-size:11px;font-weight:700;color:var(--brand)")}>
               {STAGE_ACTION[r.stage] ?? "Open"}
             </Link>
           </div>
         );
       })}
-      <div style={s("padding:14px 26px;font-size:11.5px;color:#8a8a96")}>
+      <div style={s("padding:14px 26px;font-size:11.5px;color:var(--t4)")}>
         {ordered.length} requirements, grouped in stage order. Late rows are tinted; use the
         arrows to move a requirement one stage at a time.
       </div>
@@ -329,9 +329,9 @@ function Toggle({ on, onClick, children }: { on: boolean; onClick: () => void; c
   return (
     <button onClick={onClick}
       style={sx("padding:6px 11px;border-radius:8px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit", {
-        background: on ? "#fff3e4" : "#fff",
-        color: on ? "#b45309" : "#6b6b78",
-        border: `1px solid ${on ? "#f0dcc0" : "#e0e0e8"}`,
+        background: on ? "var(--warn-tint)" : "var(--surface)",
+        color: on ? "var(--warn)" : "var(--t3)",
+        border: `1px solid ${on ? "var(--warn-tint)" : "var(--border-2)"}`,
       })}>
       {children}
     </button>
@@ -341,8 +341,8 @@ function Toggle({ on, onClick, children }: { on: boolean; onClick: () => void; c
 function Arrow({ dir, disabled, onClick }: { dir: "left" | "right"; disabled: boolean; onClick: () => void }) {
   return (
     <button onClick={onClick} disabled={disabled}
-      style={sx("width:22px;height:22px;border-radius:6px;border:1px solid #eaeaef;background:#fff;font-size:11px;line-height:1;font-family:inherit", {
-        color: disabled ? "#dcdce4" : "#4a4a58",
+      style={sx("width:22px;height:22px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font-size:11px;line-height:1;font-family:inherit", {
+        color: disabled ? "var(--border-2)" : "var(--t2)",
         cursor: disabled ? "default" : "pointer",
       })}>
       {dir === "left" ? "←" : "→"}

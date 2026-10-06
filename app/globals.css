@@ -1,0 +1,123 @@
+/* ===========================================================================
+ * Design tokens — design_handoff_bench_exchange_v2/tokens.css
+ *
+ * Light is the default. Dark applies with <html data-tvtheme="dark">.
+ *
+ * Change --brand only; every tint derives from it through color-mix, so one
+ * variable re-themes the whole application. The handoff notes that #0b6ed9 was
+ * approximated from thinkvibes.com and the exact hex should be confirmed with
+ * the brand team — when it is, this is the single line to change.
+ *
+ * Fonts come from next/font (see app/layout.tsx), which sets --font-sans and
+ * --font-mono to self-hosted faces. The literal family names below are the
+ * fallback for anything that paints before those variables resolve.
+ * =========================================================================== */
+
+:root {
+  /* surfaces */
+  --bg: #f4f6f9;          /* app background behind cards */
+  --surface: #ffffff;     /* cards, sidebar, top bar, page headers */
+  --surface-2: #f8fafc;   /* inputs, table headers, inset panels, list hover */
+  --surface-3: #f1f4f8;   /* chips, progress tracks, neutral pills */
+  --border: #e3e7ee;
+  --border-2: #d2d8e2;    /* stronger: inactive button borders, dashed drop zones */
+
+  /* text */
+  --t1: #0f1729;          /* headings, values, primary text; also dark button + toast bg */
+  --t2: #475369;          /* body copy */
+  --t3: #6b7789;          /* labels, meta, table header text */
+  --t4: #98a2b3;          /* hints, captions, group labels */
+
+  /* brand */
+  --brand: #0b6ed9;
+  --brand-h: color-mix(in oklab, var(--brand) 82%, #000);      /* hover */
+  --brand-tint: color-mix(in oklab, var(--brand) 10%, var(--surface));
+  --brand-tint-2: color-mix(in oklab, var(--brand) 20%, var(--surface));
+  --brand-ink: color-mix(in oklab, var(--brand) 76%, #000);    /* text on tint */
+
+  /* status */
+  --ok: #067647;     --ok-tint: #e9f9f0;
+  --warn: #b54708;   --warn-tint: #fff6e9;
+  --danger: #b42318; --danger-tint: #fdeeec;
+  --info: #175cd3;   --info-tint: #eaf2ff;
+  --violet: #6941c6; --violet-tint: #f3f1fd;
+  --teal: #0e9384;   --teal-tint: #e6f6f4;
+
+  /* elevation */
+  --sh: 0 1px 2px rgba(15, 23, 41, .06);
+  --sh2: 0 6px 20px rgba(15, 23, 41, .08);
+  --sh3: 0 24px 56px rgba(15, 23, 41, .18);
+
+  /* radius */
+  --r-xs: 5px;  --r-sm: 8px;  --r-md: 10px;  --r-lg: 12px;
+  --r-xl: 14px; --r-2xl: 16px; --r-3xl: 18px; --r-pill: 999px;
+
+  /* type */
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+[data-tvtheme="dark"] {
+  --bg: #080a0f;
+  --surface: #101419;
+  --surface-2: #151a21;
+  --surface-3: #1c222b;
+  --border: #242b35;
+  --border-2: #333c48;
+  --t1: #eef1f6; --t2: #c2cad6; --t3: #93a0b1; --t4: #6b7789;
+  --brand: #4f9df2;
+  --brand-h: color-mix(in oklab, var(--brand) 80%, #fff);
+  --brand-tint: color-mix(in oklab, var(--brand) 16%, var(--surface));
+  --brand-tint-2: color-mix(in oklab, var(--brand) 28%, var(--surface));
+  --brand-ink: color-mix(in oklab, var(--brand) 82%, #fff);
+  --ok: #4fd18b;     --ok-tint: #0d2a1d;
+  --warn: #efb15c;   --warn-tint: #2c2011;
+  --danger: #f58b82; --danger-tint: #2c1513;
+  --info: #7db3fb;   --info-tint: #111f33;
+  --violet: #b09df5; --violet-tint: #1c1830;
+  --teal: #45d1bd;   --teal-tint: #0b2a26;
+  --sh: 0 1px 2px rgba(0, 0, 0, .5);
+  --sh2: 0 6px 20px rgba(0, 0, 0, .5);
+  --sh3: 0 24px 56px rgba(0, 0, 0, .65);
+}
+
+/* ------------------------------------------------------------------ reset */
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--t1);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  /* The handoff asks for tabular numbers everywhere: rate columns, scores and
+     counts must not jitter in width as digits change. */
+  font-variant-numeric: tabular-nums;
+}
+
+a { color: var(--brand); text-decoration: none; }
+a:hover { color: var(--brand-h); }
+
+/* Themed so the scrollbar does not stay light grey on a dark page. */
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* --------------------------------------------------------------- motion */
+
+/* Menus, the command palette and the toast. 140-160ms ease-out, per the handoff. */
+@keyframes tvin {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* The loading skeletons' sweep. */
+@keyframes tv-shimmer {
+  0%   { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}

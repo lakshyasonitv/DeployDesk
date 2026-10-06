@@ -75,32 +75,48 @@ function toCamel(prop: string): string {
 
 /* ---------------------------------------------------------------- tokens */
 
-/** Design tokens from design_handoff_bench_exchange/README.md. */
+/**
+ * Design tokens from design_handoff_bench_exchange_v2/DESIGN_TOKENS.md.
+ *
+ * Every value is a CSS variable declared in app/globals.css, NOT a literal. That is what
+ * makes the light/dark toggle work: nothing in the TypeScript knows which theme is
+ * active, it just names a role and the stylesheet resolves it.
+ *
+ * Do not reintroduce a hex literal here. `--brand` is the one knob the handoff wants
+ * turned (its #0b6ed9 is approximated from thinkvibes.com and needs confirming with the
+ * brand team), and every tint derives from it through color-mix.
+ */
 export const TOKENS = {
-  ink: "#101014",
-  pageBg: "#f7f7f9",
-  cardBg: "#ffffff",
-  border: "#e8e8ee",
-  borderSoft: "#eeeef3",
-  muted: "#6b6b78",
-  mutedSoft: "#8a8a96",
-  sidebarBg: "#111114",
-  sidebarBorder: "#26262c",
-  sidebarText: "#a0a0ac",
-  sidebarDim: "#6c6c78",
-  sidebarActive: "#1e1e26",
-  primary: "#6d3ff0",
+  ink: "var(--t1)",
+  pageBg: "var(--bg)",
+  cardBg: "var(--surface)",
+  border: "var(--border)",
+  borderSoft: "var(--border)",
+  muted: "var(--t3)",
+  mutedSoft: "var(--t4)",
+  sidebarBg: "var(--surface)",
+  sidebarBorder: "var(--border)",
+  sidebarText: "var(--t2)",
+  sidebarDim: "var(--t4)",
+  sidebarActive: "var(--brand-tint)",
+  primary: "var(--brand)",
   // Resolves to the self-hosted next/font face, with the literal name as a fallback for
   // anything rendered before the CSS variable is available.
-  mono: "var(--font-mono), 'JetBrains Mono', monospace",
+  mono: "var(--font-mono), 'IBM Plex Mono', ui-monospace, monospace",
 } as const;
 
-export const ACCENT = { client: "#a78bfa", vendor: "#34d399", ops: "#fbbf24" } as const;
+/**
+ * v2 rule 3: "Colour only for meaning. Brand comes from --brand." The v1 design gave each
+ * portal its own accent (violet / green / amber); v2 does not, so all three resolve to the
+ * single brand colour. The per-portal shape is kept because pages pass `accent` through.
+ */
+export const ACCENT = { client: "var(--brand)", vendor: "var(--brand)", ops: "var(--brand)" } as const;
 
+/** The logo tile is flat brand blue in v2, not a gradient. Kept for call-site shape. */
 export const ACCENT_GRADIENT = {
-  client: "linear-gradient(135deg,#8b5cf6,#6366f1)",
-  vendor: "linear-gradient(135deg,#34d399,#0d9488)",
-  ops: "linear-gradient(135deg,#fbbf24,#f97316)",
+  client: "var(--brand)",
+  vendor: "var(--brand)",
+  ops: "var(--brand)",
 } as const;
 
 /* ----------------------------------------------------------------- brand */
@@ -122,6 +138,13 @@ export const BRAND = {
   full: "DeployDesk by Talentvibes",
 } as const;
 
+/** v2 sidebar group labels: HIRING / YOUR BENCH / BROKERING DESK. */
+export const GROUP_LABEL = {
+  client: "HIRING",
+  vendor: "YOUR BENCH",
+  ops: "BROKERING DESK",
+} as const;
+
 export const PORTAL_TAG = {
   client: "CLIENT PORTAL",
   vendor: "VENDOR PORTAL",
@@ -130,22 +153,22 @@ export const PORTAL_TAG = {
 
 /** The five pipeline stages: key, label, dot, background, foreground. */
 export const STAGES = [
-  { key: "new", label: "NEW", color: "#9aa0ab", bg: "#f3f3f7", fg: "#4a4a58" },
-  { key: "matching", label: "MATCHING", color: "#b45309", bg: "#fff3e4", fg: "#b45309" },
-  { key: "shortlisted", label: "SHORTLISTED", color: "#6d3ff0", bg: "#f1ecff", fg: "#6d3ff0" },
-  { key: "interviewing", label: "INTERVIEWING", color: "#1d4ed8", bg: "#e8eefc", fg: "#1d4ed8" },
-  { key: "placed", label: "PLACED", color: "#0f7a4a", bg: "#e8f6ef", fg: "#0f7a4a" },
+  { key: "new", label: "NEW", color: "var(--t4)", bg: "var(--surface-3)", fg: "var(--t2)" },
+  { key: "matching", label: "MATCHING", color: "var(--warn)", bg: "var(--warn-tint)", fg: "var(--warn)" },
+  { key: "shortlisted", label: "SHORTLISTED", color: "var(--violet)", bg: "var(--violet-tint)", fg: "var(--violet)" },
+  { key: "interviewing", label: "INTERVIEWING", color: "var(--info)", bg: "var(--info-tint)", fg: "var(--info)" },
+  { key: "placed", label: "PLACED", color: "var(--ok)", bg: "var(--ok-tint)", fg: "var(--ok)" },
 ] as const;
 
 export const SLA_COLOR = {
-  ok: "#0f7a4a", warn: "#b45309", late: "#b91c1c", idle: "#8a8a96",
+  ok: "var(--ok)", warn: "var(--warn)", late: "var(--danger)", idle: "var(--t4)",
 } as const;
 
 /** Margin colour thresholds, shared so the API and UI cannot disagree. */
 export const MARGIN_COLOR = {
-  green: { bg: "#e8f6ef", fg: "#0f7a4a" },
-  amber: { bg: "#fff3e4", fg: "#b45309" },
-  red: { bg: "#fdecec", fg: "#b91c1c" },
+  green: { bg: "var(--ok-tint)", fg: "var(--ok)" },
+  amber: { bg: "var(--warn-tint)", fg: "var(--warn)" },
+  red: { bg: "var(--danger-tint)", fg: "var(--danger)" },
 } as const;
 
 export function stageMeta(key: string) {

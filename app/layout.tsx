@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Manrope, JetBrains_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, IBM_Plex_Mono } from "next/font/google";
+import "./globals.css";
 
 /**
  * Every route reads from Postgres. Without this, Next 15 prerenders server components
@@ -25,25 +26,30 @@ export const preferredRegion = ["bom1"];
 /**
  * Fonts are self-hosted through next/font rather than linked from fonts.googleapis.com.
  *
- * The design handoff's own helmet block used a stylesheet <link>, which costs a DNS
- * lookup, a TLS handshake and a round trip to a third-party host before any text can
- * paint — on the critical path of every cold load. next/font downloads the files at build
- * time, serves them from this origin, and emits font-display: swap with a size-adjusted
- * fallback so there is no layout shift when the real face arrives.
+ * The v2 handoff asks for Plus Jakarta Sans (UI) and IBM Plex Mono (IDs, key hints, CSV
+ * snippets) and suggests `next/font/google`, which is what this is — but downloaded at
+ * build time and served from this origin rather than fetched from a third party. A
+ * stylesheet <link> to fonts.googleapis.com would cost a DNS lookup, a TLS handshake and
+ * a round trip before any text could paint, on the critical path of every cold load.
+ * next/font also emits font-display: swap with a size-adjusted fallback, so there is no
+ * layout shift when the real face arrives.
  *
- * The weights are exactly the ones the design uses; asking for fewer bytes than the full
- * family is the point.
+ * The weights are exactly the ones DESIGN_TOKENS.md uses — 400-800 for the UI face and
+ * 400-600 for mono. Asking for fewer bytes than the full family is the point.
+ *
+ * `variable` feeds --font-sans / --font-mono, which app/globals.css declares with the
+ * literal family names as a fallback.
  */
-const manrope = Manrope({
+const sans = Plus_Jakarta_Sans({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
   display: "swap",
-  variable: "--font-manrope",
+  variable: "--font-sans",
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const mono = IBM_Plex_Mono({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600"],
   display: "swap",
   variable: "--font-mono",
 });
@@ -53,26 +59,31 @@ export const metadata: Metadata = {
   description: "Brokered marketplace for IT bench capacity",
 };
 
-// Fonts and the global reset are taken from the design handoff's own helmet block.
-const GLOBAL_CSS = `
-  body { margin: 0; background: #f7f7f9; font-family: var(--font-manrope), Manrope, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
-  * { box-sizing: border-box; }
-  a { color: #6d3ff0; text-decoration: none; }
-  a:hover { color: #5a2fd0; }
-  ::-webkit-scrollbar { width: 9px; height: 9px; }
-  ::-webkit-scrollbar-thumb { background: #d8d8e2; border-radius: 6px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  @keyframes tv-shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
-  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+/**
+ * Applies the stored theme before first paint.
+ *
+ * This has to be a blocking inline script in <head>. The alternative — reading
+ * localStorage from a useEffect — runs after hydration, so a user who chose dark would
+ * see a white flash on every navigation. There is no server-side way to know the choice:
+ * localStorage is not sent with the request.
+ *
+ * Wrapped in try/catch because localStorage throws outright in a private window or with
+ * site data blocked, and a theme preference is not worth a blank page.
+ */
+const THEME_INIT = `
+try {
+  var t = localStorage.getItem("tvbx-theme");
+  if (t === "dark" || t === "light") document.documentElement.setAttribute("data-tvtheme", t);
+} catch (e) {}
 `;
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${manrope.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" className={`${sans.variable} ${mono.variable}`}>
       <head>
-        <style dangerouslySetInnerHTML={{ __html: GLOBAL_CSS }} />
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
       </head>
-      <body style={{ color: "#101014" }}>{children}</body>
+      <body>{children}</body>
     </html>
   );
 }
