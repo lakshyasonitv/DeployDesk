@@ -49,7 +49,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Bench Exchange · Talentvibes",
+  title: "DeployDesk by Talentvibes",
   description: "Brokered marketplace for IT bench capacity",
 };
 

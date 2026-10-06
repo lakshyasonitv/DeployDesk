@@ -6,7 +6,7 @@ import { s, sx, TOKENS, stageMeta } from "@/src/lib/ui/style";
 import { ShellAside } from "../aside";
 
 /** Client · Requirements. The client's own note is visible to them; never to a vendor. */
-export const metadata = { title: "Requirements · Bench Exchange" };
+export const metadata = { title: "Requirements · DeployDesk" };
 
 const COLS = "96px 1fr 60px 128px 118px 124px 86px";
 

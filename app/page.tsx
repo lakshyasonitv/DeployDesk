@@ -2,7 +2,7 @@ import Link from "next/link";
 import { sql } from "drizzle-orm";
 import { db } from "@/src/db/client";
 import { getPortalSwitcherOptions } from "@/src/lib/auth/session";
-import { s, TOKENS, ACCENT_GRADIENT } from "@/src/lib/ui/style";
+import { s, TOKENS, ACCENT_GRADIENT, BRAND } from "@/src/lib/ui/style";
 
 /**
  * Deployment smoke page. It exists to prove the whole pipe end to end — Vercel build,
@@ -80,7 +80,7 @@ export default async function Home() {
       <div style={s("display:flex;align-items:center;gap:11px;margin-bottom:6px")}>
         <div style={{ ...s("width:28px;height:28px;border-radius:7px;flex:none"), background: ACCENT_GRADIENT.ops }} />
         <h1 style={s("font-size:24px;font-weight:800;letter-spacing:-.6px;margin:0")}>
-          Bench Exchange
+          {BRAND.full}
         </h1>
       </div>
       <p style={s("font-size:13px;color:#6b6b78;margin:0 0 28px")}>

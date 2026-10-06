@@ -11,7 +11,7 @@ import { VendorAside } from "../aside";
  * /api/vendor/* route to a score column, which is why this screen is read-only about
  * scores and says so.
  */
-export const metadata = { title: "Assessments · Bench Exchange" };
+export const metadata = { title: "Assessments · DeployDesk" };
 
 const STATUS_PILL: Record<string, { bg: string; fg: string; label: string }> = {
   scored: { bg: "#e8f6ef", fg: "#0f7a4a", label: "SCORED" },

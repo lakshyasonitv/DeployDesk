@@ -7,7 +7,7 @@ import { getOpsPipeline } from "@/src/read-models/ops";
 import { OpsAside } from "./aside";
 import { PipelineBoard } from "./PipelineBoard";
 
-export const metadata = { title: "Pipeline · Bench Exchange" };
+export const metadata = { title: "Pipeline · DeployDesk" };
 
 export default async function OpsPipelinePage() {
   const session = await getDemoSession("ops");

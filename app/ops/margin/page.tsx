@@ -9,7 +9,7 @@ import { OpsAside } from "../aside";
  * Every figure here is derived from engagements.vendor_rate_paise and
  * client_rate_paise; nothing about margin is stored.
  */
-export const metadata = { title: "Margin · Bench Exchange" };
+export const metadata = { title: "Margin · DeployDesk" };
 
 const COLS = "150px 130px 1fr 118px 118px 118px 86px";
 

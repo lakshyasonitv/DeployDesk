@@ -11,7 +11,7 @@ import { OpsAside } from "../aside";
  * advertises "62 results · 0.18s" and docs/ARCHITECTURE.md sets a p95 target of 400ms
  * at 10k profiles, so showing a real number keeps that target honest.
  */
-export const metadata = { title: "Talent pool · Bench Exchange" };
+export const metadata = { title: "Talent pool · DeployDesk" };
 
 const COLS = "158px 148px 1fr 58px 74px 108px 108px 96px 126px";
 

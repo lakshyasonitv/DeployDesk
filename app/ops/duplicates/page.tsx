@@ -11,7 +11,7 @@ import { OpsAside } from "../aside";
  * losing vendor is told only that the profile is already represented — never who else
  * submitted it (docs/DATA-MODEL.md section 9).
  */
-export const metadata = { title: "Duplicates · Bench Exchange" };
+export const metadata = { title: "Duplicates · DeployDesk" };
 
 type Flags = Awaited<ReturnType<typeof getOpsDuplicates>>;
 type Side = NonNullable<Flags[number]["sides"][number]>;

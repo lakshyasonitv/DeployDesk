@@ -1,4 +1,4 @@
-import { s, sx, TOKENS, ACCENT, ACCENT_GRADIENT, PORTAL_TAG } from "./style";
+import { s, sx, TOKENS, ACCENT, ACCENT_GRADIENT, PORTAL_TAG, BRAND } from "./style";
 import type { Portal } from "./Shell";
 
 /**
@@ -26,7 +26,7 @@ export function ShellSkeleton({ portal }: { portal: Portal }) {
         <div style={s("padding:0 16px 14px;display:flex;align-items:center;gap:9px")}>
           <div style={sx("width:22px;height:22px;border-radius:6px;flex:none", { background: ACCENT_GRADIENT[portal] })} />
           <div>
-            <div style={s("font-weight:800;font-size:13px;letter-spacing:-.3px;color:#fff")}>Bench Exchange</div>
+            <div style={s("font-weight:800;font-size:13px;letter-spacing:-.3px;color:#fff")}>{BRAND.name}</div>
             <div style={sx("font-size:9px;font-weight:600;letter-spacing:.12em;color:#6c6c78;margin-top:2px", { fontFamily: TOKENS.mono })}>
               {PORTAL_TAG[portal]}
             </div>

@@ -103,6 +103,25 @@ export const ACCENT_GRADIENT = {
   ops: "linear-gradient(135deg,#fbbf24,#f97316)",
 } as const;
 
+/* ----------------------------------------------------------------- brand */
+
+/**
+ * The product name, in one place.
+ *
+ * `name` is the wordmark and is what goes in tight lockups (the 222px sidebar, where
+ * the line beneath it is already spent on PORTAL_TAG). `full` is the complete lockup and
+ * belongs anywhere there is room for it — the landing page and the browser title.
+ *
+ * Note the handoff disagrees: design_handoff_bench_exchange_v2/README.md specifies
+ * "Bench Exchange" / "by Thinkvibes" in the sidebar. The name here is the one the product
+ * owner asked for and it wins; see project-brain/02-decisions.md.
+ */
+export const BRAND = {
+  name: "DeployDesk",
+  by: "Talentvibes",
+  full: "DeployDesk by Talentvibes",
+} as const;
+
 export const PORTAL_TAG = {
   client: "CLIENT PORTAL",
   vendor: "VENDOR PORTAL",

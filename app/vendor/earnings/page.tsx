@@ -13,7 +13,7 @@ import { VendorAside } from "../aside";
  *
  * No client rate, client name or margin may appear anywhere in this portal.
  */
-export const metadata = { title: "Earnings · Bench Exchange" };
+export const metadata = { title: "Earnings · DeployDesk" };
 
 const COLS = "168px 1fr 96px 120px 120px 130px";
 

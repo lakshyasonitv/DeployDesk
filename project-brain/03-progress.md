@@ -1,7 +1,7 @@
 ---
 project: talentvibes bench
 status: active
-last_log: 2026-10-06
+last_log: 2026-10-07
 ---
 
 # 03 — Progress
@@ -11,8 +11,11 @@ last_log: 2026-10-06
 
 ## Current state
 
-**Sprints 1-5 complete, committed and pushed.** Latest commit: `c571083` on `main`
-at `github.com/lakshyasonitv/DeployDesk`. Working tree clean.
+**Sprints 1-5 complete and pushed.** Since then, on 2026-10-07: the four Sprint 5 bugs
+were each proved fixed with evidence, the `/vendor` dashboard went **481ms → 144ms**, and
+the product was renamed **DeployDesk by Talentvibes**. The user then added
+`design_handoff_bench_exchange_v2/`, which is a **full re-skin** and is blocked on a scope
+decision — see "Start here next time".
 
 - **Database** — Supabase `fmgwcspsuljefhfdcqen`, ap-south-1 (Mumbai). **33 tables**
   (the original 30 plus groups, org_capabilities, memberships, org_blocks), 2 probing
@@ -113,8 +116,40 @@ percent-encoded (`@` becomes `%40`). Ask the user for credentials; do not guess.
 
 ## Start here next time
 
-**Sprint 6 — dual-role UI**, the last stage of the dual-role brief. Everything it needs
-now exists in the data layer. Definition in `04-tasks.md`; the shape of it:
+**Get the user's decision on v2 scope. Do not start writing it.**
+
+The user added `design_handoff_bench_exchange_v2/` on 2026-10-07 and asked for the necessary
+changes. It is high-fidelity, declares colours/type/copy/interactions final, and amounts to
+a re-skin of a working, deployed, demo-ready build — 885 hardcoded hex values across 69
+files where v2 wants CSS variables, plus light/dark theming, new fonts, a 260px sidebar,
+Lucide icons, a ⌘K palette, toasts with Undo, an "Ask Talentvibes" drawer, plain-language
+copy and responsiveness from ~900px. The user has a demo, so the scope is theirs to choose.
+
+Three options are written out in `04-tasks.md` under **SPRINT 7**, with a recommendation of
+**Option 1 (foundation only)** first: `tokens.css`, the `data-tvtheme` toggle, the font
+swap, and tokens mapped behind the existing `s()` helper, so screens keep working while the
+palette changes underneath. Additive and reversible, and it is most of what a demo audience
+actually perceives. Option 2 adds the shell; Option 3 is all 16 screens.
+
+Of v2's three data-model deltas, **two are resolved and should not be re-opened**: groups
+stay **declared in the MSA** (the brief said so verbatim; v2's PAN/GST rule was written
+without knowledge of it), and SLA `warn` stays at ≤25% of the window rather than v2's
+absolute 8h. **One genuinely needs the user:** whether the client may see the **exact**
+client rate on placements — the only v2 delta that *loosens* masking, so it needs an ADR.
+
+One correction worth carrying forward: the foundation is **not** cheap. Repointing `TOKENS`
+re-themes only ~15% of colour usage (151 token references against 885 bare hex literals,
+307 of them inside `s("...")` strings), so light/dark is all-or-nothing — see the measured
+breakdown in `04-tasks.md`. It is mechanical and scriptable, not half a sprint.
+
+One note that answers a question the user asked: **mobile is no longer out of scope.** v1
+targeted desktop ≥1280px and excluded it; v2 rule 5 requires ~900px up. It is part of the
+v2 migration now, not a separate decision.
+
+### Also still open: Sprint 6 — dual-role UI
+
+Unchanged by today, and independent of the v2 decision. Everything it needs exists in the
+data layer. Definition in `04-tasks.md`; the shape of it:
 
 - A supply-only org must see **one workspace and no hint a hiring side exists** — not a
   disabled "Hire" tab. `org_capabilities` says which sides an org holds; `memberships.roles`
@@ -133,40 +168,9 @@ now exists in the data layer. Definition in `04-tasks.md`; the shape of it:
 The demo tenant for this is **Cygnet Infotech Labs** — dual-role, 14 people on its own
 bench, and its own requirement `REQ-2320` at `/ops/matching/REQ-2320`.
 
-## Milestones
+### Verified state at the end of 2026-10-07
 
-- [x] **Sprint 1** — all 15 design screens; database live in Mumbai; `/ops` hang and the
-      `statement_timeout` leak fixed
-- [x] **Sprint 2** — performance: cheap sidebars, `/ops/margin` 10 queries to 2
-- [x] **Sprint 3** — dual-role schema (33 tables), ADR-012, camelCase rename, 22 RLS
-      policies, CVE-2025-66478 patched, hardcoded data removed from the rendering path
-- [x] **Sprint 4** — responsiveness (TTFB 0.30-0.60s to ~0.01s), self-hosted fonts,
-      durable SLA windows, last hardcoded data removed
-- [x] **Sprint 5** — self-dealing rule + block list in both the query and the database,
-      30 tests, 10 further edge scenarios
-- [ ] **Sprint 6** — dual-role UI (workspace switcher, ops console additions)
-- [ ] Deployed — the user's to do; see Blocked
-- [ ] RLS made effective — the 22 policies exist but are inert until the app connects as a
-      restricted role with real Supabase Auth. Read models remain the only live net.
-- [ ] Real Supabase Auth replacing the demo session in `src/lib/auth/session.ts`
-
-## Blocked / waiting on
-
-1. **Deployment is the user's to do.** They asked that I not touch Vercel: the connection
-   I have is to a different account. Code is pushed to
-   `github.com/lakshyasonitv/DeployDesk`. They import the repo in their own Vercel
-   account and set four env vars: `DATABASE_URL` (transaction pooler, 6543),
-   `IDENTITY_PEPPER`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
-2. **A stray Vercel project exists on the wrong account** (`vaibhavalteryx-1351/deploydesk`),
-   created before the user said to stay off Vercel. Its two secret env values have been
-   overwritten with placeholders, so the credential is no longer stored there, but the
-   project itself can only be deleted by that account's owner.
-3. **The Supabase password has been shared in chat twice** and was briefly stored in that
-   stray project. Rotation was recommended and has not been confirmed done.
-4. **No `v2` prototype in the repo.** The user referred to
-   "Talentvibes Bench Exchange v2.dc.html"; only the v1 file is present. The UI was built
-   from v1 plus the 50KB handoff README.
-
-Also outstanding, not blocking: the ADR-004 band deviation and the ADR-011 scorer
-divergence both need raising with the design owner, since the built screens deliberately
-differ from the mockups in those two ways.
+All four gates green: 17 routes 200 against the production build (`/vendor` 0.27s),
+`db:verify` **25/25**, `test:leak` **30/30**, build and typecheck clean. The rename was
+checked in rendered HTML on `/`, `/client`, `/vendor` and `/ops`: "DeployDesk" appears and
+"Bench Exchange" appears nowhere in the output.

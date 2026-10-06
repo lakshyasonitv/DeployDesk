@@ -11,7 +11,7 @@ import { ShellAside } from "./aside";
  * Everything here comes from the client read model, so no supplier identity, vendor
  * rate, margin or freshness state can appear — asserted by the leak suite.
  */
-export const metadata = { title: "Overview · Bench Exchange" };
+export const metadata = { title: "Overview · DeployDesk" };
 
 const TABLE_COLS = "96px 1fr 78px 128px 132px 96px";
 

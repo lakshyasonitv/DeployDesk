@@ -6,7 +6,7 @@ import { s, sx, TOKENS } from "@/src/lib/ui/style";
 import { ShellAside } from "../aside";
 
 /** Client · Shortlists index. Each row opens the masked review screen. */
-export const metadata = { title: "Shortlists · Bench Exchange" };
+export const metadata = { title: "Shortlists · DeployDesk" };
 
 export default async function ShortlistsIndex() {
   const session = await getDemoSession("client");

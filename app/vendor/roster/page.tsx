@@ -11,7 +11,7 @@ import { RosterTable } from "./RosterTable";
  * read model is scoped to the caller's vendorOrgId, so another supplier's bench is not
  * reachable from here — asserted by a leak test.
  */
-export const metadata = { title: "Bench roster · Bench Exchange" };
+export const metadata = { title: "Bench roster · DeployDesk" };
 
 export default async function RosterPage() {
   const session = await getDemoSession("vendor");

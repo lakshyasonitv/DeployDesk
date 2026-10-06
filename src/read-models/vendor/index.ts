@@ -140,53 +140,73 @@ export async function getVendorRoster(
 /* --------------------------------------------------------------- dashboard */
 
 export async function getVendorOverview(vendorOrgId: string, viewerName: string) {
-  const [org] = await db
-    .select({ name: s.organizations.name, publicCode: s.organizations.publicCode })
-    .from(s.organizations)
-    .where(eq(s.organizations.id, vendorOrgId))
-    .limit(1);
+  /**
+   * Five independent reads, issued together rather than one after another.
+   *
+   * Each round trip to the Mumbai database costs roughly 60-70ms, so six sequential
+   * queries spent ~440ms almost entirely on waiting. Nothing here depends on anything
+   * else here, so the latency is the slowest query rather than the sum.
+   *
+   * Concurrency is safe now in a way it was not earlier in the project: the pool ran at
+   * `max: 1` at the time, where a fan-out deadlocked against Supavisor's transaction mode
+   * and took /ops down. The pool is `max: 10` (see src/db/client.ts) and a two-way
+   * Promise.all is already in use on ten pages. Five is still well inside the pool.
+   *
+   * `pipeline` -> `pipelineSkills` stays sequential below, because the second needs the
+   * resource ids the first returns.
+   */
+  const [[org], [profile], counts, pipeline, [payable]] = await Promise.all([
+    db
+      .select({ name: s.organizations.name, publicCode: s.organizations.publicCode })
+      .from(s.organizations)
+      .where(eq(s.organizations.id, vendorOrgId))
+      .limit(1),
 
-  const [profile] = await db
-    .select({
-      reliabilityScore: s.vendorProfiles.reliabilityScore,
-      placementsCount: s.vendorProfiles.placementsCount,
-    })
-    .from(s.vendorProfiles)
-    .where(eq(s.vendorProfiles.orgId, vendorOrgId))
-    .limit(1);
+    db
+      .select({
+        reliabilityScore: s.vendorProfiles.reliabilityScore,
+        placementsCount: s.vendorProfiles.placementsCount,
+      })
+      .from(s.vendorProfiles)
+      .where(eq(s.vendorProfiles.orgId, vendorOrgId))
+      .limit(1),
 
-  const { resources, counts, total } = await getVendorRoster(vendorOrgId);
+    // Counts only — the dashboard renders integers, not rows. See getVendorRosterCounts.
+    getVendorRosterCounts(vendorOrgId),
 
-  // The vendor's own pipeline: its resources that are on a shortlist or in interview.
-  // Joined via shortlist_items, so no requirement or client column is reachable here.
-  const pipeline = await db
-    .select({
-      resourceId: s.benchResources.id,
-      maskedId: s.benchResources.maskedId,
-      fullName: s.benchResources.fullName,
-      vendorRatePaise: s.benchResources.vendorRatePaise,
-      decision: s.shortlistItems.clientDecision,
-      updatedAt: s.shortlistItems.updatedAt,
-      interviewStatus: s.interviews.status,
-      roundNo: s.interviews.roundNo,
-    })
-    .from(s.shortlistItems)
-    .innerJoin(s.benchResources, eq(s.benchResources.id, s.shortlistItems.resourceId))
-    .leftJoin(s.interviews, eq(s.interviews.shortlistItemId, s.shortlistItems.id))
-    .where(eq(s.benchResources.vendorOrgId, vendorOrgId))
-    .orderBy(desc(s.shortlistItems.updatedAt))
-    .limit(10);
+    // The vendor's own pipeline: its resources that are on a shortlist or in interview.
+    // Joined via shortlist_items, so no requirement or client column is reachable here.
+    db
+      .select({
+        resourceId: s.benchResources.id,
+        maskedId: s.benchResources.maskedId,
+        fullName: s.benchResources.fullName,
+        vendorRatePaise: s.benchResources.vendorRatePaise,
+        decision: s.shortlistItems.clientDecision,
+        updatedAt: s.shortlistItems.updatedAt,
+        interviewStatus: s.interviews.status,
+        roundNo: s.interviews.roundNo,
+      })
+      .from(s.shortlistItems)
+      .innerJoin(s.benchResources, eq(s.benchResources.id, s.shortlistItems.resourceId))
+      .leftJoin(s.interviews, eq(s.interviews.shortlistItemId, s.shortlistItems.id))
+      .where(eq(s.benchResources.vendorOrgId, vendorOrgId))
+      .orderBy(desc(s.shortlistItems.updatedAt))
+      .limit(10),
 
-  // Earnings: PAYABLE invoices only. There is no path from here to a receivable row.
-  const [payable] = await db
-    .select({ total: sql<number>`coalesce(sum(${s.invoices.totalPaise}), 0)::bigint` })
-    .from(s.invoices)
-    .where(and(
-      eq(s.invoices.counterpartyOrgId, vendorOrgId),
-      eq(s.invoices.direction, "payable"),
-    ));
+    // Earnings: PAYABLE invoices only. There is no path from here to a receivable row.
+    db
+      .select({ total: sql<number>`coalesce(sum(${s.invoices.totalPaise}), 0)::bigint` })
+      .from(s.invoices)
+      .where(and(
+        eq(s.invoices.counterpartyOrgId, vendorOrgId),
+        eq(s.invoices.direction, "payable"),
+      )),
+  ]);
 
-  const utilisation = total ? Math.round(((counts.listed + counts.in_process) / total) * 100) : 0;
+  const utilisation = counts.total
+    ? Math.round(((counts.listed + counts.inProcess) / counts.total) * 100)
+    : 0;
 
   // Skills for the pipeline rows. The dashboard previously rendered a literal dash here.
   const pipelineIds = [...new Set(pipeline.map((p) => p.resourceId))];
@@ -216,13 +236,13 @@ export async function getVendorOverview(vendorOrgId: string, viewerName: string)
     placements: profile?.placementsCount ?? 0,
     stats: {
       listed: counts.listed,
-      onBench: total,
-      inProcess: counts.in_process,
+      onBench: counts.total,
+      inProcess: counts.inProcess,
       utilisationPct: utilisation,
       billedThisMonthLabel: formatPaiseShort(Number(payable?.total ?? 0)),
     },
     freshness: [
-      { label: "Confirmed", n: counts.all - counts.expiring - counts.unconfirmed },
+      { label: "Confirmed", n: counts.total - counts.expiring - counts.unconfirmed },
       { label: "Expiring", n: counts.expiring },
       { label: "Unconfirmed", n: counts.unconfirmed },
     ],
@@ -240,7 +260,7 @@ export async function getVendorOverview(vendorOrgId: string, viewerName: string)
     alerts: [
       { label: `${counts.expiring} profiles expire within 4 days`, severity: "warn" as const },
       { label: `${counts.unconfirmed} unconfirmed over 14 days`, severity: "high" as const },
-      { label: `${resources.filter((r) => r.assessment.status !== "scored").length} assessments pending`, severity: "info" as const },
+      { label: `${counts.pendingTests} assessments pending`, severity: "info" as const },
     ],
   };
 }
@@ -433,6 +453,66 @@ function relativeAgo(d: Date): string {
 }
 
 /* ====================================================================== */
+/*  Roster counts — one aggregate, shared                                  */
+/* ====================================================================== */
+
+/**
+ * The roster's five filter counts plus the pending-test figure, as a single query.
+ *
+ * Two screens need these numbers and neither needs the rows behind them: the sidebar
+ * badges and the dashboard KPI/freshness blocks. Both used to call getVendorRoster(),
+ * which loads every resource plus its skills and assessments (173 rows for a 42-person
+ * bench) and shapes 42 view objects, to display a handful of integers.
+ *
+ * It lives in one function rather than two because the two call sites had drifted: the
+ * sidebar counted assessment ROWS that were not scored, the dashboard counted RESOURCES
+ * with no scored assessment. They happened to agree on the current data (13 and 13) but
+ * would diverge the moment someone retakes a test — a second pending attempt against an
+ * already-scored first one. The resource-based definition is the one the label means
+ * ("13 assessments pending" = 13 people still waiting on a result), so that is the one
+ * kept here, and there is now no second definition to drift from.
+ *
+ * Freshness is derived in SQL from last_confirmed_at using the same 10-and-14-day
+ * thresholds as freshnessFor(). Still derived on read — docs/DOMAIN.md forbids STORING
+ * it, not computing it in a query. The two implementations agree exactly, including on a
+ * null last_confirmed_at and on both boundaries, because floor(x) >= 10 iff x >= 10. If
+ * those thresholds ever change they must change in both places; that duplication is the
+ * price of one round trip instead of 173 rows, and it is called out so it is not a trap.
+ */
+export async function getVendorRosterCounts(vendorOrgId: string) {
+  const rows = (await db.execute(sql`
+    select
+      count(*)::int as total,
+      count(*) filter (where status = 'listed')::int     as listed,
+      count(*) filter (where status = 'in_process')::int as in_process,
+      count(*) filter (where last_confirmed_at is not null
+                         and now() - last_confirmed_at >= interval '10 days'
+                         and now() - last_confirmed_at <  interval '14 days')::int as expiring,
+      count(*) filter (where last_confirmed_at is null
+                          or now() - last_confirmed_at >= interval '14 days')::int as unconfirmed,
+      count(*) filter (where not exists (
+        select 1 from assessments a
+         where a.resource_id = bench_resources.id and a.status = 'scored'
+      ))::int as pending_tests
+    from bench_resources
+    where vendor_org_id = ${vendorOrgId}
+  `)) as unknown as Array<{
+    total: number; listed: number; in_process: number;
+    expiring: number; unconfirmed: number; pending_tests: number;
+  }>;
+  const c = rows[0];
+
+  return {
+    total: Number(c?.total) || 0,
+    listed: Number(c?.listed) || 0,
+    inProcess: Number(c?.in_process) || 0,
+    expiring: Number(c?.expiring) || 0,
+    unconfirmed: Number(c?.unconfirmed) || 0,
+    pendingTests: Number(c?.pending_tests) || 0,
+  };
+}
+
+/* ====================================================================== */
 /*  Sidebar — deliberately cheap                                           */
 /* ====================================================================== */
 
@@ -449,36 +529,17 @@ function relativeAgo(d: Date): string {
  * rows, and it is called out here so it is not a silent trap.
  */
 export async function getVendorSidebar(vendorOrgId: string) {
-  const rows = (await db.execute(sql`
-    select
-      count(*)::int as total,
-      count(*) filter (where status = 'listed')::int     as listed,
-      count(*) filter (where status = 'in_process')::int as in_process,
-      count(*) filter (where last_confirmed_at is not null
-                         and now() - last_confirmed_at >= interval '10 days'
-                         and now() - last_confirmed_at <  interval '14 days')::int as expiring,
-      count(*) filter (where last_confirmed_at is null
-                          or now() - last_confirmed_at >= interval '14 days')::int as unconfirmed,
-      (select count(*) from assessments a
-         join bench_resources b2 on b2.id = a.resource_id
-        where b2.vendor_org_id = ${vendorOrgId} and a.status <> 'scored')::int as pending_tests
-    from bench_resources
-    where vendor_org_id = ${vendorOrgId}
-  `)) as unknown as Array<{
-    total: number; listed: number; in_process: number;
-    expiring: number; unconfirmed: number; pending_tests: number;
-  }>;
-  const c = rows[0];
+  const c = await getVendorRosterCounts(vendorOrgId);
 
   return {
     items: [
-      { label: `${Number(c?.expiring) || 0} profiles expire within 4 days`, dot: "#f59e0b" },
-      { label: `${Number(c?.unconfirmed) || 0} unconfirmed over 14 days`, dot: "#ef4444" },
-      { label: `${Number(c?.pending_tests) || 0} assessments pending`, dot: "#3f3f4a" },
+      { label: `${c.expiring} profiles expire within 4 days`, dot: "#f59e0b" },
+      { label: `${c.unconfirmed} unconfirmed over 14 days`, dot: "#ef4444" },
+      { label: `${c.pendingTests} assessments pending`, dot: "#3f3f4a" },
     ],
     badges: {
-      roster: Number(c?.total) || undefined,
-      assessments: Number(c?.pending_tests) || undefined,
+      roster: c.total || undefined,
+      assessments: c.pendingTests || undefined,
     } as Record<string, string | number | undefined>,
   };
 }

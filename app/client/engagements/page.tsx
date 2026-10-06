@@ -10,7 +10,7 @@ import { ShellAside } from "../aside";
  * The client sees the rate IT pays. engagements.vendor_rate_paise is not selected by
  * the client read model, so no spread is reconstructible from this page.
  */
-export const metadata = { title: "Engagements · Bench Exchange" };
+export const metadata = { title: "Engagements · DeployDesk" };
 
 const COLS = "120px 1fr 120px 128px 128px";
 

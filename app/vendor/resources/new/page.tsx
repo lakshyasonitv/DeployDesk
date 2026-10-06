@@ -16,7 +16,7 @@ import { AddResourceForm } from "./AddResourceForm";
  * name. Both are true because of how the schema is shaped — the client-facing table has
  * no name and no vendor column at all (ADR-009).
  */
-export const metadata = { title: "Add bench resource · Bench Exchange" };
+export const metadata = { title: "Add bench resource · DeployDesk" };
 
 export default async function AddResourcePage() {
   const session = await getDemoSession("vendor");

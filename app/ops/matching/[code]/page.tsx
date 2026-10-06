@@ -60,5 +60,5 @@ export default async function MatchingPage({ params }: { params: Promise<{ code:
 
 export async function generateMetadata({ params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
-  return { title: `Matching ${code.toUpperCase()} · Bench Exchange` };
+  return { title: `Matching ${code.toUpperCase()} · DeployDesk` };
 }

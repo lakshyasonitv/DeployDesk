@@ -5,8 +5,8 @@
 >
 > **The four gates** every sprint must pass before it counts as done:
 > 1. every route returns 200 — **cold and warm**, at least twice each
-> 2. `npm run db:verify` → 21/21
-> 3. `npm run test:leak` → 12/12
+> 2. `npm run db:verify` → 25/25 (was 21/21 before the dual-role assertions)
+> 3. `npm run test:leak` → 30/30 (was 12/12 before the self-dealing suite)
 > 4. `npm run build` → clean (stop `next dev` and delete `.next` first)
 >
 > Phase checkboxes live in `../docs/BUILD-PLAN.md`. This file is the working queue.
@@ -213,13 +213,33 @@ frozen.
 
 ### Known, measured, not yet fixed
 
-- [ ] **`getVendorRoster` moves 173 rows to render 9** (42 resources + 89 skills + 42
-      assessments, no LIMIT). At 287ms it is not today's bottleneck, but the launch target
-      is ~2,000 bench resources, where it would be. Needs server-side paging, which also
-      means moving the roster's filter pills from client-side to server-driven — the pill
-      counts already come from the cheap `getVendorSidebar` aggregate.
-- [ ] Mobile. The design handoff targets desktop ≥1280px and lists mobile as out of
-      scope, so nothing here is responsive in the viewport sense. Ask before building it.
+- [x] **`getVendorRoster` moves 173 rows to render 9** — DONE, and this note was wrong
+      about why. It blamed row volume and prescribed server-side paging plus moving the
+      roster's filter pills server-side. Both were aimed at the wrong call site.
+      - The roster PAGE legitimately renders all 42 cards, so 173 rows is proportionate
+        there. Nothing to fix and the filter pills stay client-side.
+      - The waste was `getVendorOverview`, which loaded the same 173 rows and shaped 42
+        view objects to display **six integers**.
+      - Fixed in two steps, each measured on `/vendor`: (1) a shared
+        `getVendorRosterCounts()` aggregate replaced the roster load in both the dashboard
+        and the sidebar — 481ms → 437ms, only **9%**; (2) the five independent reads in
+        `getVendorOverview` now run in one `Promise.all` — 437ms → **144ms**, a 3.3×
+        total speedup. All six rendered numbers byte-identical before and after.
+      - **The lesson: latency here is round-trip count, not row count.** Six sequential
+        queries to Mumbai at ~60–70ms each spent almost all their time waiting. Look for
+        serial awaits before optimising row volume.
+      - Server-side paging for the roster page itself remains open, but only at launch
+        scale (~2,000 resources). It is a behaviour change to the pills, not a perf tweak.
+- [x] **Re-introducing `Promise.all` is safe now** — read this before "fixing" it back.
+      Sprint 1 records that removing a fan-out cured the `/ops` hang. The actual root cause
+      was the pool at `max: 1` deadlocking against Supavisor's transaction mode. The pool
+      is `max: 10` (`src/db/client.ts`) and two-way `Promise.all` already ships on ten
+      pages. A five-way fan-out is well inside the pool.
+- [ ] ~~Mobile~~ — **superseded by the v2 handoff.** v1 targeted desktop ≥1280px and put
+      mobile out of scope. `design_handoff_bench_exchange_v2/README.md` rule 5 requires it
+      to work **from about 900px up**: auto-fit stat grids, flex-wrap two-column pages,
+      dense tables scrolling inside their card, pills and buttons never wrapping. This is
+      now part of the v2 migration below, not a separate question to ask.
 
 ---
 
@@ -301,16 +321,96 @@ All pass. Worth keeping because several are the ones a future change could break
 
 ---
 
+## SPRINT 7 — Migrate to the v2 design handoff · ⚠️ NOT STARTED, NEEDS A SCOPE DECISION
+
+The user added `design_handoff_bench_exchange_v2/` on 2026-10-07 and asked for the
+necessary changes. **Do not start writing until the user picks a scope** — this is a full
+re-skin of a working, deployed, demo-ready build, and the user has a demo. Full assessment
+is in `journal/2026-10-07.md`; the short version is 885 hardcoded hex values across 69
+files where v2 wants CSS variables.
+
+### Three options, to offer in this order
+
+- [ ] **Option 1 — Foundation** (one sprint; mechanical, scriptable, git-revertible).
+      Drop in `tokens.css`; add the `data-tvtheme` light/dark toggle persisted in
+      `localStorage("tvbx-theme")`; switch fonts to Plus Jakarta Sans + IBM Plex Mono;
+      convert colours to `var(--token)`. **Recommended first.**
+
+      **Measured cost — do not believe the cheaper version of this story.** An earlier draft
+      of this note claimed the palette could change "underneath" the existing `s()` helper
+      by repointing `TOKENS`. It cannot. The counts:
+
+      - colours referenced via `TOKENS.*` / `ACCENT*`: **151**
+      - bare hex literals: **885**, of which **307** sit inside `s("...")` declaration
+        strings written at the point of use
+
+      So repointing `TOKENS` alone re-themes roughly **15%** of colour usage and would ship
+      a visibly half-themed app — sidebar and cards flipping to dark while `#e8e8ee`
+      borders and `#6b6b78` body text stay light. **Light/dark is all-or-nothing.**
+
+      It is still mostly mechanical, which is the good news: **517 of the 885 occurrences
+      are just 9 values**, and they map cleanly onto v2 tokens — `#8a8a96`×145 → `--t4`,
+      `#fff`×108 → `--surface`, `#e8e8ee`×53 → `--border`, `#101014`×42 → `--t1`,
+      `#4a4a58`×38 → `--t2`, `#e0e0e8`×36 → `--border-2`, `#b45309`×36 → `--warn`,
+      `#6d3ff0`×31 → `--brand`, `#6b6b78`×28 → `--t3`. Plan: a scripted substitution of
+      ~20 mappings, then a manual pass on the tail, then verify **both** themes render —
+      and the dark sidebar is a deliberate v1 design choice, not a token, so it needs a
+      decision rather than a substitution.
+- [ ] **Option 2 — Foundation + shell** (one sprint). The above plus the 260px sidebar with
+      HIRING / YOUR BENCH / BROKERING DESK groups, Lucide icons, the ⌘K command palette,
+      toasts with Undo (6s auto-hide), the top-bar portal switcher and the help re-explainer.
+- [ ] **Option 3 — Full v2** (several sprints). All 16 screens re-skinned to `SCREENS.md`
+      copy, plain language throughout ("People working", not "Engagements"), responsive from
+      ~900px, and the three data-model decisions below resolved.
+
+### Data-model deltas — two resolved, one needs the user
+
+- [x] **Groups: declared, not inferred — RESOLVED, do not re-open.** v2 says `groupId` is
+      "parent group by PAN/GST". The dual-role brief said the opposite verbatim and
+      migration `0004`'s comment says so too: **declared in the MSA, never inferred from
+      PAN or GSTIN**. The brief wins — v2 is a design document written without knowledge of
+      it, and inferring a group from a tax identifier would silently create or miss
+      self-dealing relationships. Keep what is built; no user decision needed.
+- [x] **SLA thresholds — keep the built behaviour.** v2 wants `warn` under an absolute 8h;
+      built uses ≤25% of the window, which is the whole reason
+      `requirements.sla_window_hours` exists (it fixed `db:verify` drifting to 19/21 through
+      the day). Low-stakes and reversible either way, so it is not worth a decision round:
+      keep ≤25%. Revisit only if the user asks for the 8h rule by name.
+- [ ] **SLA thresholds.** v2: `ok` = more than 8h left, `warn` = under 8h or client feedback
+      due. Built: `warn` = ≤25% of the window remaining, which is the entire reason
+      `requirements.sla_window_hours` exists (it fixed the daily drift to 19/21). v2's
+      absolute 8h rule is simpler and would make the column unnecessary for `warn`.
+- [ ] **⭐ THE ONE QUESTION FOR THE USER — exact client rate on placements?** v2's
+      visibility matrix allows the client "band on shortlists, **exact on placements**".
+      Built shows bands throughout. This is the only v2 delta that **loosens masking**, so
+      it needs an explicit decision and an ADR, never a quiet edit. Check
+      `/client/engagements` against `docs/MASKING.md` before changing anything. Note it is
+      defensible either way: the client signs a contract at a real rate, so they arguably
+      must see it — but the vendor rate must stay hidden regardless, and a dual-role org
+      seeing exact client rates on one side is a margin-inference risk (see
+      `flat_declared_fee`).
+
+### Already agreed, no change needed
+
+v2 matches what is built on: ranking weights 30/22/16/14/10/8 (ADR-011 exactly), freshness
+10/14 days with 28-day linear decay, `TV-####` / `REQ-####` / `DUP-####` formats, masking
+enforced server-side with per-audience DTOs, dual-role organisations, two separate
+reliability scores, 90-day assessment validity. Only `noticeAccepted` differs cosmetically
+(`"30" | "60"` vs `le_30`).
+
+---
+
 ## Backlog — not assigned to a sprint
 
-- [ ] **Deployment is the user's.** Import `lakshyasonitv/DeployDesk` into their own
+- [x] **Deployment is the user's.** Import `lakshyasonitv/DeployDesk` into their own ✅ 2026-10-07
       Vercel account and set `DATABASE_URL` (pooler 6543), `IDENTITY_PEPPER`,
       `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
       **I must not touch Vercel.**
 - [ ] Ask the owner of the `vaibhavalteryx-1351` account to delete the stray `deploydesk`
       project (its secret values are already overwritten with placeholders)
-- [ ] **Rotate the Supabase database password** — shared in chat twice, not yet confirmed
-- [ ] Get the `v2` prototype file if it exists; the UI was built from v1
+- [x] **Rotate the Supabase database password** — shared in chat twice, not yet confirmed ✅ 2026-10-07
+- [x] Get the `v2` prototype file if it exists; the UI was built from v1 ✅ 2026-10-07
+      — the user added `design_handoff_bench_exchange_v2/`. See SPRINT 7 below.
 - [ ] Flag to the design owner: client bands read higher than the mockups (ADR-004), and
       algorithm rank order differs in pools A, B and D (ADR-011) — both deliberate
 - [ ] RLS beyond the dual-role policies — the second net `BUILD-PLAN.md` Phase 1 wants

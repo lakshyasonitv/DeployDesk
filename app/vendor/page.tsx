@@ -12,7 +12,7 @@ import { VendorAside } from "./aside";
  * no reveal path anywhere in this portal. The pipeline card below shows stage and the
  * vendor's own rate, and nothing about the client.
  */
-export const metadata = { title: "Overview · Bench Exchange" };
+export const metadata = { title: "Overview · DeployDesk" };
 
 const PIPE_COLS = "100px 1fr 120px 130px 118px";
 

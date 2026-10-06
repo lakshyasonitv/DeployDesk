@@ -11,7 +11,7 @@ import { ShellAside } from "../aside";
  * supplier release" — never a supplier name. That copy is produced by the read model
  * and asserted by a leak test.
  */
-export const metadata = { title: "Interviews · Bench Exchange" };
+export const metadata = { title: "Interviews · DeployDesk" };
 
 export default async function ClientInterviewsPage() {
   const session = await getDemoSession("client");

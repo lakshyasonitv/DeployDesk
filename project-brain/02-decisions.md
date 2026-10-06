@@ -129,3 +129,54 @@ then the matching function with self-dealing bypass tests, then UI. The 12 leak 
   day one and is wrong by month three.
 - **Impact:** when a root doc changes, the brain usually needs no edit. Anything in the
   brain that *can* be derived from the docs should be deleted, not updated.
+
+
+## 2026-10-07 — The product is "DeployDesk by Talentvibes"
+
+- **Decision:** the product name is **DeployDesk by Talentvibes**, written in exactly one
+  place: `BRAND` in `src/lib/ui/style.ts`. `BRAND.name` (`DeployDesk`) is the wordmark for
+  tight lockups — the 222px sidebar, whose second line is already spent on `PORTAL_TAG`.
+  `BRAND.full` is the complete lockup, for the landing page `h1` and the browser title.
+  Page titles read `X · DeployDesk`.
+- **Why:** the product owner asked for it directly. One constant rather than 20 string
+  literals because the previous name was spread across 17 page titles and 3 wordmarks, and
+  a rename should not be a 20-file search next time.
+- **Conflicts with the handoff, deliberately:** `design_handoff_bench_exchange_v2/README.md`
+  specifies the sidebar read "Bench Exchange" / "by Thinkvibes". The owner's instruction
+  wins. A comment on `BRAND` records this so a future session matching the handoff does not
+  silently revert it.
+- **Rejected:** putting the full lockup in the sidebar. At 13px/800 in 175px of usable
+  width it would wrap, and the README is explicit that the logo lines never wrap.
+
+## 2026-10-07 — Latency here is round-trip count, not row count
+
+- **Decision:** when a read model is slow, count its sequential `await`s before counting
+  its rows. Independent reads go in one `Promise.all`.
+- **Why:** measured on the vendor dashboard. It loaded 173 rows and shaped 42 view objects
+  to display six integers, which looked like the obvious culprit. Replacing that with a
+  single aggregate won **9%** (481ms → 437ms). Fanning out the five independent queries won
+  the rest (437ms → **144ms**, 3.3× total). Each round trip to Mumbai costs ~60–70ms, so
+  six serial queries spent almost all their wall time waiting.
+- **Supersedes a Sprint 1 note in practice:** Sprint 1 records that *removing* a
+  `Promise.all` fan-out cured the `/ops` hang. The root cause was the pool at `max: 1`
+  deadlocking against Supavisor's transaction mode, not concurrency itself. The pool has
+  been `max: 10` since Sprint 2 and two-way `Promise.all` already ships on ten pages, so
+  fan-out is safe — this is written down because it otherwise looks like re-breaking a
+  fixed bug.
+- **Rejected:** route caching. Every page is `force-dynamic` on purpose; stale masked data
+  is worse than a slow page.
+- **Impact:** a read-model refactor must prove "no behaviour change" by capturing the
+  rendered values before and asserting them identical after. The four gates cannot catch a
+  displayed number moving from 7 to 8.
+
+## 2026-10-07 — One definition per label, enforced by one function
+
+- **Decision:** where two screens show the same label, they call the same function. The
+  sidebar and the vendor dashboard both now read `getVendorRosterCounts()`.
+- **Why:** "assessments pending" had two definitions — the sidebar counted assessment ROWS
+  not scored, the dashboard counted RESOURCES with no scored assessment. Both printed `13`
+  on the current data, so neither a test nor an eyeball would have caught it, but they
+  diverge the moment someone retakes a test. The resource-based definition was kept because
+  it is what the label means: 13 people still waiting on a result.
+- **Rejected:** aligning the two definitions and leaving both call sites. That fixes today's
+  number and leaves tomorrow's drift in place.

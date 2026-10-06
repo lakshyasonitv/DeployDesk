@@ -27,7 +27,7 @@ import { SEED_NOW } from "./helpers";
 
 async function main() {
   const started = Date.now();
-  log(`\nSeeding Talentvibes Bench Exchange`);
+  log(`\nSeeding DeployDesk by Talentvibes`);
   log(`  SEED_NOW = ${SEED_NOW.toISOString()} (fixture offsets are relative to this)\n`);
 
   await reset();

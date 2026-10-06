@@ -7,7 +7,7 @@ import { ShellAside } from "../../aside";
 import { PostForm } from "./PostForm";
 
 /** Client · Post a requirement. */
-export const metadata = { title: "Post a requirement · Bench Exchange" };
+export const metadata = { title: "Post a requirement · DeployDesk" };
 
 export default async function NewRequirementPage() {
   const session = await getDemoSession("client");
