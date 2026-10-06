@@ -122,6 +122,30 @@ percent-encoded (`@` becomes `%40`). Ask the user for credentials; do not guess.
 
 ## Start here next time
 
+**Sprint 6b — the ops console's remaining dual-role surfaces.** 6a is done, verified and
+committed (`f100d0a`): the capability-keyed guard, the "Hiring | Bench" switcher, the
+organisation-based demo control, the ops-only own-bench note, and acceptance tests 1/2/5/6.
+Full definition in `04-tasks.md`; the five remaining items are the dual-role badge, org
+profile controls, margin grouped per org, the probing-flag indicator, and one broker thread
+per workspace.
+
+Two things worth knowing before touching this area:
+
+- **Never gate access on `org_type`.** It is a lossy projection — migration 0002 resolves
+  `can_supply AND can_hire` to `'vendor'`. Use `requiredCapability()`. An `org_type === ...`
+  comparison in an access path is a bug; see `02-decisions.md`.
+- **`isDualRole()` is ops-only by contract.** Telling a client that its supplier also hires
+  narrows the counterparty to a handful of companies.
+
+Then **Sprint 7b** (⌘K palette, toasts with Undo, the 322px switcher menu, Ask Talentvibes
+drawer, ops internal strip) and **7c–7e** (16 screens to `SCREENS.md`, page-body copy,
+responsive from ~900px). The sidebar search box still advertises ⌘K and does nothing — v2
+rule 4 is "no dead buttons", so wire or hide it before a demo.
+
+---
+
+## Earlier resume notes
+
 **Sprint 7b — the shell's interactive parts.** 7a (the v2 foundation) is done, verified and
 committed; the user chose **Full v2**, staged 7a–7e. 7a left these as static markup:
 

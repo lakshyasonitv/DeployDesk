@@ -213,3 +213,51 @@ then the matching function with self-dealing bypass tests, then UI. The 12 leak 
 - **Impact:** `docs/MASKING.md` stands unchanged; no ADR needed for a loosening that is not
   happening. When implementing v2's "People working" screen, keep the band field — do not
   follow `DATA_MODEL.md` here.
+
+
+## 2026-10-07 — `org_type` never gates access; capabilities do
+
+- **Decision:** every access decision keys on `org_capabilities`, never on
+  `organizations.org_type`. The portal→capability mapping lives in one function,
+  `requiredCapability()` in `src/lib/auth/workspace.ts`: client needs `can_hire`, vendor
+  needs `can_supply`, ops needs `org_type = 'talentvibes'`.
+- **Why:** `org_type` is a **lossy projection**. Migration 0002's trigger collapses two
+  booleans into one enum and resolves `can_supply AND can_hire` to `'vendor'`. The old
+  guard asserted `org_type === portal`, so the dual-role organisation — the single case the
+  entire brief exists for — was refused its own hiring workspace with "is vendor, not
+  client". Nothing surfaced it: all routes returned 200 and all tests passed, because
+  nothing had ever asked a dual-role org for its hiring side.
+- **Rejected:** adding a `'both'` value to the `org_type` enum. It would spread the
+  dual-role case into every existing `org_type` comparison in the codebase, and ADR-012
+  already made capabilities authoritative — a second authority is the problem, not the fix.
+- **Impact:** `org_type` is a display and filtering convenience only. Production's 404 guard
+  must use the same function. Any new `org_type === ...` comparison in an access path is a
+  bug.
+
+## 2026-10-07 — "No hint" means an empty array, not a disabled tab
+
+- **Decision:** `workspaceTabs()` returns `[]` when an organisation has fewer than two
+  sides, and the shell renders nothing at all for an empty list.
+- **Why:** the brief requires a supply-only company to see no trace of a hiring side. A
+  single inert tab, or a greyed one, is itself the disclosure — a locked door tells you
+  there is a room. Returning one tab would have been the natural shape and would have
+  quietly violated the requirement.
+- **Rejected:** returning one tab and letting the shell decide; a `disabled` flag on the
+  hiring tab. Both put the rule in the renderer, which is the "filter it in the UI" shape
+  `CLAUDE.md` forbids.
+- **Impact:** verified at the markup level rather than the function level — supply-only
+  Nimbus renders zero occurrences of "Workspace" and zero of "Hiring". That is the only
+  level that actually proves the absence of a hint.
+
+## 2026-10-07 — The demo switcher picks an organisation, not a portal
+
+- **Decision:** the top-bar demo control lists organisations (Acme / Nimbus / Cygnet /
+  Talentvibes). The dual-role workspace tabs choose the side.
+- **Why:** three portal links cannot express *one organisation appearing on two sides*,
+  which is exactly what dual-role means. Picking an organisation is also closer to
+  production, where a user belongs to one organisation and has no portal choice at all.
+- **Rejected:** keeping the portal list and adding Cygnet twice. It would imply two
+  accounts, and the brief is explicit that it is the same login.
+- **Impact:** `/demo/act-as` writes the choice to a cookie and is a **demo affordance that
+  must be deleted with the demo**, along with the switcher. The dual-role workspace tabs are
+  a separate, production feature (ADR-012) — do not merge the two.

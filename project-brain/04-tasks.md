@@ -5,8 +5,12 @@
 >
 > **The four gates** every sprint must pass before it counts as done:
 > 1. every route returns 200 — **cold and warm**, at least twice each
-> 2. `npm run db:verify` → 25/25 (was 21/21 before the dual-role assertions)
-> 3. `npm run test:leak` → 30/30 (was 12/12 before the self-dealing suite)
+> 2. `npm run db:verify` → **27/27** (21 originally; +4 dual-role, +2 dual-role shortlist)
+> 3. `npm run test:leak` → **42/42** (12 originally; +18 self-dealing, +12 dual-role UI)
+>
+> These two numbers grow as suites are added. **If a gate number here disagrees with what
+> the command prints, this line is the stale one** — check the newest journal entry, then
+> fix it here. A stale gate number has already caused one wrong conclusion in this project.
 > 4. `npm run build` → clean (stop `next dev` and delete `.next` first)
 >
 > Phase checkboxes live in `../docs/BUILD-PLAN.md`. This file is the working queue.
@@ -302,21 +306,58 @@ All pass. Worth keeping because several are the ones a future change could break
 
 ---
 
-## SPRINT 6 — Dual-role stage 3: UI
+## SPRINT 6 — Dual-role stage 3: UI · **6a DONE** (commit `f100d0a`), 6b to go
 
-- [ ] Vendor-only org: one workspace, no switcher, **no hint that a hiring side exists** —
-      never a locked "Hire" tab
-- [ ] Dual-role org: "Hiring | Bench" switcher in the top bar, same login; combined
-      dashboard showing bench stats beside hiring stats
-- [ ] One Talentvibes thread per workspace, never mixed
-- [ ] **The two rate views never appear on the same screen for the same org**
-- [ ] Ops console: dual-role badge; org profile controls for capabilities, group, fee
-      model and block list; margin grouped per org (billed as client, paid as supplier,
-      net position); the ops-only "N matching people on this client's own bench" note;
-      probing-flag indicator
-- [ ] The user's acceptance tests 1, 2, 5 and 6
-- [ ] Seed: one vendor-only org, one client-only org, one dual-role org, one pair of
-      group-linked subsidiaries — realistic Indian IT data, in a file the user runs
+### SPRINT 6a — the workspace layer · ✅ DONE (2026-10-07)
+
+Gates: 20 routes ×2 plus 5 dual-role routes all 200, `db:verify` **27/27**, `test:leak`
+**42/42** (was 30), build and typecheck clean.
+
+- [x] **Fixed the guard that made the whole feature unreachable.** `getDemoSession()`
+      asserted `org_type === portal`; migration 0002 resolves `can_supply AND can_hire` to
+      `'vendor'`, so the dual-role org threw "is vendor, not client" on its own hiring
+      side. **`org_type` is a lossy projection and must never gate access** —
+      `org_capabilities` is authoritative (ADR-012). The mapping lives in
+      `requiredCapability()` and nowhere else: client→`can_hire`, vendor→`can_supply`,
+      ops→`org_type='talentvibes'`.
+- [x] Vendor-only org: one workspace, **no hint that a hiring side exists**.
+      `workspaceTabs()` returns an EMPTY array rather than one tab — a lone inert tab is
+      itself a hint. Verified at the markup level: supply-only Nimbus renders **zero**
+      occurrences of "Workspace" and **zero** of "Hiring".
+- [x] Dual-role org: "Hiring | Bench" switcher in the top bar, same login. A side needs
+      BOTH the org capability AND the user's membership role, so a bench manager at a
+      dual-role company sees one side and an admin sees both.
+- [x] **The two rate views never appear on the same screen for the same org** — structural,
+      not per-screen: neither side's read model carries the other's rate. Verified live for
+      Cygnet: exact vendor rates on `/vendor/roster`, four bands
+      (₹1L–1.3L … ₹1.4L–1.7L) on `/client/shortlists/req-2320`, never both.
+- [x] The ops-only "N matching people on this client's own bench" note — renders **14** for
+      Cygnet, tagged OPS ONLY, and leaks into none of the five client/vendor pages checked.
+      `ownBenchMatches` had been computed since Sprint 5 and shown nowhere.
+- [x] Acceptance tests 1, 2 and 6, plus both readings of 5 — `tests/leak/dual-role-ui.test.ts`.
+      Test 6 flips `can_hire` on a real row and restores it in `afterAll`.
+      **The brief's wording for test 5 is not recorded anywhere in the brain**, so both
+      plausible readings are asserted and labelled rather than one being guessed.
+- [x] Seed: a shortlist for REQ-2320, so the hiring side has real bands. Not decoration —
+      without it "each side shows only its own rate" passes by showing **nothing**, the same
+      vacuous-pass trap as an empty candidate pool.
+- [x] The demo control lists **organisations**, not portals. Three portal links cannot
+      express one organisation on two sides. `/demo/act-as` sets it in a cookie; demo only.
+
+### SPRINT 6b — the remaining ops console surfaces · NOT STARTED
+
+- [ ] **Dual-role badge** wherever ops lists an organisation (talent pool, pipeline,
+      margin). `isDualRole(caps)` exists. **Ops-only by contract** — telling a client that
+      its supplier also hires narrows the counterparty to a handful of companies.
+- [ ] **Org profile controls** — capabilities, declared group, fee model, block list.
+      Read-only display is enough for the demo; any write needs an audit row (working
+      agreement 5).
+- [ ] **Margin grouped per org** — billed as client, paid as supplier, net position. The one
+      surface where a dual-role org's two sides legitimately appear together, because the
+      audience is the broker.
+- [ ] **Probing-flag indicator** — the views exist from migration 0002 and nothing reads them.
+- [ ] **One broker thread per workspace, never mixed** — `db:verify` asserts two linked
+      threads exist; the UI does not yet separate them by side.
 - [ ] Four gates stay green
 
 ---
