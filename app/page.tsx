@@ -1,0 +1,126 @@
+import Link from "next/link";
+import { sql } from "drizzle-orm";
+import { db } from "@/src/db/client";
+import * as schema from "@/src/db/schema";
+import { getClientShortlist } from "@/src/read-models/client";
+import { s, TOKENS, ACCENT_GRADIENT } from "@/src/lib/ui/style";
+
+/**
+ * Deployment smoke page. It exists to prove the whole pipe end to end — Vercel build,
+ * env vars, the Supavisor transaction pooler from a serverless function, and one real
+ * read through a portal read model — before the fifteen screens are built on top of it.
+ *
+ * It will be replaced by the portal router. The masked shortlist read below is the
+ * genuine client read model, so a passing render here also means ADR-004 bands and the
+ * snapshot read path work in production.
+ */
+
+const PORTALS = [
+  { href: "/client", label: "Client portal", sub: "Acme Finserv · Ananya Krishnan", key: "client" as const },
+  { href: "/vendor", label: "Vendor portal", sub: "Nimbus Softworks · Vikram Shetty", key: "vendor" as const },
+  { href: "/ops", label: "Ops console", sub: "Talentvibes · Priya Nair", key: "ops" as const },
+];
+
+export default async function Home() {
+  let counts: Array<{ table: string; n: number }> = [];
+  let shortlistSummary = "";
+  let error: string | null = null;
+
+  try {
+    const [row] = await db.execute<Record<string, number>>(sql`
+      select
+        (select count(*) from organizations)  as organizations,
+        (select count(*) from users)          as users,
+        (select count(*) from bench_resources) as bench_resources,
+        (select count(*) from requirements)   as requirements,
+        (select count(*) from matches)        as matches,
+        (select count(*) from shortlist_items) as shortlist_items,
+        (select count(*) from engagements)    as engagements,
+        (select count(*) from audit_log)      as audit_log
+    `) as unknown as Array<Record<string, number>>;
+    counts = Object.entries(row).map(([table, n]) => ({ table, n: Number(n) }));
+
+    // One real read through the client read model.
+    const [acme] = await db
+      .select({ id: schema.organizations.id })
+      .from(schema.organizations)
+      .where(sql`${schema.organizations.name} = 'Acme Finserv'`)
+      .limit(1);
+    if (acme) {
+      const view = await getClientShortlist(acme.id, "REQ-2291");
+      shortlistSummary = view
+        ? `${view.candidates.length} masked profiles · ${view.selectedCount} selected · ` +
+          `bands ${view.candidates.map((c) => c.rateBandLabel).join(", ")}`
+        : "no shortlist found";
+    }
+  } catch (e) {
+    error = e instanceof Error ? e.message : String(e);
+  }
+
+  return (
+    <main style={s("max-width:860px;margin:0 auto;padding:48px 26px 60px")}>
+      <div style={s("display:flex;align-items:center;gap:11px;margin-bottom:6px")}>
+        <div style={{ ...s("width:28px;height:28px;border-radius:7px;flex:none"), background: ACCENT_GRADIENT.ops }} />
+        <h1 style={s("font-size:24px;font-weight:800;letter-spacing:-.6px;margin:0")}>
+          Bench Exchange
+        </h1>
+      </div>
+      <p style={s("font-size:13px;color:#6b6b78;margin:0 0 28px")}>
+        Brokered marketplace for IT bench capacity. Three portals, one database, masking
+        enforced on the server.
+      </p>
+
+      {error ? (
+        <div style={s("background:#fdecec;border:1px solid #f6cfcf;border-radius:12px;padding:16px;margin-bottom:24px")}>
+          <div style={{ ...s("font-weight:700;font-size:13px;margin-bottom:6px"), color: "#b91c1c" }}>
+            Database unreachable
+          </div>
+          <code style={s("font-size:11.5px;color:#b91c1c;word-break:break-all")}>{error}</code>
+        </div>
+      ) : (
+        <>
+          <div style={s("display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px")}>
+            {counts.map((c) => (
+              <div key={c.table} style={s("background:#fff;border:1px solid #e8e8ee;border-radius:11px;padding:13px")}>
+                <div style={{ ...s("font-size:9.5px;font-weight:700;letter-spacing:.11em;color:#8a8a96"), fontFamily: TOKENS.mono }}>
+                  {c.table.replace(/_/g, " ").toUpperCase()}
+                </div>
+                <div style={s("font-size:21px;font-weight:800;letter-spacing:-.5px;margin-top:4px")}>{c.n}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={s("background:#fff;border:1px solid #e8e8ee;border-radius:11px;padding:14px;margin-bottom:28px")}>
+            <div style={{ ...s("font-size:9.5px;font-weight:700;letter-spacing:.11em;color:#8a8a96;margin-bottom:6px"), fontFamily: TOKENS.mono }}>
+              CLIENT READ MODEL · REQ-2291
+            </div>
+            <div style={s("font-size:12.5px;color:#26262e;line-height:1.55")}>{shortlistSummary}</div>
+            <div style={s("font-size:11.5px;color:#8a8a96;margin-top:7px")}>
+              Bands are derived from the proposed client rate only (ADR-004), so they read
+              higher than the design mockups — which bracket the vendor cost.
+            </div>
+          </div>
+        </>
+      )}
+
+      <div style={{ ...s("font-size:9.5px;font-weight:700;letter-spacing:.14em;color:#8a8a96;margin-bottom:9px"), fontFamily: TOKENS.mono }}>
+        PORTALS
+      </div>
+      <div style={s("display:flex;flex-direction:column;gap:8px")}>
+        {PORTALS.map((p) => (
+          <Link
+            key={p.href}
+            href={p.href}
+            style={s("display:flex;align-items:center;gap:11px;background:#fff;border:1px solid #e8e8ee;border-radius:11px;padding:13px 15px;color:#101014")}
+          >
+            <div style={{ ...s("width:22px;height:22px;border-radius:6px;flex:none"), background: ACCENT_GRADIENT[p.key] }} />
+            <div>
+              <div style={s("font-size:13.5px;font-weight:700")}>{p.label}</div>
+              <div style={s("font-size:11.5px;color:#8a8a96;margin-top:1px")}>{p.sub}</div>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </main>
+  );
+}
