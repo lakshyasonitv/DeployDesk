@@ -37,6 +37,11 @@ const OWNED_TABLES = [
   "assessments", "availability_confirmations", "bulk_import_rows",
   "employment_history", "resource_skills", "bench_resources", "bulk_imports",
   "skills", "sensitive_columns",
+  // Dual-role tables. These MUST be listed: they reference organizations with ON DELETE
+  // CASCADE, so `truncate organizations cascade` empties them whether or not the seed
+  // mentions them. Migration 0002 backfilled org_capabilities and memberships once, and
+  // the next db:seed silently destroyed both because they were absent from this list.
+  "org_blocks", "memberships", "org_capabilities", "groups",
   "client_profiles", "vendor_profiles", "users", "organizations",
 ];
 

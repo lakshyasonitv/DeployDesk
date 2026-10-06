@@ -11,6 +11,18 @@ export const organizations = pgTable("organizations", {
   status: orgStatus().notNull().default("onboarding"),
   billingAddress: jsonb("billing_address"),
   gstin: text(),
+  // Added by migration 0002 (dual-role organisations).
+  legalName: text("legal_name"),
+  pan: text(),
+  /** Declared by ops from the MSA. The self-dealing rule keys on this, not on org_id. */
+  parentGroupId: uuid("parent_group_id"),
+  kycStatus: text("kyc_status"),
+  /**
+   * Dual-role orgs default to a flat declared fee: a hidden markup on a company that also
+   * supplies would let it infer the margin by comparing what it is paid as a supplier
+   * against what it is charged as a client.
+   */
+  feeModel: text("fee_model"),
   createdAt: ts(),
   updatedAt: ts(),
 });
@@ -42,6 +54,8 @@ export const clientProfiles = pgTable("client_profiles", {
   orgId: uuid("org_id").primaryKey().references(() => organizations.id),
   accountOwnerId: uuid("account_owner_id").references(() => users.id),
   defaultNoticeAccepted: text("default_notice_accepted").array(),
+  /** Demand-side counterpart to vendor_profiles.reliability_score. Never shown to a supplier. */
+  behaviourScore: numeric("behaviour_score", { precision: 2, scale: 1 }),
   createdAt: ts(),
   updatedAt: ts(),
 });

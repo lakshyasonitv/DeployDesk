@@ -350,7 +350,33 @@ export async function getOpsMatchingWorkspace(requirementCode: string) {
   const assessBy = new Map<string, (typeof assessRows)[number]>();
   for (const a of assessRows) if (!assessBy.has(a.resourceId)) assessBy.set(a.resourceId, a);
 
-  const candidates: OpsMatchCandidate[] = rows.map((r, idx) => {
+  /**
+   * Defence in depth. `matches` is gated by the trigger in migration 0004, so a
+   * self-dealing or blocked row should not exist — but a row written BEFORE that
+   * migration, or by a path that bypassed it, would still be sitting here. Refusing it on
+   * read as well means a broker is never shown a candidate they must not send.
+   *
+   * Anything refused here is a defect, not a normal outcome, so it is counted and
+   * surfaced rather than silently dropped.
+   */
+  const refusedIds = new Set<string>();
+  if (rows.length) {
+    // Parameterised, not string-built. Building SQL from values is a habit worth not
+    // having even when the values are internal UUIDs.
+    const refused = await db
+      .select({ resourceId: s.benchResources.id })
+      .from(s.benchResources)
+      .where(and(
+        inArray(s.benchResources.id, rows.map((r) => r.resourceId)),
+        sql`(is_self_dealing(${s.benchResources.id}, ${req.id})
+             or match_is_blocked(${s.benchResources.id}, ${req.id}))`,
+      ));
+    for (const r of refused) refusedIds.add(r.resourceId);
+  }
+
+  const candidates: OpsMatchCandidate[] = rows
+    .filter((r) => !refusedIds.has(r.resourceId))
+    .map((r, idx) => {
     const proposed = r.proposedClientRatePaise ?? 0;
     const pct = proposed ? marginPct(proposed, r.vendorRatePaise) : 0;
     const f = freshnessFor(r.lastConfirmedAt);
@@ -389,7 +415,19 @@ export async function getOpsMatchingWorkspace(requirementCode: string) {
     };
   });
 
+  /**
+   * OPS ONLY: how many people on this client's OWN organisation or declared group could
+   * fill this requirement. Never shown to the client — it is the broker's cue that a
+   * dual-role client is hiring into a gap its own group could fill, which is a commercial
+   * conversation, not a shortlist.
+   */
+  const [ownBench] = await db.execute<{ own_bench_matches: number }>(sql`
+    select own_bench_matches from ops_v_own_bench_matches where requirement_id = ${req.id}
+  `) as unknown as Array<{ own_bench_matches: number }>;
+
   return {
+    ownBenchMatches: Number(ownBench?.own_bench_matches) || 0,
+    refusedByRules: refusedIds.size,
     requirement: {
       code: req.code,
       roleTitle: req.roleTitle,

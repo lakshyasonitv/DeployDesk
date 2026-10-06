@@ -35,8 +35,38 @@ async function main() {
   const [{ n: orgCount }] = await db.select({ n: sql<number>`count(*)::int` }).from(s.organizations);
   check("organizations = 20 (1 TV + 14 vendors + 5 clients)", orgCount === 20, `got ${orgCount}`);
 
+  // 24 transcribed from the design fixtures, plus REQ-2320 — the dual-role requirement
+  // posted BY Cygnet Infotech Labs, which exists so the self-dealing rule has something
+  // real to refuse. Both counts are asserted separately so a change to either is visible.
   const [{ n: reqCount }] = await db.select({ n: sql<number>`count(*)::int` }).from(s.requirements);
-  check("requirements = 24", reqCount === 24, `got ${reqCount}`);
+  check("requirements = 25 (24 fixtures + 1 dual-role scenario)", reqCount === 25, `got ${reqCount}`);
+
+  const [{ n: dualReq }] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(s.requirements)
+    .where(eq(s.requirements.code, "REQ-2320"));
+  check("REQ-2320 exists: the dual-role org hiring", dualReq === 1);
+
+  // The scenario is only meaningful if it has a pool AND excludes its own people.
+  const [dualPool] = await db.execute<{ total: number; own: number }>(sql`
+    select count(*)::int as total,
+           count(*) filter (where b.vendor_org_id = r.client_org_id)::int as own
+      from matches m
+      join requirements r on r.id = m.requirement_id
+      join bench_resources b on b.id = m.resource_id
+     where r.code = 'REQ-2320'
+  `) as unknown as Array<{ total: number; own: number }>;
+  check("REQ-2320 has a sourced pool", Number(dualPool?.total) > 0, `${dualPool?.total} candidates`);
+  check("REQ-2320's pool excludes the org's OWN bench",
+    Number(dualPool?.own) === 0, `${dualPool?.own} own-bench candidates`);
+
+  const [noViolations] = await db.execute<{ n: number }>(sql`
+    select count(*)::int as n from matches m
+     where is_self_dealing(m.resource_id, m.requirement_id)
+        or match_is_blocked(m.resource_id, m.requirement_id)
+  `) as unknown as Array<{ n: number }>;
+  check("no self-dealing or blocked pairing anywhere in matches",
+    Number(noViolations?.n) === 0, `${noViolations?.n} violations`);
 
   const nimbus = await db.select({ id: s.organizations.id })
     .from(s.organizations).where(eq(s.organizations.name, "Nimbus Softworks")).limit(1);

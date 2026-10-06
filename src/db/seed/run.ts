@@ -17,6 +17,7 @@
 import { client, log, reset } from "./ctx";
 import { seedOrgs, seedSkills } from "./orgs";
 import { seedResources } from "./resources";
+import { seedDualRole, seedDualRoleRequirement } from "./dual-role";
 import { seedDemand, seedShortlists } from "./demand";
 import {
   seedInterviews, seedEngagements, seedDuplicates, seedBrokerThreads, seedAudit,
@@ -32,8 +33,11 @@ async function main() {
   await reset();
   const org = await seedOrgs();
   const skills = await seedSkills();
+  // Capabilities, groups, memberships and blocks before anything that depends on them.
+  const dualRole = await seedDualRole(org);
   const res = await seedResources(org, skills);
-  const demand = await seedDemand(org, skills, res);
+  const demand = await seedDemand(org, skills, res, dualRole);
+  await seedDualRoleRequirement(org);
   const shortlist = await seedShortlists(org, res, demand);
   await seedInterviews(org, demand, shortlist);
   await seedEngagements(org, res, demand);

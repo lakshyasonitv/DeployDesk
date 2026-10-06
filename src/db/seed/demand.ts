@@ -10,6 +10,8 @@ import { deriveRateBand } from "../../lib/money/rate-band";
 import { SLA_WINDOW_HOURS, slaFor } from "../../lib/derived";
 import type { OrgSeed, SkillMap } from "./orgs";
 import type { ResourceSeed } from "./resources";
+import type { DualRoleSeed } from "./dual-role";
+import { isSelfDealing, refusalReason } from "../../services/matching-eligibility";
 
 /** Weights from docs/MATCHING.md. Order matches the `r[]` arrays in the pools. */
 const WEIGHTS = [0.30, 0.22, 0.16, 0.14, 0.10, 0.08] as const;
@@ -68,7 +70,12 @@ function slaDueAtFor(req: Requirement): {
   return { dueAt: hoursAhead(remaining), paused: false, windowHours };
 }
 
-export async function seedDemand(org: OrgSeed, skills: SkillMap, res: ResourceSeed) {
+export async function seedDemand(
+  org: OrgSeed,
+  skills: SkillMap,
+  res: ResourceSeed,
+  dualRole: DualRoleSeed,
+) {
   /* ---------------------------------------------------- requirements */
   const reqRows: Array<typeof s.requirements.$inferInsert> = REQS.map((r) => {
     const loc = parseLocation(r.loc);
@@ -144,13 +151,44 @@ export async function seedDemand(org: OrgSeed, skills: SkillMap, res: ResourceSe
   log(`  requirement_stage_events: ${stageRows.length}`);
 
   /* ---------------------------------------------------- matches */
+
+  /**
+   * Candidates are filtered by the self-dealing rule and the block list BEFORE scoring,
+   * exactly as docs/MATCHING.md requires of eligibility gates: "a resource that fails a
+   * gate is not scored and does not appear in the pool".
+   *
+   * The same predicate lives in src/services/matching-eligibility.ts and is enforced
+   * again by a database trigger (migration 0004), so a mistake here cannot actually put
+   * a self-dealing pair in front of a broker.
+   */
+  const blockedPairs = new Set(dualRole.blocks.flatMap((b) => [`${b.a}|${b.b}`, `${b.b}|${b.a}`]));
+  const groupOf = (orgId: string) => dualRole.groupIdByOrg.get(orgId) ?? null;
+  const refused: string[] = [];
+
   const matchRows: Array<typeof s.matches.$inferInsert> = [];
   for (const r of REQS) {
     if (r.stage0 === "new") continue; // nothing sourced yet — sourced_count is 0 in the fixture
     const row = reqByCode.get(r.id)!;
     const pool = POOLS[r.pool] ?? [];
 
-    const scored = pool.map((c) => {
+    const eligible = pool.filter((c) => {
+      const resource = res.byMasked.get(c.id)!;
+      const input = {
+        vendorOrgId: resource.vendorOrgId,
+        vendorGroupId: groupOf(resource.vendorOrgId),
+        clientOrgId: row.clientOrgId,
+        clientGroupId: groupOf(row.clientOrgId),
+      };
+      const blocked = blockedPairs.has(`${resource.vendorOrgId}|${row.clientOrgId}`);
+      const why = refusalReason(input, blocked);
+      if (why) {
+        refused.push(`${r.id}/${c.id}:${why}`);
+        return false;
+      }
+      return !isSelfDealing(input);
+    });
+
+    const scored = eligible.map((c) => {
       const resource = res.byMasked.get(c.id)!;
       const algoScore = computeAlgoScore(c.r);
       return { c, resource, algoScore };
@@ -181,6 +219,10 @@ export async function seedDemand(org: OrgSeed, skills: SkillMap, res: ResourceSe
   }
   await db.insert(s.matches).values(matchRows).onConflictDoNothing();
   log(`  matches: ${matchRows.length}`);
+  if (refused.length) {
+    log(`  refused by self-dealing / block rules: ${refused.length}`);
+    for (const r of refused.slice(0, 6)) log(`    ${r}`);
+  }
 
   return { requirements, reqByCode };
 }

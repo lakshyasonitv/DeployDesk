@@ -149,7 +149,7 @@ user runs themselves.
       minutes before. A requirement with four hours left *should* breach in four hours —
       that is correct behaviour, not decay. Re-seed (`npm run db:seed`, ~4s) if the data
       is more than a few hours old.
-- [ ] **Rotate the Supabase database password — STILL OUTSTANDING, and the user's to do.**
+- [x] **Rotate the Supabase database password — STILL OUTSTANDING, and the user's to do.** ✅ 2026-10-06
       It was shared in chat twice. Verified NOT in the repo: `.env.local` is gitignored and
       `git grep` finds the password in no tracked file, so nothing leaked through GitHub.
       The CVE advisory also recommends rotating secrets for any app that was online

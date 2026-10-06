@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { and, gte, inArray, lte, sql } from "drizzle-orm";
+import { and, eq, gte, inArray, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/src/db/client";
 import * as s from "@/src/db/schema";
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "invalid_request", issues: parsed.error.flatten().fieldErrors }, { status: 400 });
   }
-  await getDemoSession("client"); // portal check; the preview is client-facing
+  const session = await getDemoSession("client"); // portal check; the preview is client-facing
   const { skills, budgetMinPaise, budgetMaxPaise } = parsed.data;
 
   // Only listed, matchable supply counts. Freshness is applied as a 14-day cutoff here
@@ -56,6 +56,19 @@ export async function POST(req: Request) {
     : [];
   const skillMatched = new Set(skillFilter.map((r) => r.resourceId));
 
+  /**
+   * The counts must exclude what could never be offered, or the headline lies.
+   *
+   * Two exclusions, both of which a dual-role client makes necessary:
+   *   - its OWN organisation's and its GROUP's bench, which the self-dealing rule
+   *     forbids. Counting them would tell a dual-role company "42 profiles match" when
+   *     several are its own people — inflating the number AND hinting that the exchange
+   *     can see its bench.
+   *   - suppliers it has blocked, in either direction.
+   *
+   * Both are applied in SQL rather than filtered afterwards, so the count and the bars
+   * come from the same set.
+   */
   const rows = await db
     .select({
       id: s.benchResources.id,
@@ -64,9 +77,18 @@ export async function POST(req: Request) {
       availableFrom: s.benchResources.availableFrom,
     })
     .from(s.benchResources)
+    .innerJoin(s.organizations, eq(s.organizations.id, s.benchResources.vendorOrgId))
     .where(and(
       inArray(s.benchResources.status, ["listed", "in_process"]),
       gte(s.benchResources.lastConfirmedAt, staleCutoff),
+      ne(s.benchResources.vendorOrgId, session.orgId),
+      sql`(
+        ${s.organizations.parentGroupId} is null
+        or (select o2.parent_group_id from organizations o2 where o2.id = ${session.orgId}) is null
+        or ${s.organizations.parentGroupId}
+           <> (select o2.parent_group_id from organizations o2 where o2.id = ${session.orgId})
+      )`,
+      sql`not orgs_are_blocked(${s.benchResources.vendorOrgId}, ${session.orgId})`,
     ));
 
   const scored = await db
