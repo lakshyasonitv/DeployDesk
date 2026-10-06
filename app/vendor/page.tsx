@@ -41,7 +41,7 @@ export default async function VendorDashboard() {
   const expiring = o.freshness.find((f) => f.label === "Expiring")?.n ?? 0;
 
   return (
-    <Shell portal="vendor" activeKey="overview" asideTitle="FRESHNESS ALERTS" asideItems={aside.items} badges={aside.badges}>
+    <Shell portal="vendor" user={{ name: session.userName, org: session.orgName }} activeKey="overview" asideTitle="FRESHNESS ALERTS" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title={`${o.orgName} · bench`}
         subtitle={`Supplier ID ${o.vendorCode} · reliability score ${o.reliability}/5 · ${o.placements} placements to date`}
@@ -103,7 +103,13 @@ export default async function VendorDashboard() {
                     <div style={sx("font-size:11px;font-weight:700", { fontFamily: TOKENS.mono })}>{p.maskedId}</div>
                     <div style={s("font-size:10.5px;color:#8a8a96;margin-top:2px")}>{p.displayName}</div>
                   </div>
-                  <div style={s("font-size:11px;color:#4a4a58")}>—</div>
+                  <div style={s("display:flex;flex-wrap:wrap;gap:3px;min-width:0")}>
+                    {p.skills.slice(0, 3).map((sk) => (
+                      <span key={sk} style={s("padding:2px 6px;background:#f3f3f7;border-radius:4px;font-size:9.5px;font-weight:600;color:#4a4a58;white-space:nowrap")}>
+                        {sk}
+                      </span>
+                    ))}
+                  </div>
                   <div style={sx("font-size:11.5px;font-weight:700", { fontFamily: TOKENS.mono })}>{p.rateLabel}</div>
                   <div>
                     <span style={sx("display:inline-block;padding:3px 8px;border-radius:5px;font-size:8.5px;font-weight:700;letter-spacing:.07em", { background: pill.bg, color: pill.fg, fontFamily: TOKENS.mono })}>

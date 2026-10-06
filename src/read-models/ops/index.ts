@@ -446,6 +446,31 @@ export async function getOpsTalentPool(opts: { search?: string; limit?: number }
         .from(s.assessments).where(inArray(s.assessments.resourceId, ids)).orderBy(desc(s.assessments.attemptNo))
     : [];
 
+  /**
+   * The client-facing rate, taken from the most recent match that actually priced this
+   * resource. This column previously showed a figure invented in the page by dividing the
+   * vendor rate by a hardcoded 24% target — a number no broker had agreed and no row
+   * contained. A resource that has never been priced now shows "not priced", which is the
+   * truth, rather than a plausible-looking guess.
+   */
+  const pricedRows = ids.length
+    ? await db
+        .select({
+          resourceId: s.matches.resourceId,
+          proposedClientRatePaise: s.matches.proposedClientRatePaise,
+          computedAt: s.matches.computedAt,
+        })
+        .from(s.matches)
+        .where(inArray(s.matches.resourceId, ids))
+        .orderBy(desc(s.matches.computedAt))
+    : [];
+  const pricedBy = new Map<string, number>();
+  for (const r of pricedRows) {
+    if (!pricedBy.has(r.resourceId) && r.proposedClientRatePaise) {
+      pricedBy.set(r.resourceId, r.proposedClientRatePaise);
+    }
+  }
+
   const skillsBy = new Map<string, string[]>();
   for (const r of skillRows) {
     const list = skillsBy.get(r.resourceId) ?? [];
@@ -467,6 +492,8 @@ export async function getOpsTalentPool(opts: { search?: string; limit?: number }
       experienceLabel: formatExperience(r.experienceMonths),
       city: r.baseCity,
       vendorRateLabel: formatPaiseExact(r.vendorRatePaise),
+      // Ops sees both sides; this is the real proposed figure or nothing at all.
+      clientRateLabel: pricedBy.has(r.id) ? formatPaiseExact(pricedBy.get(r.id)!) : null,
       status: r.status,
       score: a?.overallScore ?? null,
       assessmentStatus: a?.status ?? "not_started",

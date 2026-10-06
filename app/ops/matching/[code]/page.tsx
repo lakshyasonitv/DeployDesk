@@ -13,7 +13,7 @@ import { Workspace } from "./Workspace";
  */
 export default async function MatchingPage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
-  await getDemoSession("ops");
+  const session = await getDemoSession("ops");
 
   const workspace = await getOpsMatchingWorkspace(code.toUpperCase());
   if (!workspace) notFound();
@@ -43,7 +43,7 @@ export default async function MatchingPage({ params }: { params: Promise<{ code:
     }));
 
   return (
-    <Shell portal="ops" activeKey="matching" asideTitle="TODAY'S QUEUE"
+    <Shell portal="ops" user={{ name: session.userName, org: `${session.orgName} · ${session.role}` }} activeKey="matching" asideTitle="TODAY'S QUEUE"
       asideItems={aside.items} badges={aside.badges}>
       <Workspace
         requirement={workspace.requirement}

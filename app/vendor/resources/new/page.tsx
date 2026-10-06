@@ -33,7 +33,7 @@ export default async function AddResourcePage() {
   const vendorCode = org[0]?.code ?? "";
 
   return (
-    <Shell portal="vendor" activeKey="add" asideTitle="FRESHNESS ALERTS" asideItems={aside.items} badges={aside.badges}>
+    <Shell portal="vendor" user={{ name: session.userName, org: session.orgName }} activeKey="add" asideTitle="FRESHNESS ALERTS" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Add bench resource"
         subtitle={`Listed as a masked profile. ${vendorName} is never exposed to a client.`}

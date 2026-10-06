@@ -21,14 +21,19 @@ const FRESHNESS_PILL = {
   unconfirmed: { bg: "#fdecec", fg: "#b91c1c" },
 } as const;
 
+/**
+ * Filter affordances. These are presentational: the design shows active chips, but no
+ * filtering is wired behind them yet, so none is marked active — a chip rendered as
+ * "active" that filters nothing misreports the result count beside it.
+ */
 const CHIPS = [
-  { label: "Skill: React", active: true },
-  { label: "Exp: 5–8y", active: true },
-  { label: "Score ≥ 75", active: true },
-  { label: "Freshness: confirmed", active: true },
-  { label: "City: any", active: false },
-  { label: "Vendor: any", active: false },
-  { label: "Vendor rate ≤ ₹1.6L", active: false },
+  { label: "Skill", active: false },
+  { label: "Experience", active: false },
+  { label: "Score", active: false },
+  { label: "Freshness", active: false },
+  { label: "City", active: false },
+  { label: "Supplier", active: false },
+  { label: "Vendor rate", active: false },
 ];
 
 function scoreColor(n: number | null) {
@@ -37,12 +42,12 @@ function scoreColor(n: number | null) {
 }
 
 export default async function PoolPage() {
-  await getDemoSession("ops");
+  const session = await getDemoSession("ops");
   const [pool, aside] = await Promise.all([getOpsTalentPool({ limit: 60 }), OpsAside()]);
   const withScores = pool.results.filter((r) => r.score != null).length;
 
   return (
-    <Shell portal="ops" activeKey="pool" asideTitle="TODAY'S QUEUE" asideItems={aside.items} badges={aside.badges}>
+    <Shell portal="ops" user={{ name: session.userName, org: `${session.orgName} · ${session.role}` }} activeKey="pool" asideTitle="TODAY'S QUEUE" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Talent pool"
         subtitle={`${pool.poolTotal} profiles across the exchange · unmasked · ${withScores} of the ${pool.resultCount} shown have a proctored score`}
@@ -57,7 +62,7 @@ export default async function PoolPage() {
               color: c.active ? "#b45309" : "#8a8a96",
               border: `1px solid ${c.active ? "#f0dcc0" : "#e8e8ee"}`,
             })}>
-            {c.label}{c.active ? " ×" : ""}
+            {c.label}: any
           </span>
         ))}
         <span style={s("padding:4px 10px;border:1px dashed #d4d4de;border-radius:999px;font-size:11px;font-weight:600;color:#6b6b78")}>
@@ -101,9 +106,9 @@ export default async function PoolPage() {
                 {r.score ?? "—"}
               </div>
               <div style={sx("font-size:11.5px;font-weight:600", { fontFamily: TOKENS.mono })}>{r.vendorRateLabel}</div>
-              <div style={sx("font-size:11.5px;font-weight:600;color:#6d3ff0", { fontFamily: TOKENS.mono })}>
-                {/* Ops sees both sides. A client rate here is correct and ops-only. */}
-                {proposedFor(r.vendorRateLabel)}
+              <div style={sx("font-size:11.5px;font-weight:600", { fontFamily: TOKENS.mono, color: r.clientRateLabel ? "#6d3ff0" : "#b0b0bc" })}>
+                {/* Ops sees both sides. Shows the real proposed rate, or nothing. */}
+                {r.clientRateLabel ?? "not priced"}
               </div>
               <div style={s("font-size:11.5px;color:#4a4a58")}>{r.city}</div>
               <div>
@@ -124,16 +129,4 @@ export default async function PoolPage() {
       </div>
     </Shell>
   );
-}
-
-/**
- * An indicative client rate for the pool view, at the target margin. The contracted
- * figure lives on an engagement and the proposed one on a match; this column exists so
- * a broker can eyeball pricing while searching, and it is ops-only.
- */
-function proposedFor(vendorRateLabel: string): string {
-  const paise = Number(vendorRateLabel.replace(/[^\d]/g, "")) * 100;
-  if (!paise) return "—";
-  const atTarget = Math.round(paise / (1 - 0.24) / 100_000) * 100_000;
-  return `₹${Math.round(atTarget / 100).toLocaleString("en-IN")}`;
 }

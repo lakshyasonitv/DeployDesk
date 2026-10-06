@@ -30,7 +30,7 @@ export default async function ClientEngagementsPage() {
   ]);
 
   return (
-    <Shell portal="client" activeKey="engagements" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
+    <Shell portal="client" user={{ name: session.userName, org: session.orgName }} activeKey="engagements" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Engagements"
         subtitle="You contract with Talentvibes for every placement. One invoice, one counterparty."

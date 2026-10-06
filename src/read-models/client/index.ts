@@ -239,17 +239,37 @@ export async function getClientOverview(
   const awaiting = reqs.filter((r) => r.stage === "shortlisted");
   const monthlySpend = engagements.reduce((a, e) => a + e.clientRatePaise, 0);
 
+  // Feedback actually outstanding: submitted ratings with no outcome recorded yet, on
+  // this client's own interviews. Was previously a hardcoded 2.
+  const [feedback] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(s.interviewFeedback)
+    .innerJoin(s.interviews, eq(s.interviews.id, s.interviewFeedback.interviewId))
+    .innerJoin(s.requirements, eq(s.requirements.id, s.interviews.requirementId))
+    .where(and(
+      eq(s.requirements.clientOrgId, clientOrgId),
+      sql`${s.interviewFeedback.outcome} is null`,
+    ));
+
+  // The broker is whoever Talentvibes assigned to this account, not a name in the source.
+  const [accountOwner] = await db
+    .select({ fullName: s.users.fullName })
+    .from(s.clientProfiles)
+    .innerJoin(s.users, eq(s.users.id, s.clientProfiles.accountOwnerId))
+    .where(eq(s.clientProfiles.orgId, clientOrgId))
+    .limit(1);
+
   return {
     greetingName: viewerName.split(" ")[0],
     orgName: org?.name ?? "",
-    brokerName: "Priya Nair",
+    brokerName: accountOwner?.fullName ?? "your Talentvibes broker",
     stats: {
       openRequirements: reqs.length,
       positions: reqs.reduce((a, r) => a + r.quantity, 0),
       awaitingReview: awaiting.length,
       maskedProfiles: awaiting.reduce((a, r) => a + (countByReq.get(r.id)?.count ?? 0), 0),
       inInterview: interviewing,
-      feedbackDue: 2,
+      feedbackDue: Number(feedback?.n) || 0,
       activeEngagements: engagements.length,
       monthlySpendLabel: formatPaiseShort(monthlySpend),
     },
@@ -320,6 +340,53 @@ export async function getClientRequirements(clientOrgId: string) {
     postedAgo: r.postedAt ? relativeAgo(r.postedAt) : "—",
     // The client sees the broker's promise, not the ops SLA colour.
     promiseLabel: r.stage === "matching" || r.stage === "new" ? "Shortlist within 36h" : null,
+  }));
+}
+
+/* ------------------------------------------------------- interview feedback */
+
+/**
+ * Feedback the client has submitted but not yet concluded. The four ratings and the
+ * verbatim note are client + ops only (docs/MASKING.md); a redacted summary is what
+ * reaches the supplier, and that relay is a broker action.
+ */
+export async function getClientFeedbackDue(clientOrgId: string) {
+  const rows = await db
+    .select({
+      maskedId: s.shortlistItems.maskedId,
+      roundNo: s.interviews.roundNo,
+      roleTitle: s.requirements.roleTitle,
+      requirementCode: s.requirements.code,
+      technicalDepth: s.interviewFeedback.ratingTechnicalDepth,
+      problemSolving: s.interviewFeedback.ratingProblemSolving,
+      communication: s.interviewFeedback.ratingCommunication,
+      roleFit: s.interviewFeedback.ratingRoleFit,
+      notes: s.interviewFeedback.notes,
+      dueAt: s.interviewFeedback.dueAt,
+    })
+    .from(s.interviewFeedback)
+    .innerJoin(s.interviews, eq(s.interviews.id, s.interviewFeedback.interviewId))
+    .innerJoin(s.shortlistItems, eq(s.shortlistItems.id, s.interviews.shortlistItemId))
+    .innerJoin(s.requirements, eq(s.requirements.id, s.interviews.requirementId))
+    .where(and(
+      eq(s.requirements.clientOrgId, clientOrgId),
+      sql`${s.interviewFeedback.outcome} is null`,
+    ))
+    .orderBy(asc(s.interviewFeedback.dueAt));
+
+  return rows.map((r) => ({
+    maskedId: r.maskedId,
+    roundLabel: `Round ${r.roundNo}`,
+    roleTitle: r.roleTitle,
+    requirementCode: r.requirementCode,
+    ratings: [
+      { label: "Technical depth", value: r.technicalDepth },
+      { label: "Problem solving", value: r.problemSolving },
+      { label: "Communication", value: r.communication },
+      { label: "Role fit", value: r.roleFit },
+    ].filter((x) => x.value != null) as Array<{ label: string; value: number }>,
+    notes: r.notes,
+    dueAt: r.dueAt?.toISOString() ?? null,
   }));
 }
 

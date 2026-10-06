@@ -161,6 +161,7 @@ export async function getVendorOverview(vendorOrgId: string, viewerName: string)
   // Joined via shortlist_items, so no requirement or client column is reachable here.
   const pipeline = await db
     .select({
+      resourceId: s.benchResources.id,
       maskedId: s.benchResources.maskedId,
       fullName: s.benchResources.fullName,
       vendorRatePaise: s.benchResources.vendorRatePaise,
@@ -187,6 +188,26 @@ export async function getVendorOverview(vendorOrgId: string, viewerName: string)
 
   const utilisation = total ? Math.round(((counts.listed + counts.in_process) / total) * 100) : 0;
 
+  // Skills for the pipeline rows. The dashboard previously rendered a literal dash here.
+  const pipelineIds = [...new Set(pipeline.map((p) => p.resourceId))];
+  const pipelineSkills = pipelineIds.length
+    ? await db
+        .select({
+          resourceId: s.resourceSkills.resourceId,
+          label: s.skills.label,
+          isPrimary: s.resourceSkills.isPrimary,
+        })
+        .from(s.resourceSkills)
+        .innerJoin(s.skills, eq(s.skills.id, s.resourceSkills.skillId))
+        .where(inArray(s.resourceSkills.resourceId, pipelineIds))
+    : [];
+  const pipelineSkillsBy = new Map<string, string[]>();
+  for (const r of pipelineSkills) {
+    const list = pipelineSkillsBy.get(r.resourceId) ?? [];
+    if (r.isPrimary) list.unshift(r.label); else list.push(r.label);
+    pipelineSkillsBy.set(r.resourceId, list);
+  }
+
   return {
     viewerName: viewerName.split(" ")[0],
     orgName: org?.name ?? "",
@@ -208,6 +229,7 @@ export async function getVendorOverview(vendorOrgId: string, viewerName: string)
     pipeline: pipeline.map((p) => ({
       maskedId: p.maskedId,
       displayName: shortenName(p.fullName),
+      skills: pipelineSkillsBy.get(p.resourceId) ?? [],
       rateLabel: formatPaiseExact(p.vendorRatePaise),
       stageLabel: p.interviewStatus
         ? `INTERVIEW R${p.roundNo}`

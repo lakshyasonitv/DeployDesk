@@ -31,14 +31,14 @@ const stamp = (iso: string) =>
   });
 
 export default async function DuplicatesPage() {
-  await getDemoSession("ops");
+  const session = await getDemoSession("ops");
   const [flags, aside] = await Promise.all([getOpsDuplicates(), OpsAside()]);
   const open = flags.filter((f) => f.status === "open");
   const blocking = flags.filter((f) => f.blocks);
   const secondary = flags.filter((f) => !f.blocks);
 
   return (
-    <Shell portal="ops" activeKey="duplicates" asideTitle="TODAY'S QUEUE" asideItems={aside.items} badges={aside.badges}>
+    <Shell portal="ops" user={{ name: session.userName, org: `${session.orgName} · ${session.role}` }} activeKey="duplicates" asideTitle="TODAY'S QUEUE" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Duplicate candidates"
         subtitle="Same person submitted by two suppliers · resolve before a shortlist goes out"

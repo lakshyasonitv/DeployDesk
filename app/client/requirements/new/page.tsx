@@ -17,7 +17,7 @@ export default async function NewRequirementPage() {
   ]);
 
   return (
-    <Shell portal="client" activeKey="requirements" asideTitle="OPEN REQS"
+    <Shell portal="client" user={{ name: session.userName, org: session.orgName }} activeKey="requirements" asideTitle="OPEN REQS"
       asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Post a requirement"

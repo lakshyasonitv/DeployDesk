@@ -22,7 +22,7 @@ export default async function RosterPage() {
 
   return (
     <Shell
-      portal="vendor"
+      portal="vendor" user={{ name: session.userName, org: session.orgName }}
       activeKey="roster"
       asideTitle="FRESHNESS ALERTS"
       asideItems={aside.items}

@@ -18,7 +18,7 @@ export default async function ClientRequirementsPage() {
   ]);
 
   return (
-    <Shell portal="client" activeKey="requirements" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
+    <Shell portal="client" user={{ name: session.userName, org: session.orgName }} activeKey="requirements" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Requirements"
         subtitle={`${rows.length} requirements · Talentvibes sources from every supplier bench on the exchange`}

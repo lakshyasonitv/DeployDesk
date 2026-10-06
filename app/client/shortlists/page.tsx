@@ -16,7 +16,7 @@ export default async function ShortlistsIndex() {
   ]);
 
   return (
-    <Shell portal="client" activeKey="shortlists" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
+    <Shell portal="client" user={{ name: session.userName, org: session.orgName }} activeKey="shortlists" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Shortlists"
         subtitle="Masked profiles delivered by your broker. Names, photos and suppliers are withheld."

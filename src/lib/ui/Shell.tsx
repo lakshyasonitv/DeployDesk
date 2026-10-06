@@ -55,11 +55,11 @@ const NAV: Record<Portal, Array<{ href: string; label: string; key: string }>> =
   ],
 };
 
-const USER: Record<Portal, { name: string; org: string }> = {
-  client: { name: "Ananya Krishnan", org: "Acme Finserv" },
-  vendor: { name: "Vikram Shetty", org: "Nimbus Softworks" },
-  ops: { name: "Priya Nair", org: "Talentvibes · Brokering" },
-};
+/** Who is signed in. Comes from the session, never from a table in this file. */
+export interface ShellUser {
+  name: string;
+  org: string;
+}
 
 const SWITCHER: Array<{ portal: Portal; href: string; label: string }> = [
   { portal: "client", href: "/client", label: "Client · Acme Finserv" },
@@ -70,6 +70,7 @@ const SWITCHER: Array<{ portal: Portal; href: string; label: string }> = [
 export function Shell({
   portal,
   activeKey,
+  user,
   badges = {},
   asideTitle,
   asideItems = [],
@@ -77,6 +78,7 @@ export function Shell({
 }: {
   portal: Portal;
   activeKey: string;
+  user: ShellUser;
   badges?: Record<string, string | number | undefined>;
   asideTitle: string;
   asideItems?: AsideItem[];
@@ -172,10 +174,10 @@ export function Shell({
             <div style={s("width:24px;height:24px;border-radius:50%;background:#3b3b45;flex:none")} />
             <div style={s("min-width:0")}>
               <div style={s("font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
-                {USER[portal].name}
+                {user.name}
               </div>
               <div style={s("font-size:10.5px;color:#6c6c78;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
-                {USER[portal].org}
+                {user.org}
               </div>
             </div>
           </div>

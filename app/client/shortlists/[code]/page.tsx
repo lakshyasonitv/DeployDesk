@@ -27,7 +27,7 @@ export default async function ShortlistPage({
 
   if (!view) {
     return (
-      <Shell portal="client" activeKey="shortlists" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
+      <Shell portal="client" user={{ name: session.userName, org: session.orgName }} activeKey="shortlists" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
         <div style={{ padding: "26px" }}>
           <EmptyState>
             No shortlist has been sent for {code.toUpperCase()} yet. Your broker will deliver
@@ -41,6 +41,7 @@ export default async function ShortlistPage({
   return (
     <Shell
       portal="client"
+      user={{ name: session.userName, org: session.orgName }}
       activeKey="shortlists"
       asideTitle="OPEN REQS"
       asideItems={aside.items}

@@ -1,6 +1,6 @@
 import { Shell, PageHeader, Scroll, Button, Card, SectionLabel, Pill } from "@/src/lib/ui/Shell";
 import { getDemoSession } from "@/src/lib/auth/session";
-import { getClientInterviews, getClientOverview } from "@/src/read-models/client";
+import { getClientInterviews, getClientFeedbackDue } from "@/src/read-models/client";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
 import { ShellAside } from "../aside";
 
@@ -13,25 +13,17 @@ import { ShellAside } from "../aside";
  */
 export const metadata = { title: "Interviews · Bench Exchange" };
 
-const FEEDBACK_ROWS: Array<[string, number]> = [
-  ["Technical depth", 4],
-  ["Problem solving", 5],
-  ["Communication", 4],
-  ["Role fit", 4],
-];
-
 export default async function ClientInterviewsPage() {
   const session = await getDemoSession("client");
-  const [interviews, aside] = await Promise.all([
-    getClientInterviews(session.orgId),
-    ShellAside(session.orgId),
-  ]);
+  const interviews = await getClientInterviews(session.orgId);
+  const feedback = await getClientFeedbackDue(session.orgId);
+  const aside = await ShellAside(session.orgId);
 
   const scheduled = interviews.filter((i) => i.scheduledAt);
   const waiting = interviews.filter((i) => i.waitingLabel);
 
   return (
-    <Shell portal="client" activeKey="interviews" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
+    <Shell portal="client" user={{ name: session.userName, org: session.orgName }} activeKey="interviews" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Interviews & feedback"
         subtitle="Talentvibes schedules every round and issues the meeting link. Your panel never contacts the supplier."
@@ -105,46 +97,63 @@ export default async function ClientInterviewsPage() {
             ) : null}
           </div>
 
-          {/* feedback card */}
-          <Card pad="13px">
-            <div style={s("display:flex;align-items:center;justify-content:space-between;margin-bottom:9px")}>
-              <SectionLabel>FEEDBACK DUE TODAY</SectionLabel>
-              <Pill bg="#fff3e4" fg="#b45309">1</Pill>
-            </div>
-            <div style={s("font-size:12.5px;font-weight:700")}>TV-6620 · Round 2</div>
-            <div style={s("font-size:11px;color:#8a8a96;margin-top:2px")}>QA Automation Engineers</div>
-
-            <div style={s("margin-top:12px;display:flex;flex-direction:column;gap:9px")}>
-              {FEEDBACK_ROWS.map(([label, v]) => (
-                <div key={label}>
-                  <div style={s("display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px")}>
-                    <span style={s("color:#4a4a58")}>{label}</span>
-                    <span style={sx("font-weight:700", { fontFamily: TOKENS.mono })}>{v}</span>
+          {/* feedback card — real interview_feedback rows */}
+          {feedback.length ? (
+            <Card pad="13px">
+              <div style={s("display:flex;align-items:center;justify-content:space-between;margin-bottom:9px")}>
+                <SectionLabel>FEEDBACK DUE</SectionLabel>
+                <Pill bg="#fff3e4" fg="#b45309">{feedback.length}</Pill>
+              </div>
+              {feedback.slice(0, 2).map((f) => (
+                <div key={f.maskedId + f.roundLabel} style={s("margin-bottom:14px")}>
+                  <div style={s("font-size:12.5px;font-weight:700")}>
+                    <span style={{ fontFamily: TOKENS.mono }}>{f.maskedId}</span> · {f.roundLabel}
                   </div>
-                  <div style={s("display:flex;gap:3px")}>
-                    {[1, 2, 3, 4, 5].map((n) => (
-                      <span key={n} style={sx("flex:1;height:5px;border-radius:3px", { background: n <= v ? "#6d3ff0" : "#eeeef3" })} />
+                  <div style={s("font-size:11px;color:#8a8a96;margin-top:2px")}>
+                    {f.roleTitle} · {f.requirementCode}
+                  </div>
+
+                  <div style={s("margin-top:11px;display:flex;flex-direction:column;gap:9px")}>
+                    {f.ratings.map((r) => (
+                      <div key={r.label}>
+                        <div style={s("display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px")}>
+                          <span style={s("color:#4a4a58")}>{r.label}</span>
+                          <span style={sx("font-weight:700", { fontFamily: TOKENS.mono })}>{r.value}</span>
+                        </div>
+                        <div style={s("display:flex;gap:3px")}>
+                          {[1, 2, 3, 4, 5].map((n) => (
+                            <span key={n} style={sx("flex:1;height:5px;border-radius:3px", { background: n <= r.value ? "#6d3ff0" : "#eeeef3" })} />
+                          ))}
+                        </div>
+                      </div>
                     ))}
+                  </div>
+
+                  {f.notes ? (
+                    <div style={s("margin-top:11px;background:#fafafc;border-radius:8px;padding:10px;font-size:11.5px;color:#4a4a58;line-height:1.55")}>
+                      {f.notes}
+                    </div>
+                  ) : null}
+
+                  <div style={s("margin-top:11px;display:flex;gap:7px")}>
+                    <Button primary>Submit feedback</Button>
+                    <Button>Save draft</Button>
                   </div>
                 </div>
               ))}
-            </div>
-
-            <div style={s("margin-top:12px;background:#fafafc;border-radius:8px;padding:10px;font-size:11.5px;color:#4a4a58;line-height:1.55")}>
-              Strong on Playwright and CI. Walked through a flaky-test triage end to end and knew
-              exactly where the retry logic belonged.
-            </div>
-
-            <div style={s("margin-top:11px;display:flex;gap:7px")}>
-              <Button primary>Submit feedback</Button>
-              <Button>Save draft</Button>
-            </div>
-
-            <div style={s("margin-top:11px;font-size:10.5px;color:#8a8a96;line-height:1.55")}>
-              Talentvibes relays a redacted summary to the supplier with your company name and
-              commercials removed. Your panel notes are never forwarded verbatim.
-            </div>
-          </Card>
+              <div style={s("font-size:10.5px;color:#8a8a96;line-height:1.55;padding-top:10px;border-top:1px solid #f1f1f5")}>
+                Talentvibes relays a redacted summary to the supplier with your company name and
+                commercials removed. Your panel notes are never forwarded verbatim.
+              </div>
+            </Card>
+          ) : (
+            <Card pad="13px">
+              <SectionLabel>FEEDBACK DUE</SectionLabel>
+              <div style={s("font-size:12px;color:#8a8a96")}>
+                Nothing outstanding. Feedback appears here after an interview completes.
+              </div>
+            </Card>
+          )}
         </div>
       </Scroll>
     </Shell>

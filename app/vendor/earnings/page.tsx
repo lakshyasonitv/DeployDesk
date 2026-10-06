@@ -33,7 +33,7 @@ export default async function VendorEarningsPage() {
   const ending = e.rows.filter((r) => r.status === "PRO-RATA").length;
 
   return (
-    <Shell portal="vendor" activeKey="earnings" asideTitle="FRESHNESS ALERTS" asideItems={aside.items} badges={aside.badges}>
+    <Shell portal="vendor" user={{ name: session.userName, org: session.orgName }} activeKey="earnings" asideTitle="FRESHNESS ALERTS" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Earnings"
         subtitle="Your contracted rate per placement. Talentvibes contracts separately with the client."

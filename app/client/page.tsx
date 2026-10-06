@@ -34,7 +34,7 @@ export default async function ClientDashboard() {
     stage === "shortlisted" ? `Review ${count}` : stage === "interviewing" ? "Schedule" : "View";
 
   return (
-    <Shell portal="client" activeKey="overview" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
+    <Shell portal="client" user={{ name: session.userName, org: session.orgName }} activeKey="overview" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title={`Good morning, ${overview.greetingName}`}
         subtitle={`${overview.orgName} · ${overview.stats.openRequirements} open requirements · your broker ${overview.brokerName} responds in ~2h`}
@@ -47,7 +47,7 @@ export default async function ClientDashboard() {
           <StatCard label="AWAITING REVIEW" value={overview.stats.awaitingReview} delta="new" deltaColor="#6d3ff0"
             sub={`${overview.stats.maskedProfiles} masked profiles`} />
           <StatCard label="IN INTERVIEW" value={overview.stats.inInterview}
-            sub={`${overview.stats.feedbackDue} feedback forms due`} />
+            sub={`${overview.stats.feedbackDue} feedback form${overview.stats.feedbackDue === 1 ? "" : "s"} due`} />
           <StatCard label="ACTIVE ENGAGEMENTS" value={overview.stats.activeEngagements}
             delta={`${overview.stats.monthlySpendLabel}/mo`} sub="your contracted rate" />
         </div>

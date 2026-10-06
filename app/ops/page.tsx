@@ -22,7 +22,7 @@ export default async function OpsPipelinePage() {
   `) as unknown as Array<{ clients: number; vendors: number }>;
 
   return (
-    <Shell portal="ops" activeKey="pipeline" asideTitle="TODAY'S QUEUE"
+    <Shell portal="ops" user={{ name: session.userName, org: `${session.orgName} · ${session.role}` }} activeKey="pipeline" asideTitle="TODAY'S QUEUE"
       asideItems={aside.items} badges={aside.badges}>
       <PipelineBoard
         requirements={pipeline.requirements}

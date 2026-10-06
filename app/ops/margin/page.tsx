@@ -14,7 +14,7 @@ export const metadata = { title: "Margin · Bench Exchange" };
 const COLS = "150px 130px 1fr 118px 118px 118px 86px";
 
 export default async function MarginPage() {
-  await getDemoSession("ops");
+  const session = await getDemoSession("ops");
   const [margin, aside] = await Promise.all([getOpsMargin(), OpsAside()]);
 
   const totals = margin.rows.reduce(
@@ -27,7 +27,7 @@ export default async function MarginPage() {
   );
 
   return (
-    <Shell portal="ops" activeKey="margin" asideTitle="TODAY'S QUEUE" asideItems={aside.items} badges={aside.badges}>
+    <Shell portal="ops" user={{ name: session.userName, org: `${session.orgName} · ${session.role}` }} activeKey="margin" asideTitle="TODAY'S QUEUE" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Margin"
         subtitle="Vendor rate, client rate and spread on every live placement · visible to Talentvibes only"
