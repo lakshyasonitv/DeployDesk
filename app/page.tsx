@@ -1,9 +1,7 @@
 import Link from "next/link";
 import { sql } from "drizzle-orm";
 import { db } from "@/src/db/client";
-import * as schema from "@/src/db/schema";
-import { getClientShortlist } from "@/src/read-models/client";
-import { getDemoSession } from "@/src/lib/auth/session";
+import { getPortalSwitcherOptions } from "@/src/lib/auth/session";
 import { s, TOKENS, ACCENT_GRADIENT } from "@/src/lib/ui/style";
 
 /**
@@ -23,17 +21,16 @@ const PORTAL_LABEL = {
 } as const;
 
 export default async function Home() {
-  // Who each portal signs in as, resolved from the database rather than written here.
-  const tenants = await Promise.all(
-    (["client", "vendor", "ops"] as const).map(async (portal) => {
-      try {
-        const sess = await getDemoSession(portal);
-        return { portal, sub: `${sess.orgName} · ${sess.userName}` };
-      } catch {
-        return { portal, sub: "not seeded" };
-      }
-    }),
-  );
+  /**
+   * ONE query for all three portals, not one per portal.
+   *
+   * This page was the slowest in the app — ~8 sequential queries, each paying a
+   * cross-continent round trip while the functions ran in iad1 against a Mumbai
+   * database. It is also the first page anyone opens, so it set the impression for the
+   * whole app. Three of those queries were this block calling getDemoSession() per
+   * portal; getPortalSwitcherOptions() resolves all three in one.
+   */
+  const tenants = await getPortalSwitcherOptions();
 
   let counts: Array<{ table: string; n: number }> = [];
   let shortlistSummary = "";
@@ -53,19 +50,27 @@ export default async function Home() {
     `) as unknown as Array<Record<string, number>>;
     counts = Object.entries(row).map(([table, n]) => ({ table, n: Number(n) }));
 
-    // One real read through the client read model.
-    const [acme] = await db
-      .select({ id: schema.organizations.id })
-      .from(schema.organizations)
-      .where(sql`${schema.organizations.name} = 'Acme Finserv'`)
-      .limit(1);
-    if (acme) {
-      const view = await getClientShortlist(acme.id, "REQ-2291");
-      shortlistSummary = view
-        ? `${view.candidates.length} masked profiles · ${view.selectedCount} selected · ` +
-          `bands ${view.candidates.map((c) => c.rateBandLabel).join(", ")}`
-        : "no shortlist found";
-    }
+    /**
+     * The masking summary, in ONE query against the client-facing snapshot table.
+     *
+     * This used to be an org lookup followed by getClientShortlist(), which is three more
+     * queries — four round trips to render one line of text on a smoke page. Reading
+     * shortlist_items directly is sound here for the same reason the client read model
+     * does: the table has no vendor column and no vendor rate to leak.
+     */
+    const [band] = await db.execute<{ n: number; selected: number; bands: string }>(sql`
+      select count(*)::int as n,
+             count(*) filter (where client_decision = 'selected')::int as selected,
+             coalesce(string_agg(
+               -- One lakh is 10,000,000 paise: 100,000 rupees x 100 paise.
+               '₹' || round(rate_band_min_paise / 10000000.0, 2) || '–' ||
+                      round(rate_band_max_paise / 10000000.0, 2) || 'L',
+               ', ' order by position), '') as bands
+        from shortlist_items
+    `) as unknown as Array<{ n: number; selected: number; bands: string }>;
+    shortlistSummary = Number(band?.n)
+      ? `${band.n} masked profiles · ${band.selected} selected · bands ${band.bands}`
+      : "no shortlist found";
   } catch (e) {
     error = e instanceof Error ? e.message : String(e);
   }
@@ -123,13 +128,13 @@ export default async function Home() {
         {tenants.map((t) => (
           <Link
             key={t.portal}
-            href={`/${t.portal}`}
+            href={t.href}
             style={s("display:flex;align-items:center;gap:11px;background:#fff;border:1px solid #e8e8ee;border-radius:11px;padding:13px 15px;color:#101014")}
           >
             <div style={{ ...s("width:22px;height:22px;border-radius:6px;flex:none"), background: ACCENT_GRADIENT[t.portal] }} />
             <div>
               <div style={s("font-size:13.5px;font-weight:700")}>{PORTAL_LABEL[t.portal]}</div>
-              <div style={s("font-size:11.5px;color:#8a8a96;margin-top:1px")}>{t.sub}</div>
+              <div style={s("font-size:11.5px;color:#8a8a96;margin-top:1px")}>{t.label}</div>
             </div>
           </Link>
         ))}
