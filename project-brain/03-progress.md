@@ -11,8 +11,8 @@ last_log: 2026-10-06
 
 ## Current state
 
-**All 15 design screens are written and the production build is clean. One live defect is
-open: the `/ops` route hangs on its second request.** A second, larger workstream
+**Sprint 1 is complete, committed and pushed (`2313554`). All four gates green. Both of
+the connection-pool defects are fixed and re-verified on a production build.** A second, larger workstream
 (dual-role organisations) has been specified and scoped but not started.
 
 Working and verified:
@@ -35,34 +35,15 @@ Working and verified:
 
 ## Start here next time
 
-**1. Fix the `/ops` hang — this is the one thing blocking the demo.**
+**Sprint 2 — performance.** Full definition, with the measured numbers, is in
+`04-tasks.md`. In one line: pages fetch the same data twice and the sidebars run entire
+read models for three badge numbers, so wrap the read models in React `cache()` and give
+the sidebars their own cheap COUNT queries.
 
-Diagnosed, not yet fixed. `/ops` returns 200 cold in 2.6s, then the *second* request
-hangs until the client gives up. `/ops/matching` is fine (10.4s cold, 0.68s warm), as are
-all client and vendor routes. The ops read models are fast in isolation (94–509ms for
-`getOpsPipeline`, measured standalone), so the queries are not the problem.
-
-Cause: too many concurrent queries for the pool. `/ops` runs
-`OpsAside()` → `Promise.all([getOpsPipeline(), getOpsDuplicates()])`, and
-`getOpsPipeline` itself runs a `Promise.all` of five more, plus the page's own
-`db.execute` — roughly eight concurrent queries against `max: 5`. Connections are not
-coming back for the second request.
-
-The fix is to **undo the parallelisation**, not to raise the pool further. That
-`Promise.all` was added when the database was in Sydney and each round trip cost 410ms;
-at Mumbai's ~30ms, running the five sequentially costs ~150ms total and removes the
-contention entirely. Also raise `max` to ~10 for headroom. See the note in
-`01-architecture.md` Gotchas.
-
-**2. Then the dual-role organisations workstream,** in the three stages the user set, with
-the existing 12 leak tests and 21 seed checks green after each:
-
-1. migrations and RLS files — **SQL shown to the user for approval before anything runs
-   against Supabase**;
-2. the matching function plus self-dealing bypass tests;
-3. UI last.
-
-Scope and the three decisions taken are in `02-decisions.md`.
+Sprints 3, 4 and 5 are dual-role organisations, in the three stages the user set. Sprint 3
+is schema and RLS **files only** — the SQL goes to the user for approval before anything
+touches Supabase, and the camelCase column rename is folded into the same batch so there
+is one review rather than two.
 
 ## Milestones
 
@@ -71,12 +52,13 @@ Scope and the three decisions taken are in `02-decisions.md`.
 - [x] Leak suite over the read models (12/12)
 - [x] All 15 design screens written
 - [x] Production build clean, 24 routes
-- [ ] **`/ops` second-request hang fixed**
+- [x] **`/ops` second-request hang fixed** (and the `statement_timeout` leak)
 - [ ] Deployed — the user deploys from their own Vercel account; see Blocked
-- [ ] camelCase column rename migration approved and applied
-- [ ] Dual-role stage 1: migrations + RLS files
-- [ ] Dual-role stage 2: matching function + bypass tests
-- [ ] Dual-role stage 3: UI
+- [ ] camelCase column rename — folded into the Sprint 3 SQL review
+- [ ] Sprint 2: performance (dedupe + cheap sidebars)
+- [ ] Sprint 3: dual-role schema + RLS files
+- [ ] Sprint 4: matching function + bypass tests
+- [ ] Sprint 5: dual-role UI
 - [ ] RLS generally — still absent; read models are the only net today
 
 ## Blocked / waiting on

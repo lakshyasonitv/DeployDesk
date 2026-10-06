@@ -128,6 +128,21 @@ Hard-won surprises and traps. Everything here is non-obvious from reading the co
   points at the SESSION pooler on 5432 instead, which supports the session-level features
   migrations need. The transaction pooler on 6543 is for the app only.
 
+- **Judge performance on `next start`, not `npm run dev`.** Dev mode compiles each route
+  on first visit and runs React's development build. The same pages measured 1.5-3.1s cold
+  in dev and 0.26-0.60s in production. Several "it's slow" reports trace to this alone.
+
+- **A sidebar can cost more than the page.** `OpsAside()` runs the entire
+  `getOpsPipeline()` read model plus `getOpsDuplicates()` to render three badge numbers.
+  On `/ops/margin` that was 9 of the page's 10 queries and 443ms of its 471ms — 94% of the
+  data time spent on the sidebar, not the content. Badge counts want their own `COUNT`
+  query, never a full read model.
+
+- **Pages and their sidebar helper duplicate the same read model.** `/client` calls
+  `getClientOverview()` and `ShellAside()` calls it again; `/vendor/roster` does the same
+  with `getVendorRoster()`. React's `cache()` around each read-model entry point dedupes
+  within a request without touching any page.
+
 - **Never build a production bundle while `next dev` is running.** They share `.next` and
   the build fails with `Cannot find module for page`. Stop the dev server and delete
   `.next` first.
