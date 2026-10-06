@@ -143,6 +143,31 @@ Hard-won surprises and traps. Everything here is non-obvious from reading the co
   sidebar was 9 of 10 queries, gained 23-76%. Measure wall time, not just query count,
   before claiming a win.
 
+- **NEVER junction a second checkout's `node_modules` at the real one.** To build a
+  before/after comparison I made `../tv-bench-BEFORE/node_modules` a junction to the main
+  repo's. Running `npm run build` in that worktree wrote *through* the junction and pruned
+  the shared tree: 93 packages became 72, `next/types` and the `next` bin shim vanished,
+  and a later `npm install` corrupted it further until `next` would not resolve at all.
+  Recovery was `rm -rf node_modules && npm ci`. Give each worktree its own install, or
+  copy the build output instead of sharing dependencies.
+
+- **`npm install` can rewrite `package.json`.** During that recovery it silently bumped
+  `next` from a pinned `15.5.4` to `^16.3.8` and alphabetised the dependency block, while
+  the lockfile still pinned 15.5.4 — three sources disagreeing. Check `git diff
+  package.json` after any install that was not a deliberate dependency change.
+
+- **Vercel blocks deploys on vulnerable Next.js versions.** The build succeeds, then the
+  deploy step refuses with "Vulnerable version of Next.js detected". CVE-2025-66478 is a
+  CVSS 10.0 RCE in the React Server Components protocol affecting App Router apps on
+  15.x/16.x. Patched on our line at 15.5.7; this project runs **15.5.27**. The advisory
+  also recommends rotating application secrets if the app was ever online unpatched.
+
+- **Hand-written SQL needs its own ledger.** drizzle-kit only tracks migrations it
+  generated (journal + snapshot per migration), so renames, triggers, views and RLS
+  policies are invisible to it. `src/db/apply-sql.ts` keeps an `applied_sql_migrations`
+  table, hashes each file, and refuses to re-run one whose contents changed — which is
+  how append-only gets enforced rather than merely documented.
+
 - **Judge performance on `next start`, not `npm run dev`.** Dev mode compiles each route
   on first visit and runs React's development build. The same pages measured 1.5-3.1s cold
   in dev and 0.26-0.60s in production. Several "it's slow" reports trace to this alone.

@@ -11,39 +11,39 @@ last_log: 2026-10-06
 
 ## Current state
 
-**Sprint 1 is complete, committed and pushed (`2313554`). All four gates green. Both of
-the connection-pool defects are fixed and re-verified on a production build.** A second, larger workstream
-(dual-role organisations) has been specified and scoped but not started.
+**Sprints 1-3 complete, committed and pushed.** Latest: `784d4f9`.
 
-Working and verified:
+- **Database** — Supabase `fmgwcspsuljefhfdcqen`, ap-south-1 (Mumbai). **33 tables**
+  (the original 30 plus groups, org_capabilities, memberships, org_blocks), 2 probing
+  views, 2 portal engagement views, 22 RLS policies, 4 migrations applied.
+- **Next.js 15.5.27** — patched for CVE-2025-66478 (CVSS 10.0 RCE in the RSC protocol).
+  15.5.4 was vulnerable and Vercel refused to deploy it.
+- **All 15 design screens**, 18 routes, every one 200 cold and warm. Warm page loads
+  0.26-0.60s in production.
+- **Gates:** routes 18/18 · test:leak 12/12 · build clean · typecheck clean ·
+  db:verify **20/21** (the one failure is SLA time decay, explained below).
+- **No hardcoded data in the rendering path.** Audited and fixed: the client dashboard
+  feedback count, the broker name, the interviews feedback card, the sidebar signed-in
+  user, and the talent pool client-rate column. All five now query the database.
 
-- **Database** — Supabase, now in **ap-south-1 (Mumbai)**, project `fmgwcspsuljefhfdcqen`.
-  30 tables, migrated and seeded. `npm run db:verify` → **21/21 pass**.
-  `npm run test:leak` → **12/12 pass** against live data.
-- **Region move paid off enormously.** The project started in ap-southeast-2 (Sydney):
-  warm query ~410ms from India, ~3s per new connection, full seed 41.7s. In Mumbai the
-  same warm query is **~30ms** and the seed takes **4.7s**. Client and vendor pages went
-  from 4–16s to 0.4–3.2s. Functions are pinned to `bom1` to stay co-located.
-- **Build** — `next build` compiles 24 routes, all correctly dynamic (`ƒ`), no prerender
-  of database data.
-- **Screens** — all 15 from the design handoff, plus three extras (client requirements
-  list, shortlists index, engagements). Client and vendor routes all return 200 fast.
-- **Write paths** — three, each with Zod at the boundary, org from the session rather
-  than the request body, a tenancy check and an audit row: availability confirm, stage
-  move, and the masked-shortlist send transaction (duplicate + eligibility pre-checks,
-  snapshot, stage move, audit, all atomic).
+### The one known failing check
+
+db:verify's "exactly one SLA breach" drops to 20/21 a few hours after each seed.
+REQ-2302 is stage `new`, whose documented window is 4 business hours, and the fixture
+wants it in `warn` — which means 25% or less remaining, so its deadline sits under an hour
+out and ages into `late`. **Not a regression and not a code defect.** Migration 0002 added
+`requirements.sla_window_hours` to fix it properly, but nothing reads or writes that
+column yet. Until that is wired: run `npm run db:seed` (~4s) shortly before a demo.
 
 ## Start here next time
 
-**Sprint 2 — performance.** Full definition, with the measured numbers, is in
-`04-tasks.md`. In one line: pages fetch the same data twice and the sidebars run entire
-read models for three badge numbers, so wrap the read models in React `cache()` and give
-the sidebars their own cheap COUNT queries.
+**Sprint 4 — dual-role matching and bypass tests.** Definition in `04-tasks.md`. The
+self-dealing rule (a resource whose vendor group equals the requirement's client group is
+never a candidate) goes in the matching query AND as a database rule, with tests that
+actively try to bypass both, plus block-list enforcement in the same two places.
 
-Sprints 3, 4 and 5 are dual-role organisations, in the three stages the user set. Sprint 3
-is schema and RLS **files only** — the SQL goes to the user for approval before anything
-touches Supabase, and the camelCase column rename is folded into the same batch so there
-is one review rather than two.
+Before that, two small follow-ups Sprint 3 created, both listed in `04-tasks.md`: wire
+`sla_window_hours` so db:verify stops decaying, and remove the ../tv-bench-BEFORE worktree.
 
 ## Milestones
 

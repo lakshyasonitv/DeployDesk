@@ -98,18 +98,18 @@ so the fix is to do less work, not to cache the answer.
 
 ---
 
-## SPRINT 3 — Dual-role stage 1: schema and RLS files
+## SPRINT 3 — Dual-role stage 1: schema and RLS files · ✅ DONE (commits `3252ce8`, `784d4f9`)
 
 **Hard constraint from the user: the SQL is shown for approval before anything runs
 against Supabase.** Migrations are files in the repo; seed data is a separate file the
 user runs themselves.
 
-- [ ] **ADR-012**, scoped exactly as the user specified — two points only:
+- [x] **ADR-012**, scoped exactly as the user specified — two points only:
       (a) a membership holds a SET of roles (supply, demand, admin) rather than one;
       (b) the portal switcher becomes a production feature.
       "A user belongs to exactly one organisation" **stays true** (unique on `user_id`).
       Then point `docs/DATA-MODEL.md` and `docs/ARCHITECTURE.md` at it.
-- [ ] Migration files for:
+- [x] Migration files written, APPROVED by the user, and applied:
       - `groups` (id, name) — filled by ops at onboarding, **never inferred from PAN/GST**
       - `org_capabilities` (can_supply, can_hire) — **authoritative**, backfilled from
         `org_type`; constraint that the Talentvibes org has neither; `org_type` becomes
@@ -121,13 +121,35 @@ user runs themselves.
       - `client_behaviour` score alongside the existing `vendor_reliability`
       - the probing signal: requirements shortlisted but never interviewed, plus a count
         of open requirements with no hiring history per org
-- [ ] RLS policy files: vendors see only their own rate; clients see only masked profiles
-      (anonymous id, skills, score, rate band); only ops sees both rates and the margin
-- [ ] **Fold in the camelCase rename** so the user approves one SQL batch rather than two:
-      add `casing: "snake_case"` plus an append-only `ALTER TABLE ... RENAME COLUMN` for
-      the 40 affected columns. This must land **before** the RLS policies, because
-      hand-written policies reference column names directly.
-- [ ] Four gates stay green.
+- [x] RLS: **22 policies over 13 tables**, plus `vendor_v_engagements` and
+      `client_v_engagements`. INERT today — the app connects as `postgres` (the owner
+      bypasses RLS) and `auth.uid()` is empty while the demo session lives in app code.
+      The migration says so at the top rather than implying protection that is not there.
+- [x] **camelCase rename applied** — 40 columns, with the paired `casing: "snake_case"`
+      in all four places drizzle is initialised. Verified: zero camelCase columns remain.
+- [x] Added `src/db/apply-sql.ts`, a ledger-backed runner for hand-written SQL that
+      drizzle-kit cannot express. Hashes each file and refuses to re-run a changed one,
+      enforcing append-only.
+- [x] **Patched CVE-2025-66478** (next 15.5.4 -> 15.5.27). Not planned work: the user's
+      Vercel deploy was refused because of it. CVSS 10.0 RCE in the RSC protocol,
+      affecting App Router apps on Next 15.x/16.x.
+- [x] **Removed hardcoded data from the rendering path** at the user's request — five
+      places showed fabricated values as if from the database. Detail in the journal.
+- [x] Four gates: 18 routes 200 twice each, test:leak 12/12, build clean, typecheck
+      clean. `db:verify` 20/21 on the known SLA time-decay check only.
+
+### Follow-ups this sprint created
+
+- [ ] **Wire `sla_window_hours`.** Migration 0002 added the column but nothing reads or
+      writes it, so warn-state requirements still age into `late` and `db:verify` still
+      drops to 20/21 a few hours after seeding. Needs: the seed to populate it, and
+      `slaFor()` to prefer it over the per-stage default.
+- [ ] **Re-seed before any demo** (`npm run db:seed`, ~4s) until the above lands.
+- [ ] **Rotate all application secrets.** The CVE advisory recommends it for any app that
+      was online unpatched. This one never deployed successfully, so exposure is unlikely,
+      but the Supabase password was separately shared in chat twice.
+- [ ] Remove the `../tv-bench-BEFORE` worktree — `git worktree remove ../tv-bench-BEFORE`.
+      Its `node_modules` junction has already been deleted.
 
 ---
 
