@@ -1,0 +1,59 @@
+import { notFound } from "next/navigation";
+import { sql } from "drizzle-orm";
+import { Shell } from "@/src/lib/ui/Shell";
+import { getDemoSession } from "@/src/lib/auth/session";
+import { getOpsMatchingWorkspace, getOpsPipeline, getOpsDuplicates } from "@/src/read-models/ops";
+import { db } from "@/src/db/client";
+import { OpsAside } from "../../aside";
+import { Workspace } from "./Workspace";
+
+/**
+ * Ops · Matching workspace. Unmasked by design — ops is the only portal that may see
+ * real names, supplier identity, vendor rates and the margin at the proposed rate.
+ */
+export default async function MatchingPage({ params }: { params: Promise<{ code: string }> }) {
+  const { code } = await params;
+  await getDemoSession("ops");
+
+  const workspace = await getOpsMatchingWorkspace(code.toUpperCase());
+  if (!workspace) notFound();
+
+  const [aside, dupes, benchRows] = await Promise.all([
+    OpsAside(),
+    getOpsDuplicates(),
+    db.execute<{ n: number }>(sql`select count(*)::int as n from organizations where org_type='vendor'`) as unknown as Promise<Array<{ n: number }>>,
+  ]);
+
+  // Which duplicate flags touch this requirement's pool.
+  const poolIds = new Set(workspace.candidates.map((c) => c.maskedId));
+  const touching = dupes.filter(
+    (d) => d.blocks && d.sides.some((side) => side && poolIds.has(side.maskedId)),
+  ).length;
+
+  const pickerOptions = aside.pipeline.requirements
+    .filter((r) => ["new", "matching", "shortlisted"].includes(r.stage))
+    .map((r) => ({
+      code: r.code, roleTitle: r.roleTitle, clientName: r.clientName,
+      quantity: r.quantity, ownerShort: r.ownerShort, stage: r.stage,
+      slaLabel: r.sla.label, slaState: r.sla.state,
+    }));
+
+  return (
+    <Shell portal="ops" activeKey="matching" asideTitle="TODAY'S QUEUE"
+      asideItems={aside.items} badges={aside.badges}>
+      <Workspace
+        requirement={workspace.requirement}
+        weights={workspace.weights}
+        candidates={workspace.candidates}
+        duplicateCount={touching}
+        pickerOptions={pickerOptions}
+        benchCount={Number(benchRows[0]?.n ?? 0)}
+      />
+    </Shell>
+  );
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ code: string }> }) {
+  const { code } = await params;
+  return { title: `Matching ${code.toUpperCase()} · Bench Exchange` };
+}
