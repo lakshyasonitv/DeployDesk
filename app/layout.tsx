@@ -8,6 +8,19 @@ import type { ReactNode } from "react";
  */
 export const dynamic = "force-dynamic";
 
+/**
+ * Run the functions in the same region as the database.
+ *
+ * The Supabase project is in ap-southeast-2 (Sydney). Measured from a laptop in India,
+ * a warm round trip to it is ~410ms and opening a new connection costs ~3s of TLS
+ * handshake — so a screen making six queries spends two and a half seconds purely on
+ * the wire, and parallelising them makes it worse by opening more cold connections.
+ *
+ * Co-locating the compute collapses that to single-digit milliseconds per query. If the
+ * Supabase project ever moves region, change this with it.
+ */
+export const preferredRegion = ["syd1"];
+
 export const metadata: Metadata = {
   title: "Bench Exchange · Talentvibes",
   description: "Brokered marketplace for IT bench capacity",

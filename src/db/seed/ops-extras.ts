@@ -208,7 +208,40 @@ export async function seedEngagements(
   }
 
   const engagements = await db.insert(s.engagements).values(rows).returning();
+
+  /**
+   * Link each `placed` requirement to an engagement.
+   *
+   * The ops pipeline derives a placed card's label from the engagement's two rate
+   * columns ("Margin 14.2%"), so an unlinked engagement leaves the card with nothing to
+   * show. Prefer an engagement for the same client whose role matches; otherwise take
+   * any unlinked one for that client, then any unlinked one at all.
+   *
+   * The resulting percentages come from the seeded rates, so they will not always equal
+   * the mockup's figures — the same authored-versus-computed gap recorded in ADR-011.
+   */
+  const placed = demand.requirements.filter((r) => r.stage === "placed");
+  const claimed = new Set<string>();
+  const linked: string[] = [];
+
+  for (const req of placed) {
+    const pools = [
+      engagements.filter((e) => e.clientOrgId === req.clientOrgId && sameRole(e.roleTitle, req.roleTitle)),
+      engagements.filter((e) => e.clientOrgId === req.clientOrgId),
+      engagements,
+    ];
+    const pick = pools.flat().find((e) => !claimed.has(e.id) && !e.requirementId);
+    if (!pick) continue;
+    claimed.add(pick.id);
+    await db.update(s.engagements)
+      .set({ requirementId: req.id })
+      .where(eq(s.engagements.id, pick.id));
+    const pct = marginPct(pick.clientRatePaise, pick.vendorRatePaise);
+    linked.push(`${req.code}→${pct.toFixed(1)}%`);
+  }
+
   log(`  engagements: ${engagements.length} (${namedCount} from fixtures) · below floor: ${belowFloor.join(", ")}`);
+  log(`  placed requirements linked: ${linked.join(", ") || "none"}`);
 
   /* ---- invoices: one receivable and one payable per engagement-month.
           They are never joined in an API response (docs/DATA-MODEL.md). ---- */
@@ -257,6 +290,16 @@ export async function seedEngagements(
   log(`  invoices: ${invoices.length} · invoice_lines: ${lineRows.length}`);
 
   return { engagements };
+}
+
+
+/** "SAP ABAP Consultant" vs "SAP ABAP Consultant" — match on the significant words. */
+function sameRole(a: string, b: string): boolean {
+  const key = (x: string) =>
+    x.toLowerCase().replace(/(senior|lead|engineers?|developers?|consultants?)/g, "")
+      .replace(/[^a-z0-9]+/g, " ").trim();
+  const ka = key(a), kb = key(b);
+  return ka === kb || ka.includes(kb) || kb.includes(ka);
 }
 
 /* ------------------------------------------------------------- duplicates */

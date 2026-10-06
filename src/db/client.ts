@@ -26,9 +26,17 @@ const sql =
   globalThis.__tvSql ??
   postgres(connectionString, {
     prepare: false, // required for Supavisor transaction mode
-    max: 1,         // one socket per serverless instance; the pooler does the pooling
+    /**
+     * Must be > 1. A single connection serialises every query, and issuing concurrent
+     * queries over one Supavisor transaction-mode connection stalls indefinitely —
+     * a page that reads two things in parallel hangs, and because the pool is one
+     * socket wide it takes every other route down with it. Found exactly that way.
+     */
+    max: 5,
     idle_timeout: 20,
     connect_timeout: 15,
+    // A stalled query should surface as an error, never as a hung request.
+    connection: { statement_timeout: 15_000 },
   });
 
 if (process.env.NODE_ENV !== "production") globalThis.__tvSql = sql;
