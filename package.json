@@ -12,7 +12,8 @@
     "db:push": "node --env-file=.env.local ./node_modules/drizzle-kit/bin.cjs push",
     "db:migrate": "tsx --env-file=.env.local src/db/migrate.ts",
     "db:seed": "tsx --env-file=.env.local src/db/seed/run.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "db:verify": "tsx --env-file=.env.local src/db/seed/verify.ts"
   },
   "dependencies": {
     "next": "15.5.4",

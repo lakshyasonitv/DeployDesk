@@ -171,6 +171,20 @@ export async function seedEngagements(
     });
   }
 
+  /* The floor rule is an invariant, not a list: ANY engagement under 18% needs an
+     approver and a note (docs/DOMAIN.md). Enforce it by computing, rather than by
+     hardcoding which rows are exceptions — TV-4455's own design figures land at 17.3%,
+     which a hardcoded list missed. Q5's safer default applies: ops_admin only. */
+  const opsAdmin = org.opsByShort.get("D. Rao")!;
+  for (const r of rows) {
+    const pct = marginPct(r.clientRatePaise, r.vendorRatePaise);
+    if (pct >= MARGIN_FLOOR_PCT || r.marginApprovedBy) continue;
+    r.marginApprovedBy = opsAdmin.id;
+    r.marginExceptionNote =
+      `Approved at ${pct.toFixed(1)}%, below the ${MARGIN_FLOOR_PCT}% floor, to hold the ` +
+      `account through this engagement. Review at renewal.`;
+  }
+
   // Generated placements so the exchange-wide totals (31 live, run-rate) read correctly.
   const namedCount = rows.length;
   const allResources = res.inserted.filter((r) => r.status === "deployed");
