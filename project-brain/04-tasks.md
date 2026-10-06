@@ -153,7 +153,52 @@ user runs themselves.
 
 ---
 
-## SPRINT 4 — Dual-role stage 2: matching and bypass tests
+## SPRINT 4 — Responsiveness and the last hardcoded data · ✅ DONE (commit `f77c17d`)
+
+The user reported the deployed site as slow and asked again about hardcoded data, so the
+planned Sprint 4 was deferred one slot. Measured before changing anything.
+
+**Not the cause:** the region. The deployed functions do run in `bom1`, co-located with
+the Mumbai database — confirmed by `x-vercel-id: bom1::…` on a live response.
+
+**Was a cause, and is the user's to fix:** the URL they tested
+(`deploy-desk-e2kmqgktr-…vercel.app`) is a **preview** deployment with Vercel Deployment
+Protection on, so every request 302s to `vercel.com/sso-api` and back before the app runs.
+`deploy-desk.vercel.app` is a 182-byte placeholder page belonging to something else, not
+this app.
+
+**Was the real in-code cause:** no `loading.tsx` anywhere. Every page is `force-dynamic`,
+so a click left the previous screen up until the server finished — 130-600ms of looking
+frozen.
+
+- [x] Added a skeleton per portal (`app/{client,vendor,ops}/loading.tsx` +
+      `src/lib/ui/Skeleton.tsx`). **TTFB 0.30-0.60s → 0.009-0.015s.** Total time to full
+      content is unchanged at 0.19-0.53s — the queries take exactly as long. This is a
+      perceived-performance fix and should be described as one.
+- [x] Fonts moved from a `fonts.googleapis.com` stylesheet link to `next/font`. 12 woff2
+      files now served from this origin; zero googleapis references in the build.
+- [x] **SLA states made durable.** `db:verify` had been drifting to 19/21 during the day.
+      The window is now derived from the runway the fixture states and stored per
+      requirement — the column migration 0002 added but nothing read. Shortest runway is
+      4 hours instead of 36 minutes, and the fixture's own "SLA 12h · warn" is honoured.
+- [x] Last hardcoded data removed: portal switcher org names (one query, after I first
+      wrote a three-query loop and caught it), landing-page tenant subtitles, the margin
+      screen's fixed "August 2026", and the vendor "PAYMENT CYCLE 7th" invented date.
+- [x] Four gates green.
+
+### Known, measured, not yet fixed
+
+- [ ] **`getVendorRoster` moves 173 rows to render 9** (42 resources + 89 skills + 42
+      assessments, no LIMIT). At 287ms it is not today's bottleneck, but the launch target
+      is ~2,000 bench resources, where it would be. Needs server-side paging, which also
+      means moving the roster's filter pills from client-side to server-driven — the pill
+      counts already come from the cheap `getVendorSidebar` aggregate.
+- [ ] Mobile. The design handoff targets desktop ≥1280px and lists mobile as out of
+      scope, so nothing here is responsive in the viewport sense. Ask before building it.
+
+---
+
+## SPRINT 5 — Dual-role stage 2: matching and bypass tests
 
 - [ ] Self-dealing rule: a resource whose vendor `group_id` equals the requirement's
       client `group_id` is never returned as a candidate — in the matching query **and**
@@ -165,7 +210,7 @@ user runs themselves.
 
 ---
 
-## SPRINT 5 — Dual-role stage 3: UI
+## SPRINT 6 — Dual-role stage 3: UI
 
 - [ ] Vendor-only org: one workspace, no switcher, **no hint that a hiring side exists** —
       never a locked "Hire" tab

@@ -11,7 +11,7 @@ last_log: 2026-10-06
 
 ## Current state
 
-**Sprints 1-3 complete, committed and pushed.** Latest commit: `a487cb7` on `main`
+**Sprints 1-4 complete, committed and pushed.** Latest commit: `f77c17d` on `main`
 at `github.com/lakshyasonitv/DeployDesk`. Working tree clean.
 
 - **Database** — Supabase `fmgwcspsuljefhfdcqen`, ap-south-1 (Mumbai). **33 tables**
@@ -21,20 +21,36 @@ at `github.com/lakshyasonitv/DeployDesk`. Working tree clean.
   15.5.4 was vulnerable and Vercel refused to deploy it.
 - **All 15 design screens**, 18 routes, every one 200 cold and warm. Warm page loads
   0.26-0.60s in production.
-- **Gates:** routes 18/18 · test:leak 12/12 · build clean · typecheck clean ·
-  db:verify **20/21** (the one failure is SLA time decay, explained below).
-- **No hardcoded data in the rendering path.** Audited and fixed: the client dashboard
-  feedback count, the broker name, the interviews feedback card, the sidebar signed-in
-  user, and the talent pool client-rate column. All five now query the database.
+- **Gates: all four green** — routes 18/18 (twice each) · db:verify **21/21** ·
+  test:leak 12/12 · build and typecheck clean.
+- **Perceived performance** — TTFB ~0.01s via streamed loading skeletons; total time to
+  full content 0.19-0.53s. Fonts self-hosted; no third-party request on the critical path.
+- **No hardcoded data in the rendering path.** Two audit passes. Fixed: the client
+  dashboard feedback count, the broker name, the interviews feedback card, the sidebar
+  signed-in user, the talent pool client-rate column, the vendor pipeline skills, the
+  portal switcher's org names, the landing-page tenants, the margin period label and the
+  vendor payment-cycle figure. Business rules (SLA windows, margin thresholds) and design
+  copy remain constants on purpose — see the note in 04-tasks.md before "fixing" them.
 
-### The one known failing check
+### Deployment: why it felt slow
 
-db:verify's "exactly one SLA breach" drops to 20/21 a few hours after each seed.
-REQ-2302 is stage `new`, whose documented window is 4 business hours, and the fixture
-wants it in `warn` — which means 25% or less remaining, so its deadline sits under an hour
-out and ages into `late`. **Not a regression and not a code defect.** Migration 0002 added
-`requirements.sla_window_hours` to fix it properly, but nothing reads or writes that
-column yet. Until that is wired: run `npm run db:seed` (~4s) shortly before a demo.
+Measured rather than guessed. **The region is correct** — the deployed functions run in
+`bom1`, co-located with the Mumbai database, confirmed by `x-vercel-id` on a live
+response. Two real causes:
+
+1. **The URL being tested is a PREVIEW deployment with Vercel Deployment Protection on,**
+   so every request 302s to `vercel.com/sso-api` and back before the app runs. Use the
+   production deployment, or turn Deployment Protection off. Note
+   `deploy-desk.vercel.app` is a 182-byte placeholder belonging to something else, not
+   this app.
+2. **No loading states** — fixed in Sprint 4. TTFB went 0.30-0.60s → ~0.01s.
+
+### SLA decay: fixed
+
+`db:verify` used to drift to 19/21 during the day. The window is now derived from the
+runway each fixture states and stored in `requirements.sla_window_hours`. The shortest
+runway is 4 hours instead of 36 minutes, so a demo day holds. Re-seeding
+(`npm run db:seed`, ~4s) is still worth doing if the data is more than a few hours old.
 
 ## How to run this from a cold start
 
@@ -84,29 +100,23 @@ percent-encoded (`@` becomes `%40`). Ask the user for credentials; do not guess.
 
 ## Start here next time
 
-Two small things first, both ~15 minutes, both listed in `04-tasks.md`:
-
-1. **Wire `requirements.sla_window_hours`.** The column exists (migration 0002) but
-   nothing reads or writes it, so `db:verify` still decays to 20/21 hours after a seed.
-   Needs: `slaFor()` in `src/lib/derived.ts` to accept an override and prefer it over the
-   per-stage default; `slaDueAtFor()` in `src/db/seed/demand.ts` to write the window it
-   actually used; and `getOpsPipeline()` in `src/read-models/ops/index.ts` to pass the
-   column through. Then `db:verify` should hold at 21/21 regardless of elapsed time.
-2. **`git worktree remove ../tv-bench-BEFORE`** — the Sprint 2 comparison copy. Its
-   `node_modules` junction is already deleted; do not recreate one (see Gotchas).
-
-**Then Sprint 4 — the self-dealing rule.** A resource whose supplying org is in the same
-`group_id` as the requirement's client org must never be returned as a candidate. It has
-to live in two places so an application bug cannot bypass it:
+**Sprint 5 — the self-dealing rule and bypass tests** (was Sprint 4; renumbered after the
+performance sprint was inserted). A resource whose supplying org shares a `group_id` with
+the requirement's client org must never be returned as a candidate. It has to live in two
+places so an application bug cannot bypass it:
 
 - the matching query — `getOpsMatchingWorkspace()` in `src/read-models/ops/index.ts`, and
   wherever matches are computed for a requirement;
-- the database — a policy or constraint, alongside the existing `orgs_are_blocked(a, b)`
-  helper from migration 0002, which is already symmetric and ready to use.
+- the database — a policy or constraint, alongside the `orgs_are_blocked(a, b)` helper
+  from migration 0002, which is already symmetric and ready to use.
 
 Block-list enforcement goes in the same two places. Then tests that **actively try to
 bypass** both rules, not merely tests that they work — the user asked for that explicitly.
 New SQL goes in a migration file with the SQL shown for approval before it runs.
+
+One measured item worth doing first if the bench grows: `getVendorRoster` moves 173 rows
+to render 9 and has no LIMIT. Fine at 42 resources, not at the 2,000 launch target. See
+the note at the end of Sprint 4 in `04-tasks.md`.
 
 ## Milestones
 
@@ -115,11 +125,12 @@ New SQL goes in a migration file with the SQL shown for approval before it runs.
 - [x] **Sprint 2** — performance: cheap sidebars, `/ops/margin` 10 queries to 2
 - [x] **Sprint 3** — dual-role schema (33 tables), ADR-012, camelCase rename, 22 RLS
       policies, CVE-2025-66478 patched, hardcoded data removed from the rendering path
-- [ ] **Sprint 4** — self-dealing rule + block list, in the matching query AND the
+- [x] **Sprint 4** — responsiveness (TTFB 0.30-0.60s to ~0.01s), self-hosted fonts,
+      durable SLA windows, last hardcoded data removed
+- [ ] **Sprint 5** — self-dealing rule + block list, in the matching query AND the
       database, with bypass tests
-- [ ] **Sprint 5** — dual-role UI (workspace switcher, ops console additions)
+- [ ] **Sprint 6** — dual-role UI (workspace switcher, ops console additions)
 - [ ] Deployed — the user's to do; see Blocked
-- [ ] `sla_window_hours` wired, so `db:verify` stops decaying to 20/21
 - [ ] RLS made effective — the 22 policies exist but are inert until the app connects as a
       restricted role with real Supabase Auth. Read models remain the only live net.
 - [ ] Real Supabase Auth replacing the demo session in `src/lib/auth/session.ts`

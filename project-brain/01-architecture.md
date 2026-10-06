@@ -168,6 +168,24 @@ Hard-won surprises and traps. Everything here is non-obvious from reading the co
   table, hashes each file, and refuses to re-run one whose contents changed — which is
   how append-only gets enforced rather than merely documented.
 
+- **A missing `loading.tsx` is the difference between "slow" and "frozen".** Every page is
+  `force-dynamic`, so without one Next leaves the previous screen up until the server
+  finishes. Adding a skeleton per portal took TTFB from 0.30-0.60s to ~0.01s. Total time
+  did not move — the queries cost the same — so describe it as perceived performance, not
+  a speedup.
+
+- **Vercel preview URLs are SSO-protected by default.** A preview host like
+  `project-<hash>-<team>.vercel.app` 302s to `vercel.com/sso-api` and back on every
+  request, which the user will experience as the app being slow. Check for a `Location`
+  header before investigating application performance. `x-vercel-id` also reveals the
+  function region, which is how the bom1 co-location was confirmed live.
+
+- **A fixture's SLA label can contradict the stage window it sits in.** REQ-2302 is
+  labelled "SLA 12h · warn", but `warn` means 25% or less of the window remains, so 12h
+  of runway implies a ~60h window while docs/DOMAIN.md gives stage `new` four hours. The
+  resolution is `requirements.sla_window_hours`: derive the window from the stated runway
+  and store it per requirement. Without that, seeded demo data decays within the hour.
+
 - **Judge performance on `next start`, not `npm run dev`.** Dev mode compiles each route
   on first visit and runs React's development build. The same pages measured 1.5-3.1s cold
   in dev and 0.26-0.60s in production. Several "it's slow" reports trace to this alone.
