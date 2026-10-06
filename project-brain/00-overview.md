@@ -28,6 +28,26 @@ see the margin.** If a client can identify the supplier, they contract them dire
 the business dies. See the non-negotiable rule at the top of `../CLAUDE.md`, and the
 field-level visibility matrix in `../MASKING.md`.
 
+## Dual-role organisations (added 2026-10-06)
+
+Some companies are both sides of the exchange: an IT services firm with engineers on its
+bench also hires contract engineers. This is now a first-class case, not an edge case.
+
+- What a company may do lives in `org_capabilities (can_supply, can_hire)` — the
+  authoritative record. `organizations.org_type` is derived from it.
+- A user still belongs to exactly one organisation, but a membership carries a SET of
+  roles (supply, demand, admin). The portal switcher became a production feature for
+  multi-capability orgs. See **ADR-012**.
+- Three consequences that shape the UI and are easy to get wrong:
+  1. a supply-only org must see **no trace** of a hiring side — not even a disabled tab;
+  2. the two rate views must never appear on the same screen for the same org, or it can
+     infer the platform's margin;
+  3. dual-role orgs therefore default to a **flat declared fee** rather than a hidden
+     markup — if the fee is declared, there is no margin to infer.
+- A **self-dealing rule** follows: a resource whose supplying org shares a `group_id` with
+  the requirement's client org must never be offered as a candidate. Groups are declared
+  by ops from the MSA, never inferred from PAN or GSTIN.
+
 ## What does "done" look like
 
 v1 ships the full brokered lifecycle:
