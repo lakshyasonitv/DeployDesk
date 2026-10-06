@@ -11,70 +11,84 @@ last_log: 2026-10-06
 
 ## Current state
 
-**Specification complete, implementation at zero.** The repo holds eleven root markdown
-docs (~2,550 lines) covering architecture, data model, masking, domain rules, API,
-matching, decisions, build plan, testing and seed data, plus the finished frontend design
-handoff in `design_handoff_bench_exchange/`. There is **no application code at all** — no
-`package.json`, no `src/`, no migrations, no Next.js project. Not a git repo either.
+**Goal set on 2026-10-06: deploy a working demo of all 15 screens to Supabase + Vercel,
+today.** The backend foundation and the seed are written and typecheck clean; no UI exists
+yet and nothing is deployed. Build order from here is sequential — see "Start here next
+time".
 
-Every checkbox in `../BUILD-PLAN.md` is unticked, including all seven items of Phase 0.
-Ten ADRs are accepted and ten open questions (Q1–Q10) are parked with safer defaults
-recorded, so the technical direction is settled and the spec is unusually detailed for a
-pre-code project — the next session's job is scaffolding, not deciding.
+What is real and verified:
 
-Nothing is broken, because nothing runs yet.
+- **Repo** — the ten spec docs now live in `docs/`, so the paths `CLAUDE.md` already used
+  resolve (all ten checked). Git initialised, one commit. **Not pushed** — see Blocked.
+- **Next.js app** scaffolded by hand (`create-next-app` refuses the directory name because
+  it contains a space). 93 packages installed. Folder layout matches
+  `docs/ARCHITECTURE.md`, including the three separate read-model folders ADR-003 requires.
+- **Schema** — ~25 tables across six files in `src/db/schema/`, transcribed from
+  `docs/DATA-MODEL.md`: tenancy, supply, demand, matching, ops. `npx tsc --noEmit` passes.
+- **Derived-value library** — freshness (10/14-day thresholds, decay bar), SLA (25% warn
+  boundary, `idle` pause), experience and age formatting. Nothing stored that
+  `docs/DOMAIN.md` lists as derived.
+- **Money** — bigint paise throughout, parsers for the fixtures' `₹1.38L` / `₹92K` /
+  `₹1,38,000` forms, and `deriveRateBand()` implementing ADR-004 with the vendor rate
+  deliberately absent from its signature.
+- **Fixture extraction** — the prototype's data pulled out mechanically into
+  `src/db/seed/prototype-fixtures.json` (63 KB) rather than retyped: 24 requirements,
+  21 pool candidates, 27 distinct masked IDs, 23 per-screen arrays. Counts cross-checked
+  against `docs/SEED-DATA.md` (1 SLA breach, 2 idle, 7 vendors, 5 clients, 3 owners).
+- **Seed** — written in full across seven modules: orgs/users/skills, bench resources
+  (fixtures + generated filler to 42 on the Nimbus bench), requirements, matches,
+  the REQ-2291 shortlist, interviews, engagements, invoices, duplicate flags, the
+  two-sided broker threads with a relayed message, audit rows, and the
+  `sensitive_columns` tripwire registry. **Never executed** — no database yet.
+- **Read models** — client and vendor portals done. Ops not started.
 
 ## Start here next time
 
-**Begin Phase 0 of `../BUILD-PLAN.md`, in its listed order.** The first concrete action:
-scaffold the Next.js + TypeScript project (App Router, strict mode, path aliases) in the
-repo root alongside the existing docs, then `git init` and commit the docs plus
-`project-brain/` as the first commit before any code lands.
+**Sequential order. Do not start a step before the one above it is verified.**
 
-Phase 0's exit test, verbatim from the build plan: *"`pnpm dev` boots against a local
-Postgres with zero tables and CI is green."*
-
-Two decisions to make while scaffolding, neither yet taken:
-1. Whether the eleven root docs move into `docs/` to match the paths `../CLAUDE.md`
-   already uses, or the references get corrected instead (see Gotchas in
-   `01-architecture.md`).
-2. Package manager — the build plan's "done when" says `pnpm dev`, which implies pnpm, but
-   nothing is committed to yet.
-
-Do **not** jump ahead to Phase 2. The build plan deliberately puts the masking harness
-(Phase 1) before any data that could leak, and says so explicitly.
+1. **Unblock the database.** Needs the Supabase connection strings (see Blocked). Then
+   `npm run db:push` to create the schema, and `npm run db:seed`.
+2. **Verify the seed against the design** — spot-check that freshness states, the one SLA
+   breach (REQ-2295), the two below-floor margins (TV-3964 at 17.4%, TV-4488 at 14.2%) and
+   the six REQ-2291 shortlist bands all read correctly.
+3. **Ops read model** — the last of the three. Pipeline, matching workspace, talent pool,
+   margin, duplicates.
+4. **Deploy a skeleton early.** One trivial page that reads one row, pushed to Vercel, to
+   prove the whole pipe (pooler connection, env vars, build) before building 15 screens on
+   top of an unproven path.
+5. **UI** — shell and design tokens first, then screens in this order: client shortlist
+   review → ops matching workspace → vendor roster (the same candidate rendered three
+   ways, which is the demo), then the remaining twelve.
+6. **Leak test** — point it at the read-model functions, not the route handlers, because
+   the pages call the read models directly and that is the chokepoint both paths share.
 
 ## Milestones
 
-Mirrors `../BUILD-PLAN.md`, which is the authority — tick there first, then here.
-
-- [ ] **Phase 0** — Foundations (Next.js, Supabase, Drizzle, restricted DB role, CI)
-- [ ] **Phase 1** — Tenancy, auth and the masking harness *(before any real data)*
-- [ ] **Phase 2** — Supply side: vendor roster, masked IDs, freshness, bulk import
-- [ ] **Phase 3** — Assessments behind the provider adapter
-- [ ] **Phase 4** — Demand side: requirements, SLA clocks, client dashboard
-- [ ] **Phase 5** — Matching: six scorers, eligibility gates, proposed client rate
-- [ ] **Phase 6** — Shortlists, the hero path *(snapshot + leak suite)*
-- [ ] **Phase 7** — Brokering: two-sided threads and audited relay
-- [ ] **Phase 8** — Interviews and feedback
-- [ ] **Phase 9** — Placements, margin and billing
-- [ ] **Phase 10** — Duplicate detection and resolution
-- [ ] **Phase 11** — Ops console completeness
-- [ ] **Phase 12** — Hardening before launch
+- [x] **Phase 0** — Foundations *(partial: app, schema, config done; CI and the restricted
+      DB role not done)*
+- [ ] **Database live** — schema pushed and seeded on Supabase
+- [ ] **Deployed skeleton** on Vercel, reading one real row
+- [ ] **Ops read model**
+- [ ] **UI shell** + design tokens
+- [ ] **15 screens** — 0 of 15 built
+- [ ] **Leak test** in CI
+- [ ] Phases 1–12 proper — see `../docs/BUILD-PLAN.md`
 
 ## Blocked / waiting on
 
-Nothing blocking Phase 0 — it can start immediately.
+1. **Supabase connection strings.** Have the project URL
+   (`cwjlrgzjloeqyailnfoj.supabase.co`) and the publishable key, but the publishable key
+   cannot create tables. Need, from Project Settings → Database → Connection string:
+   the **transaction pooler** URI (port 6543, for the app) and the **direct** URI
+   (port 5432, for migrations and seeding). The Supabase MCP connector is installed but
+   still unauthorised; `/mcp` would be the alternative.
+2. **Git push refused** by the permission classifier ("Remote Repoint") when pushing to
+   `github.com/lakshyasonitv/DeployDesk.git`. The remote is added and the repo is empty
+   and reachable. Needs either an approval or the user running the push.
+3. **Vercel token** not yet provided. Vercel MCP *is* authorised (team
+   `vaibhavalteryx-1351`), so deploying is possible without it, but each redeploy then
+   re-sends every file, which is slow when fixing build errors.
 
-Needs a business answer before the affected phase ships (all have a safer default recorded
-in the **Open questions** table of `../DECISIONS.md`, so none of them block today):
-
-- **Q1** — is client identity ever revealed to the vendor? Default: **never**, no reveal
-  path built. Affects Phase 9.
-- **Q5** — who approves a below-floor margin? Default: `ops_admin` only. Affects Phase 9.
-- **Q7** — PII retention for archived bench resources; needs counsel on DPDP Act
-  obligations. Affects Phase 12.
-
-Also outstanding, not a blocker: the client-facing rate bands in the design mockups leak
-the margin (ADR-004). **Needs raising with the design owner** before Phase 6 renders a
-shortlist, so the deviation is expected rather than filed as a bug.
+Not blocking, but outstanding: the ADR-004 band deviation and the ADR-011 scorer
+divergence both need flagging to the design owner, since the built screens will not match
+the mockups in those two specific ways — on purpose.

@@ -26,6 +26,49 @@
 - **Impact:** what this touches / constrains going forward
 -->
 
+## 2026-10-06 — Inline styles copied from the prototype via a parser helper
+
+- **Decision:** port the prototype's markup keeping its inline `style="..."` strings
+  verbatim, and convert them at render with a ~10-line `s()` helper that parses a CSS
+  declaration string into a React style object.
+- **Why:** the design handoff is high fidelity and declares every colour, size and spacing
+  value final. Hand-converting ~15 screens of inline styles into style objects or CSS
+  classes is where a one-day build dies, and every conversion is a chance to drift off the
+  spec. Copying the strings keeps fidelity exact and makes porting mechanical.
+- **Rejected:** (a) writing a template-to-JSX transpiler — the `{{ }}` / `sc-for` /
+  `sc-if` format is simple but the edge cases around nested quotes and text nodes would eat
+  more time than they save; (b) converting to Tailwind or CSS modules now — correct
+  eventually, not today, and `docs/ARCHITECTURE.md` is agnostic about which.
+- **Impact:** a runtime parse per styled element, which is negligible at this page size.
+  Migrating to CSS modules later is a mechanical find-and-replace against the same strings.
+  Recorded as a demo-time shortcut, not an endorsement.
+
+## 2026-10-06 — Spec docs moved into docs/ rather than fixing CLAUDE.md's paths
+
+- **Decision:** move the ten spec files from the repo root into `docs/`.
+- **Why:** `CLAUDE.md` already referenced `docs/MASKING.md` and nine others in ten places,
+  including the instruction to read `docs/MASKING.md` before touching any read path. Moving
+  the files makes all ten references correct at once and leaves the contract untouched.
+- **Rejected:** editing the ten references to point at the root — more edits, and it would
+  have meant changing the project contract to match an accident rather than the reverse.
+- **Impact:** `CLAUDE.md` is unchanged apart from the appended Project Brain section. The
+  repo root is now the application root, which is what the Next.js scaffold wanted anyway.
+
+## 2026-10-06 — Scope: all 15 screens, depth traded for breadth
+
+- **Decision:** build all 15 screens from the design handoff for today's demo, implementing
+  each screen's read path properly but little of the deeper business logic behind the later
+  phases (assessments provider, brokering workflow, billing runs, duplicate detection).
+- **Why:** the user has to demo the whole application today and chose breadth explicitly
+  after being shown the trade-off. Masking stays fully enforced server-side regardless —
+  it is cheap to do right now and a rewrite later, and it is the reason the product exists.
+- **Rejected:** a six-screen hero-path slice with deeper logic. Better engineering, but it
+  does not meet the stated need.
+- **Impact:** screens behind the later phases render from seeded data with modest logic.
+  What is *not* compromised: separate read models per portal, ADR-004 bands, bigint paise,
+  random masked IDs, the snapshot shortlist. RLS is deferred — the read models are the
+  first net, RLS is the second.
+
 ## 2026-10-06 — Project brain holds pointers, not copies
 
 - **Decision:** `project-brain/` stays deliberately thin. `00-overview.md`,

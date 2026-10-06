@@ -227,3 +227,63 @@ Resolve these with the business before the affected code ships. Until then, take
 | Q8 | Does a client ever get the assessment report file, or only the summary? | Summary only. |
 | Q9 | Vendor reliability formula weights — the design shows scores (4.6, 3.1) but no derivation. | Use the formula in `docs/DOMAIN.md`, version it, revisit after 90 days of real outcomes. |
 | Q10 | Is the exchange exclusive — can a client contract a vendor directly after meeting them at an interview? | Contractual, not technical. Ensure the audit log can evidence introduction dates. |
+
+---
+
+## ADR-011: Demo seed computes `algo_score` from components; the prototype's own scores diverge
+
+**Status:** Accepted · **Date:** 2026-10-06
+
+### Context
+
+`docs/SEED-DATA.md` names Pool A (94, 89, 86, 81, 77, 68) as the golden case for
+`docs/MATCHING.md` and says: *"If your scorer does not reproduce this order from the
+underlying attributes, either the scorer or the fixture needs adjusting — investigate
+before changing either."*
+
+Investigated. Applying the documented weights (30/22/16/14/10/8) to the six component
+values the prototype ships for each candidate reproduces the fixture's own `match` value
+only in Pool C. Elsewhere it diverges, and in three of four pools it changes the order:
+
+| Pool | Order reproduced | Largest divergence |
+|---|---|---|
+| A | No — TV-6620 and TV-7715 swap | TV-6612, +3 |
+| B | No — TV-7702 and TV-6119 swap | TV-5981, +5 |
+| C | **Yes** | TV-7341, +3 |
+| D | No — TV-4488 and TV-5990 swap | TV-4488, −7 |
+
+The divergences are not random: they are largest where a candidate is penalised by the
+freshness or vendor components. TV-4488 is `Unconfirmed 26d` with a freshness component of
+30, which the weighted sum punishes to 81 while the fixture ranks it top of Pool D at 88.
+The conclusion is that the prototype's `match` values and its component bars were authored
+independently, for visual effect, rather than one being computed from the other.
+
+### Decision
+
+Seed the six component values and **compute** `algo_score` from them with the documented
+weights. Do not seed `algo_score`.
+
+### Rationale
+
+The ops matching workspace renders the six components as bars next to the total. If the
+total were seeded from the mockup, a broker adding up the bars would get a different
+number — visibly incoherent on the one screen whose entire purpose is explaining an
+ordering to a human. `docs/MATCHING.md` requires every component to be "independently
+defensible to a broker who has to justify an ordering to a client"; a total that does not
+follow from the bars cannot be defended.
+
+This also keeps `docs/SEED-DATA.md`'s instruction intact — "Do not seed `algo_score`
+directly. A seeded score would make the golden test tautological."
+
+### Consequences
+
+- Algorithm-order rankings in the ops workspace will differ from the design mockups in
+  pools A, B and D. **That is correct.** Flag it to the design owner rather than reverting.
+- The hero shortlist screen is unaffected: the design's shortlist order for REQ-2291
+  (TV-6620, TV-4821, TV-5302, TV-5107, TV-4488, TV-3964) is a broker's `manual_rank`, not
+  the algorithm order, and is seeded as such.
+- The golden test for the scorer should assert against hand-worked component arithmetic,
+  not against the prototype's `match` values. Pool C can serve as the one fixture where
+  both agree.
+- Revisit if the business confirms the mockup ordering was intentional — in which case the
+  weights in `docs/MATCHING.md` are wrong, not the fixtures.

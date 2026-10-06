@@ -8,10 +8,10 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "db:generate": "drizzle-kit generate",
-    "db:push": "drizzle-kit push",
-    "db:migrate": "tsx src/db/migrate.ts",
-    "db:seed": "tsx src/db/seed/run.ts",
+    "db:generate": "node --env-file=.env.local ./node_modules/drizzle-kit/bin.cjs generate",
+    "db:push": "node --env-file=.env.local ./node_modules/drizzle-kit/bin.cjs push",
+    "db:migrate": "tsx --env-file=.env.local src/db/migrate.ts",
+    "db:seed": "tsx --env-file=.env.local src/db/seed/run.ts",
     "test": "vitest run"
   },
   "dependencies": {

@@ -1,0 +1,2695 @@
+{
+  "cands": [
+    {
+      "id": "TV-6620",
+      "name": "Meghna Iyer",
+      "vendor": "Sparkbridge Systems",
+      "city": "Jaipur",
+      "skills": [
+        "QA Automation",
+        "Playwright",
+        "Selenium",
+        "CI/CD"
+      ],
+      "exp": "5.4y",
+      "score": 91,
+      "rate": "₹1.10–1.25L",
+      "clientRate": "₹1.44L",
+      "avail": "Available now",
+      "attempt": "attempt 1",
+      "testedOn": "tested 12 Aug",
+      "fresh": "confirmed",
+      "dot": "#16a34a",
+      "softbg": "#e9f7ee",
+      "bars": [
+        {
+          "label": "Coding",
+          "short": "COD",
+          "v": 93,
+          "w": "93%"
+        },
+        {
+          "label": "DSA",
+          "short": "DSA",
+          "v": 88,
+          "w": "88%"
+        },
+        {
+          "label": "System design",
+          "short": "SYS",
+          "v": 86,
+          "w": "86%"
+        },
+        {
+          "label": "Communication",
+          "short": "COM",
+          "v": 92,
+          "w": "92%"
+        }
+      ]
+    },
+    {
+      "id": "TV-4821",
+      "name": "Arjun Rathore",
+      "vendor": "Nimbus Softworks",
+      "city": "Bangalore",
+      "skills": [
+        "React",
+        "TypeScript",
+        "Node.js"
+      ],
+      "exp": "6.2y",
+      "score": 88,
+      "rate": "₹1.35–1.55L",
+      "clientRate": "₹1.82L",
+      "avail": "Available now",
+      "attempt": "attempt 1",
+      "testedOn": "tested 09 Aug",
+      "fresh": "confirmed",
+      "dot": "#16a34a",
+      "softbg": "#e9f7ee",
+      "bars": [
+        {
+          "label": "Coding",
+          "short": "COD",
+          "v": 91,
+          "w": "91%"
+        },
+        {
+          "label": "DSA",
+          "short": "DSA",
+          "v": 84,
+          "w": "84%"
+        },
+        {
+          "label": "System design",
+          "short": "SYS",
+          "v": 82,
+          "w": "82%"
+        },
+        {
+          "label": "Communication",
+          "short": "COM",
+          "v": 90,
+          "w": "90%"
+        }
+      ]
+    },
+    {
+      "id": "TV-5302",
+      "name": "Kavya Menon",
+      "vendor": "Trueline Consulting",
+      "city": "Pune",
+      "skills": [
+        "Salesforce",
+        "Apex",
+        "LWC"
+      ],
+      "exp": "3.8y",
+      "score": 85,
+      "rate": "₹0.85–1.00L",
+      "clientRate": "₹1.18L",
+      "avail": "From 1 Oct",
+      "attempt": "attempt 2",
+      "testedOn": "tested 15 Aug",
+      "fresh": "expiring",
+      "dot": "#c2410c",
+      "softbg": "#fdf0e7",
+      "bars": [
+        {
+          "label": "Coding",
+          "short": "COD",
+          "v": 88,
+          "w": "88%"
+        },
+        {
+          "label": "DSA",
+          "short": "DSA",
+          "v": 80,
+          "w": "80%"
+        },
+        {
+          "label": "System design",
+          "short": "SYS",
+          "v": 79,
+          "w": "79%"
+        },
+        {
+          "label": "Communication",
+          "short": "COM",
+          "v": 87,
+          "w": "87%"
+        }
+      ]
+    },
+    {
+      "id": "TV-5107",
+      "name": "Rohit Deshmukh",
+      "vendor": "Cygnet Infotech Labs",
+      "city": "Pune",
+      "skills": [
+        "Java Spring Boot",
+        "Kafka",
+        "AWS"
+      ],
+      "exp": "8.0y",
+      "score": 82,
+      "rate": "₹1.80–2.05L",
+      "clientRate": "₹2.36L",
+      "avail": "From 15 Sep",
+      "attempt": "attempt 1",
+      "testedOn": "tested 04 Aug",
+      "fresh": "confirmed",
+      "dot": "#c2410c",
+      "softbg": "#fdf0e7",
+      "bars": [
+        {
+          "label": "Coding",
+          "short": "COD",
+          "v": 84,
+          "w": "84%"
+        },
+        {
+          "label": "DSA",
+          "short": "DSA",
+          "v": 78,
+          "w": "78%"
+        },
+        {
+          "label": "System design",
+          "short": "SYS",
+          "v": 88,
+          "w": "88%"
+        },
+        {
+          "label": "Communication",
+          "short": "COM",
+          "v": 76,
+          "w": "76%"
+        }
+      ]
+    },
+    {
+      "id": "TV-4488",
+      "name": "Suresh Balan",
+      "vendor": "Vertex Digital",
+      "city": "Bangalore",
+      "skills": [
+        "SAP ABAP",
+        "Fiori",
+        "HANA"
+      ],
+      "exp": "9.1y",
+      "score": 79,
+      "rate": "₹2.10–2.40L",
+      "clientRate": "₹2.88L",
+      "avail": "Available now",
+      "attempt": "attempt 1",
+      "testedOn": "tested 30 Jul",
+      "fresh": "unconfirmed",
+      "dot": "#16a34a",
+      "softbg": "#e9f7ee",
+      "bars": [
+        {
+          "label": "Coding",
+          "short": "COD",
+          "v": 80,
+          "w": "80%"
+        },
+        {
+          "label": "DSA",
+          "short": "DSA",
+          "v": 72,
+          "w": "72%"
+        },
+        {
+          "label": "System design",
+          "short": "SYS",
+          "v": 84,
+          "w": "84%"
+        },
+        {
+          "label": "Communication",
+          "short": "COM",
+          "v": 78,
+          "w": "78%"
+        }
+      ]
+    },
+    {
+      "id": "TV-3964",
+      "name": "Nikhil Sharma",
+      "vendor": "Orbit Talent Services",
+      "city": "Hyderabad",
+      "skills": [
+        ".NET Core",
+        "Azure",
+        "SQL Server"
+      ],
+      "exp": "4.5y",
+      "score": 76,
+      "rate": "₹0.95–1.10L",
+      "clientRate": "₹1.32L",
+      "avail": "30-day notice",
+      "attempt": "attempt 2",
+      "testedOn": "tested 18 Aug",
+      "fresh": "confirmed",
+      "dot": "#1d4ed8",
+      "softbg": "#e8eefc",
+      "bars": [
+        {
+          "label": "Coding",
+          "short": "COD",
+          "v": 79,
+          "w": "79%"
+        },
+        {
+          "label": "DSA",
+          "short": "DSA",
+          "v": 74,
+          "w": "74%"
+        },
+        {
+          "label": "System design",
+          "short": "SYS",
+          "v": 70,
+          "w": "70%"
+        },
+        {
+          "label": "Communication",
+          "short": "COM",
+          "v": 82,
+          "w": "82%"
+        }
+      ]
+    }
+  ],
+  "POOLS": {
+    "A": [
+      {
+        "id": "TV-4821",
+        "name": "Arjun Rathore",
+        "vendor": "Nimbus Softworks",
+        "exp": "6.2y",
+        "rate": "₹1.38L",
+        "match": 94,
+        "note": "Top skill overlap; available immediately",
+        "r": [
+          96,
+          88,
+          92,
+          90,
+          100,
+          95
+        ],
+        "city": "Bangalore",
+        "notice": "Immediate",
+        "score": "88 · 09 Aug",
+        "fresh": "Confirmed 2d",
+        "rel": "4.6 / 5",
+        "crate": "₹1.82L",
+        "margin": "24.2%",
+        "last": "Shipped Zeta Commerce's design system; 3 yrs on a React + GraphQL platform team."
+      },
+      {
+        "id": "TV-6620",
+        "name": "Meghna Iyer",
+        "vendor": "Sparkbridge Systems",
+        "exp": "5.4y",
+        "rate": "₹1.12L",
+        "match": 89,
+        "note": "Highest test score in pool; QA-leaning stack",
+        "r": [
+          74,
+          91,
+          88,
+          100,
+          100,
+          88
+        ],
+        "city": "Jaipur",
+        "notice": "Immediate",
+        "score": "91 · 12 Aug",
+        "fresh": "Confirmed 1d",
+        "rel": "4.2 / 5",
+        "crate": "₹1.44L",
+        "margin": "22.2%",
+        "last": "Automation lead on a retail checkout rewrite; strong React Testing Library depth."
+      },
+      {
+        "id": "TV-7715",
+        "name": "Sanjay Pillai",
+        "vendor": "Nimbus Softworks",
+        "exp": "7.1y",
+        "rate": "₹1.46L",
+        "match": 86,
+        "note": "React Native depth, slight rate stretch",
+        "r": [
+          92,
+          82,
+          95,
+          78,
+          84,
+          95
+        ],
+        "city": "Bangalore",
+        "notice": "15 days",
+        "score": "84 · 18 Aug",
+        "fresh": "Confirmed 3d",
+        "rel": "4.6 / 5",
+        "crate": "₹1.94L",
+        "margin": "24.7%",
+        "last": "Two fintech apps on React Native; led a 6-person front-end pod."
+      },
+      {
+        "id": "TV-7024",
+        "name": "Deepak Chandran",
+        "vendor": "Helix Systems",
+        "exp": "5.9y",
+        "rate": "₹1.29L",
+        "match": 81,
+        "note": "Solid React; freshness expiring in 3 days",
+        "r": [
+          88,
+          79,
+          80,
+          92,
+          58,
+          78
+        ],
+        "city": "Hyderabad",
+        "notice": "30 days",
+        "score": "81 · 06 Aug",
+        "fresh": "Expiring 11d",
+        "rel": "3.9 / 5",
+        "crate": "₹1.68L",
+        "margin": "23.2%",
+        "last": "Insurance portal migration from Angular to React; no design-system exposure."
+      },
+      {
+        "id": "TV-6612",
+        "name": "Ritika Agarwal",
+        "vendor": "Trueline Consulting",
+        "exp": "5.2y",
+        "rate": "₹1.21L",
+        "match": 77,
+        "note": "Next.js heavy; thin on system design",
+        "r": [
+          82,
+          76,
+          72,
+          95,
+          88,
+          62
+        ],
+        "city": "Pune",
+        "notice": "Immediate",
+        "score": "79 · 14 Aug",
+        "fresh": "Confirmed 5d",
+        "rel": "3.4 / 5",
+        "crate": "₹1.58L",
+        "margin": "23.4%",
+        "last": "Marketing-site work on Next.js; limited product engineering history."
+      },
+      {
+        "id": "TV-5107",
+        "name": "Rohit Deshmukh",
+        "vendor": "Cygnet Infotech Labs",
+        "exp": "8.0y",
+        "rate": "₹1.84L",
+        "match": 68,
+        "note": "Backend-first; above budget ceiling",
+        "r": [
+          52,
+          82,
+          88,
+          40,
+          90,
+          76
+        ],
+        "city": "Pune",
+        "notice": "15 Sep",
+        "score": "82 · 04 Aug",
+        "fresh": "Expiring 12d",
+        "rel": "4.1 / 5",
+        "crate": "₹2.36L",
+        "margin": "22.0%",
+        "last": "Spring Boot + Kafka platform; React only as a secondary skill."
+      }
+    ],
+    "B": [
+      {
+        "id": "TV-5533",
+        "name": "Priyanka Joshi",
+        "vendor": "Nimbus Softworks",
+        "exp": "7.4y",
+        "rate": "₹1.62L",
+        "match": 92,
+        "note": "Kafka + Spring Boot at scale; immediate",
+        "r": [
+          95,
+          88,
+          90,
+          88,
+          100,
+          95
+        ],
+        "city": "Pune",
+        "notice": "Immediate",
+        "score": "87 · 11 Aug",
+        "fresh": "Confirmed 1d",
+        "rel": "4.6 / 5",
+        "crate": "₹2.18L",
+        "margin": "25.7%",
+        "last": "Logistics event pipeline at 40k msg/s; owned the migration to Kafka Streams."
+      },
+      {
+        "id": "TV-7702",
+        "name": "Ishita Bansal",
+        "vendor": "Nimbus Softworks",
+        "exp": "6.3y",
+        "rate": "₹1.45L",
+        "match": 84,
+        "note": "Strong microservices; test not started",
+        "r": [
+          90,
+          40,
+          86,
+          90,
+          92,
+          95
+        ],
+        "city": "Pune",
+        "notice": "Immediate",
+        "score": "Not started",
+        "fresh": "Expiring 13d",
+        "rel": "4.6 / 5",
+        "crate": "₹1.92L",
+        "margin": "24.5%",
+        "last": "Payments microservices on Spring Boot + PostgreSQL; 4 production services."
+      },
+      {
+        "id": "TV-6119",
+        "name": "Aakash Menon",
+        "vendor": "Cygnet Infotech Labs",
+        "exp": "8.9y",
+        "rate": "₹1.91L",
+        "match": 79,
+        "note": "Senior, above band; strong on AWS",
+        "r": [
+          88,
+          84,
+          96,
+          52,
+          84,
+          82
+        ],
+        "city": "Bangalore",
+        "notice": "30 days",
+        "score": "85 · 02 Aug",
+        "fresh": "Confirmed 6d",
+        "rel": "4.1 / 5",
+        "crate": "₹2.48L",
+        "margin": "23.0%",
+        "last": "Ran a 12-service estate on ECS; strong IaC and observability practice."
+      },
+      {
+        "id": "TV-6845",
+        "name": "Tanvi Rane",
+        "vendor": "Helix Systems",
+        "exp": "5.1y",
+        "rate": "₹1.18L",
+        "match": 74,
+        "note": "Good Node.js; light on Kafka",
+        "r": [
+          76,
+          78,
+          68,
+          96,
+          72,
+          76
+        ],
+        "city": "Hyderabad",
+        "notice": "30 days",
+        "score": "78 · 08 Aug",
+        "fresh": "Expiring 10d",
+        "rel": "3.9 / 5",
+        "crate": "₹1.54L",
+        "margin": "23.4%",
+        "last": "Node.js APIs for a travel aggregator; queue work limited to SQS."
+      },
+      {
+        "id": "TV-5981",
+        "name": "Gaurav Sethi",
+        "vendor": "Orbit Talent Services",
+        "exp": "6.8y",
+        "rate": "₹1.34L",
+        "match": 66,
+        "note": "Vendor reliability low; unconfirmed 18d",
+        "r": [
+          80,
+          72,
+          74,
+          88,
+          32,
+          44
+        ],
+        "city": "Jaipur",
+        "notice": "Unknown",
+        "score": "74 · 21 Jul",
+        "fresh": "Unconfirmed 18d",
+        "rel": "3.1 / 5",
+        "crate": "₹1.76L",
+        "margin": "23.9%",
+        "last": "Two prior Orbit submissions withdrew after client selection — flagged."
+      }
+    ],
+    "C": [
+      {
+        "id": "TV-7188",
+        "name": "Karthik Nair",
+        "vendor": "Sparkbridge Systems",
+        "exp": "5.1y",
+        "rate": "₹1.05L",
+        "match": 90,
+        "note": "Playwright + API automation; immediate",
+        "r": [
+          94,
+          82,
+          88,
+          96,
+          96,
+          88
+        ],
+        "city": "Jaipur",
+        "notice": "Immediate",
+        "score": "83 · 19 Aug",
+        "fresh": "Confirmed 4d",
+        "rel": "4.2 / 5",
+        "crate": "₹1.38L",
+        "margin": "23.9%",
+        "last": "Built the regression suite for a payments gateway; 1,400 tests in CI."
+      },
+      {
+        "id": "TV-4102",
+        "name": "Aditi Verma",
+        "vendor": "Trueline Consulting",
+        "exp": "6.6y",
+        "rate": "₹1.04L",
+        "match": 87,
+        "note": "Currently placed, rolls off 30 Sep",
+        "r": [
+          90,
+          86,
+          84,
+          96,
+          78,
+          80
+        ],
+        "city": "Pune",
+        "notice": "30 Sep",
+        "score": "86 · 05 Aug",
+        "fresh": "Confirmed 7d",
+        "rel": "3.4 / 5",
+        "crate": "₹1.36L",
+        "margin": "23.5%",
+        "last": "Two years on Acme's QA pod — client already knows the work."
+      },
+      {
+        "id": "TV-6907",
+        "name": "Shreya Kulkarni",
+        "vendor": "Helix Systems",
+        "exp": "4.4y",
+        "rate": "₹92K",
+        "match": 80,
+        "note": "Cost-effective; lighter experience",
+        "r": [
+          84,
+          80,
+          62,
+          100,
+          88,
+          74
+        ],
+        "city": "Bangalore",
+        "notice": "Immediate",
+        "score": "80 · 16 Aug",
+        "fresh": "Confirmed 2d",
+        "rel": "3.9 / 5",
+        "crate": "₹1.22L",
+        "margin": "24.6%",
+        "last": "Selenium to Playwright migration at a healthtech firm."
+      },
+      {
+        "id": "TV-7341",
+        "name": "Imran Sheikh",
+        "vendor": "Cygnet Infotech Labs",
+        "exp": "7.2y",
+        "rate": "₹1.32L",
+        "match": 76,
+        "note": "Performance testing bias; above band",
+        "r": [
+          72,
+          84,
+          90,
+          66,
+          82,
+          84
+        ],
+        "city": "Hyderabad",
+        "notice": "15 days",
+        "score": "84 · 30 Jul",
+        "fresh": "Confirmed 9d",
+        "rel": "4.1 / 5",
+        "crate": "₹1.72L",
+        "margin": "23.3%",
+        "last": "JMeter and k6 load programmes; less hands-on UI automation."
+      },
+      {
+        "id": "TV-6488",
+        "name": "Nisha Pandey",
+        "vendor": "Orbit Talent Services",
+        "exp": "5.6y",
+        "rate": "₹1.02L",
+        "match": 64,
+        "note": "Unconfirmed 22d; test expired",
+        "r": [
+          78,
+          44,
+          70,
+          96,
+          28,
+          44
+        ],
+        "city": "Jaipur",
+        "notice": "Unknown",
+        "score": "Expired",
+        "fresh": "Unconfirmed 22d",
+        "rel": "3.1 / 5",
+        "crate": "₹1.34L",
+        "margin": "23.9%",
+        "last": "Score older than 90 days — needs a retest before she can be shortlisted."
+      }
+    ],
+    "D": [
+      {
+        "id": "TV-4488",
+        "name": "Suresh Balan",
+        "vendor": "Vertex Digital",
+        "exp": "9.1y",
+        "rate": "₹2.15L",
+        "match": 88,
+        "note": "Deep ABAP + Fiori; unconfirmed 26d",
+        "r": [
+          96,
+          80,
+          96,
+          78,
+          30,
+          68
+        ],
+        "city": "Bangalore",
+        "notice": "Immediate",
+        "score": "79 · 30 Jul",
+        "fresh": "Unconfirmed 26d",
+        "rel": "3.6 / 5",
+        "crate": "₹2.88L",
+        "margin": "25.3%",
+        "last": "Three S/4HANA rollouts in pharma; the strongest ABAP profile on the exchange."
+      },
+      {
+        "id": "TV-5990",
+        "name": "Farhan Qureshi",
+        "vendor": "Nimbus Softworks",
+        "exp": "9.4y",
+        "rate": "₹2.15L",
+        "match": 85,
+        "note": "S/4HANA migration lead; 30-day notice",
+        "r": [
+          92,
+          79,
+          94,
+          78,
+          62,
+          95
+        ],
+        "city": "Bangalore",
+        "notice": "30 days",
+        "score": "79 · 28 Jul",
+        "fresh": "Expiring 12d",
+        "rel": "4.6 / 5",
+        "crate": "₹2.82L",
+        "margin": "23.8%",
+        "last": "Led an ABAP-to-CDS refactor for a manufacturer; strong documentation habits."
+      },
+      {
+        "id": "TV-6833",
+        "name": "Divya Ranganathan",
+        "vendor": "Trueline Consulting",
+        "exp": "3.9y",
+        "rate": "₹92K",
+        "match": 78,
+        "note": "Salesforce Apex + LWC; under band",
+        "r": [
+          88,
+          85,
+          58,
+          100,
+          74,
+          66
+        ],
+        "city": "Pune",
+        "notice": "Immediate",
+        "score": "85 · 15 Aug",
+        "fresh": "Expiring 11d",
+        "rel": "3.4 / 5",
+        "crate": "₹1.18L",
+        "margin": "22.0%",
+        "last": "Two Service Cloud implementations; no integration architecture yet."
+      },
+      {
+        "id": "TV-6104",
+        "name": "Neha Chaudhary",
+        "vendor": "Nimbus Softworks",
+        "exp": "4.8y",
+        "rate": "₹98K",
+        "match": 74,
+        "note": ".NET Core + Azure; score below 75",
+        "r": [
+          82,
+          68,
+          70,
+          96,
+          80,
+          95
+        ],
+        "city": "Hyderabad",
+        "notice": "Immediate",
+        "score": "74 · 07 Aug",
+        "fresh": "Unconfirmed 21d",
+        "rel": "4.6 / 5",
+        "crate": "₹1.32L",
+        "margin": "25.8%",
+        "last": "Internal claims tooling on .NET 6; first client-facing engagement."
+      },
+      {
+        "id": "TV-3964",
+        "name": "Nikhil Sharma",
+        "vendor": "Orbit Talent Services",
+        "exp": "4.5y",
+        "rate": "₹98K",
+        "match": 69,
+        "note": "Duplicate risk flagged with TV-6104",
+        "r": [
+          80,
+          68,
+          66,
+          96,
+          40,
+          44
+        ],
+        "city": "Hyderabad",
+        "notice": "30 days",
+        "score": "76 · 18 Aug",
+        "fresh": "Unconfirmed 21d",
+        "rel": "3.1 / 5",
+        "crate": "₹1.18L",
+        "margin": "17.4%",
+        "last": "Overlapping employer history with a Nimbus submission — see DUP-0147."
+      }
+    ]
+  },
+  "REQS": [
+    {
+      "id": "REQ-2291",
+      "role": "Senior React Engineers",
+      "client": "Acme Finserv",
+      "qty": 3,
+      "skills": [
+        "React",
+        "TypeScript"
+      ],
+      "value": "₹4.8L/mo",
+      "age": "4d",
+      "owner": "P. Nair",
+      "stage0": "shortlisted",
+      "sla": "Send by 16:00",
+      "slaKind": "warn",
+      "budget": "₹1.30–1.70L",
+      "start": "15 Sep 2026",
+      "expBand": "5–8 years",
+      "loc": "Bangalore / hybrid",
+      "pool": "A",
+      "note": "Prefer someone who has shipped a design system. Budget can stretch 10% for the right person.",
+      "sourced": 6
+    },
+    {
+      "id": "REQ-2274",
+      "role": "SAP ABAP Consultant",
+      "client": "Acme Finserv",
+      "qty": 1,
+      "skills": [
+        "SAP ABAP",
+        "Fiori"
+      ],
+      "value": "₹2.6L/mo",
+      "age": "2d",
+      "owner": "P. Nair",
+      "stage0": "matching",
+      "sla": "SLA 4h",
+      "slaKind": "warn",
+      "budget": "₹2.00–2.60L",
+      "start": "1 Oct 2026",
+      "expBand": "8+ years",
+      "loc": "Pune / onsite",
+      "pool": "D",
+      "note": "Must have handled at least one S/4HANA migration end to end.",
+      "sourced": 5
+    },
+    {
+      "id": "REQ-2288",
+      "role": "Node.js Engineers",
+      "client": "Kestrel Logistics",
+      "qty": 3,
+      "skills": [
+        "Node.js",
+        "AWS"
+      ],
+      "value": "₹4.1L/mo",
+      "age": "1d",
+      "owner": "R. Verma",
+      "stage0": "matching",
+      "sla": "SLA 11h",
+      "slaKind": "ok",
+      "budget": "₹1.20–1.55L",
+      "start": "22 Sep 2026",
+      "expBand": "4–7 years",
+      "loc": "Remote",
+      "pool": "B",
+      "note": "Event-driven experience matters more than years. Kafka or Kinesis both fine.",
+      "sourced": 5
+    },
+    {
+      "id": "REQ-2295",
+      "role": "QA Automation Engineers",
+      "client": "Northwind Retail",
+      "qty": 2,
+      "skills": [
+        "Playwright",
+        "API"
+      ],
+      "value": "₹2.2L/mo",
+      "age": "1d",
+      "owner": "P. Nair",
+      "stage0": "matching",
+      "sla": "Overdue 2h",
+      "slaKind": "late",
+      "budget": "₹1.00–1.25L",
+      "start": "8 Sep 2026",
+      "expBand": "4–7 years",
+      "loc": "Hyderabad / hybrid",
+      "pool": "C",
+      "note": "The suite is Playwright on GitHub Actions — we want someone who has run it in CI.",
+      "sourced": 5
+    },
+    {
+      "id": "REQ-2312",
+      "role": "Salesforce Developers",
+      "client": "Northwind Retail",
+      "qty": 2,
+      "skills": [
+        "Apex",
+        "LWC"
+      ],
+      "value": "₹2.4L/mo",
+      "age": "1h",
+      "owner": "S. Iyer",
+      "stage0": "new",
+      "sla": "SLA 23h",
+      "slaKind": "ok",
+      "budget": "₹1.00–1.30L",
+      "start": "1 Oct 2026",
+      "expBand": "3–5 years",
+      "loc": "Remote",
+      "pool": "D",
+      "note": "Service Cloud rollout; integration experience with SAP is a plus.",
+      "sourced": 0
+    },
+    {
+      "id": "REQ-2309",
+      "role": "SAP ABAP Consultant",
+      "client": "Meridian Pharma",
+      "qty": 1,
+      "skills": [
+        "SAP ABAP",
+        "HANA"
+      ],
+      "value": "₹2.6L/mo",
+      "age": "4h",
+      "owner": "P. Nair",
+      "stage0": "new",
+      "sla": "SLA 20h",
+      "slaKind": "ok",
+      "budget": "₹2.10–2.70L",
+      "start": "15 Oct 2026",
+      "expBand": "8+ years",
+      "loc": "Pune / onsite",
+      "pool": "D",
+      "note": "Validated-systems background required (GxP). Documentation discipline is critical.",
+      "sourced": 0
+    },
+    {
+      "id": "REQ-2307",
+      "role": "Data Engineers",
+      "client": "Acme Finserv",
+      "qty": 2,
+      "skills": [
+        "Spark",
+        "Airflow"
+      ],
+      "value": "₹3.2L/mo",
+      "age": "6h",
+      "owner": "R. Verma",
+      "stage0": "new",
+      "sla": "SLA 18h",
+      "slaKind": "ok",
+      "budget": "₹1.45–1.80L",
+      "start": "1 Oct 2026",
+      "expBand": "5–8 years",
+      "loc": "Bangalore / hybrid",
+      "pool": "B",
+      "note": "Lakehouse migration; Databricks exposure preferred but not mandatory.",
+      "sourced": 0
+    },
+    {
+      "id": "REQ-2305",
+      "role": "React Native Developer",
+      "client": "Vantage Insurance",
+      "qty": 1,
+      "skills": [
+        "React Native"
+      ],
+      "value": "₹1.6L/mo",
+      "age": "8h",
+      "owner": "S. Iyer",
+      "stage0": "new",
+      "sla": "SLA 16h",
+      "slaKind": "ok",
+      "budget": "₹1.30–1.60L",
+      "start": "29 Sep 2026",
+      "expBand": "5–8 years",
+      "loc": "Remote",
+      "pool": "A",
+      "note": "Claims app rewrite. Offline-first experience would be ideal.",
+      "sourced": 0
+    },
+    {
+      "id": "REQ-2302",
+      "role": "QA Lead",
+      "client": "Kestrel Logistics",
+      "qty": 1,
+      "skills": [
+        "QA Strategy",
+        "Selenium"
+      ],
+      "value": "₹1.8L/mo",
+      "age": "12h",
+      "owner": "P. Nair",
+      "stage0": "new",
+      "sla": "SLA 12h",
+      "slaKind": "warn",
+      "budget": "₹1.55–1.85L",
+      "start": "6 Oct 2026",
+      "expBand": "8+ years",
+      "loc": "Pune / hybrid",
+      "pool": "C",
+      "note": "Needs to build the practice, not just execute. People management experience required.",
+      "sourced": 0
+    },
+    {
+      "id": "REQ-2298",
+      "role": "Java Spring Boot Engineers",
+      "client": "Meridian Pharma",
+      "qty": 2,
+      "skills": [
+        "Spring Boot",
+        "Kafka"
+      ],
+      "value": "₹3.4L/mo",
+      "age": "2d",
+      "owner": "R. Verma",
+      "stage0": "matching",
+      "sla": "SLA 9h",
+      "slaKind": "ok",
+      "budget": "₹1.55–1.85L",
+      "start": "22 Sep 2026",
+      "expBand": "5–8 years",
+      "loc": "Hyderabad / hybrid",
+      "pool": "B",
+      "note": "Regulated environment — code review discipline will be assessed closely.",
+      "sourced": 5
+    },
+    {
+      "id": "REQ-2293",
+      "role": ".NET Core Developers",
+      "client": "Vantage Insurance",
+      "qty": 2,
+      "skills": [
+        ".NET Core",
+        "Azure"
+      ],
+      "value": "₹2.4L/mo",
+      "age": "3d",
+      "owner": "S. Iyer",
+      "stage0": "matching",
+      "sla": "SLA 7h",
+      "slaKind": "warn",
+      "budget": "₹1.05–1.30L",
+      "start": "15 Sep 2026",
+      "expBand": "3–5 years",
+      "loc": "Remote",
+      "pool": "D",
+      "note": "Azure Functions and Service Bus in the stack. Insurance domain a bonus.",
+      "sourced": 5
+    },
+    {
+      "id": "REQ-2290",
+      "role": "Salesforce Admin",
+      "client": "Acme Finserv",
+      "qty": 1,
+      "skills": [
+        "Salesforce",
+        "Flows"
+      ],
+      "value": "₹1.1L/mo",
+      "age": "5d",
+      "owner": "S. Iyer",
+      "stage0": "matching",
+      "sla": "SLA 14h",
+      "slaKind": "ok",
+      "budget": "₹0.95–1.15L",
+      "start": "1 Oct 2026",
+      "expBand": "3–5 years",
+      "loc": "Remote",
+      "pool": "D",
+      "note": "Admin-plus role: flows, permissions, light Apex.",
+      "sourced": 4
+    },
+    {
+      "id": "REQ-2249",
+      "role": "Node.js Platform Engineer",
+      "client": "Acme Finserv",
+      "qty": 1,
+      "skills": [
+        "Node.js",
+        "Kafka"
+      ],
+      "value": "₹1.7L/mo",
+      "age": "6d",
+      "owner": "P. Nair",
+      "stage0": "shortlisted",
+      "sla": "Awaiting client",
+      "slaKind": "idle",
+      "budget": "₹1.45–1.75L",
+      "start": "8 Sep 2026",
+      "expBand": "5–8 years",
+      "loc": "Bangalore / hybrid",
+      "pool": "B",
+      "note": "Shortlist sent 20 Aug; client has not opened it yet — chase Ananya.",
+      "sourced": 6
+    },
+    {
+      "id": "REQ-2266",
+      "role": ".NET Core Developers",
+      "client": "Vantage Insurance",
+      "qty": 2,
+      "skills": [
+        ".NET Core",
+        "Azure"
+      ],
+      "value": "₹2.4L/mo",
+      "age": "5d",
+      "owner": "S. Iyer",
+      "stage0": "shortlisted",
+      "sla": "Awaiting client",
+      "slaKind": "idle",
+      "budget": "₹1.10–1.35L",
+      "start": "15 Sep 2026",
+      "expBand": "3–5 years",
+      "loc": "Remote",
+      "pool": "D",
+      "note": "Two of four masked profiles are already in another client's process.",
+      "sourced": 5
+    },
+    {
+      "id": "REQ-2258",
+      "role": "QA Automation Engineer",
+      "client": "Northwind Retail",
+      "qty": 1,
+      "skills": [
+        "Playwright"
+      ],
+      "value": "₹1.2L/mo",
+      "age": "7d",
+      "owner": "P. Nair",
+      "stage0": "shortlisted",
+      "sla": "Feedback due",
+      "slaKind": "warn",
+      "budget": "₹1.05–1.25L",
+      "start": "1 Sep 2026",
+      "expBand": "4–7 years",
+      "loc": "Remote",
+      "pool": "C",
+      "note": "Client asked for one more profile in the ₹1.1L band before deciding.",
+      "sourced": 5
+    },
+    {
+      "id": "REQ-2260",
+      "role": "QA Automation Engineers",
+      "client": "Acme Finserv",
+      "qty": 2,
+      "skills": [
+        "Selenium",
+        "CI/CD"
+      ],
+      "value": "₹2.5L/mo",
+      "age": "9d",
+      "owner": "P. Nair",
+      "stage0": "interviewing",
+      "sla": "R2 on 26 Aug",
+      "slaKind": "ok",
+      "budget": "₹1.00–1.30L",
+      "start": "1 Sep 2026",
+      "expBand": "4–7 years",
+      "loc": "Hyderabad / hybrid",
+      "pool": "C",
+      "note": "TV-6620 in round 2; client wants a pairing round with the platform lead.",
+      "sourced": 5
+    },
+    {
+      "id": "REQ-2231",
+      "role": "Java Spring Boot Engineers",
+      "client": "Kestrel Logistics",
+      "qty": 2,
+      "skills": [
+        "Spring Boot",
+        "Kafka"
+      ],
+      "value": "₹3.6L/mo",
+      "age": "12d",
+      "owner": "R. Verma",
+      "stage0": "interviewing",
+      "sla": "Feedback due",
+      "slaKind": "warn",
+      "budget": "₹1.60–1.90L",
+      "start": "1 Sep 2026",
+      "expBand": "5–8 years",
+      "loc": "Pune / hybrid",
+      "pool": "B",
+      "note": "Panel feedback for two candidates is 3 days late — escalate to the account lead.",
+      "sourced": 5
+    },
+    {
+      "id": "REQ-2224",
+      "role": "React Engineer",
+      "client": "Northwind Retail",
+      "qty": 1,
+      "skills": [
+        "React",
+        "Next.js"
+      ],
+      "value": "₹1.5L/mo",
+      "age": "14d",
+      "owner": "S. Iyer",
+      "stage0": "interviewing",
+      "sla": "Offer stage",
+      "slaKind": "ok",
+      "budget": "₹1.25–1.55L",
+      "start": "1 Sep 2026",
+      "expBand": "5–8 years",
+      "loc": "Remote",
+      "pool": "A",
+      "note": "Client verbally agreed; waiting on supplier release confirmation.",
+      "sourced": 6
+    },
+    {
+      "id": "REQ-2219",
+      "role": "SAP ABAP Consultant",
+      "client": "Meridian Pharma",
+      "qty": 1,
+      "skills": [
+        "SAP ABAP"
+      ],
+      "value": "₹2.7L/mo",
+      "age": "16d",
+      "owner": "P. Nair",
+      "stage0": "interviewing",
+      "sla": "R1 on 27 Aug",
+      "slaKind": "ok",
+      "budget": "₹2.20–2.80L",
+      "start": "15 Sep 2026",
+      "expBand": "8+ years",
+      "loc": "Pune / onsite",
+      "pool": "D",
+      "note": "Slot confirmed with the supplier; candidate briefed on masking rules.",
+      "sourced": 5
+    },
+    {
+      "id": "REQ-2211",
+      "role": "Data Engineer",
+      "client": "Acme Finserv",
+      "qty": 1,
+      "skills": [
+        "Spark",
+        "Airflow"
+      ],
+      "value": "₹1.7L/mo",
+      "age": "18d",
+      "owner": "R. Verma",
+      "stage0": "interviewing",
+      "sla": "R2 on 28 Aug",
+      "slaKind": "ok",
+      "budget": "₹1.50–1.80L",
+      "start": "8 Sep 2026",
+      "expBand": "5–8 years",
+      "loc": "Bangalore / hybrid",
+      "pool": "B",
+      "note": "Strong first round; client asked for a data-modelling exercise.",
+      "sourced": 5
+    },
+    {
+      "id": "REQ-2205",
+      "role": "SAP ABAP Consultant",
+      "client": "Acme Finserv",
+      "qty": 1,
+      "skills": [
+        "SAP ABAP"
+      ],
+      "value": "₹2.9L/mo",
+      "age": "22d",
+      "owner": "P. Nair",
+      "stage0": "placed",
+      "sla": "Margin 14.2%",
+      "slaKind": "warn",
+      "budget": "₹2.20–2.90L",
+      "start": "1 Aug 2026",
+      "expBand": "8+ years",
+      "loc": "Bangalore / onsite",
+      "pool": "D",
+      "note": "Placed below the margin floor as a strategic entry — review at renewal.",
+      "sourced": 5
+    },
+    {
+      "id": "REQ-2198",
+      "role": "Salesforce Developer",
+      "client": "Vantage Insurance",
+      "qty": 1,
+      "skills": [
+        "Apex",
+        "LWC"
+      ],
+      "value": "₹1.3L/mo",
+      "age": "28d",
+      "owner": "S. Iyer",
+      "stage0": "placed",
+      "sla": "Margin 24.1%",
+      "slaKind": "ok",
+      "budget": "₹1.05–1.35L",
+      "start": "19 May 2026",
+      "expBand": "3–5 years",
+      "loc": "Remote",
+      "pool": "D",
+      "note": "Extension likely; client has asked about a second resource.",
+      "sourced": 4
+    },
+    {
+      "id": "REQ-2187",
+      "role": ".NET Core Developer",
+      "client": "Northwind Retail",
+      "qty": 1,
+      "skills": [
+        ".NET Core"
+      ],
+      "value": "₹1.4L/mo",
+      "age": "34d",
+      "owner": "S. Iyer",
+      "stage0": "placed",
+      "sla": "Margin 21.6%",
+      "slaKind": "ok",
+      "budget": "₹1.15–1.45L",
+      "start": "12 Apr 2026",
+      "expBand": "3–5 years",
+      "loc": "Remote",
+      "pool": "D",
+      "note": "Running clean for four months; invoice cycle on time.",
+      "sourced": 4
+    },
+    {
+      "id": "REQ-2176",
+      "role": "Java Spring Boot Engineer",
+      "client": "Acme Finserv",
+      "qty": 1,
+      "skills": [
+        "Spring Boot"
+      ],
+      "value": "₹2.2L/mo",
+      "age": "41d",
+      "owner": "R. Verma",
+      "stage0": "placed",
+      "sla": "Margin 25.7%",
+      "slaKind": "ok",
+      "budget": "₹1.85–2.20L",
+      "start": "3 Mar 2026",
+      "expBand": "5–8 years",
+      "loc": "Pune / hybrid",
+      "pool": "B",
+      "note": "Best-performing placement of the quarter; client cited it in the QBR.",
+      "sourced": 5
+    }
+  ],
+  "screens": {
+    "clientStats": [
+      {
+        "label": "OPEN REQUIREMENTS",
+        "value": "4",
+        "delta": "+1",
+        "deltaColor": "#16a34a",
+        "sub": "9 positions in total"
+      },
+      {
+        "label": "AWAITING REVIEW",
+        "value": "3",
+        "delta": "2 new",
+        "deltaColor": "#6d3ff0",
+        "sub": "17 masked profiles"
+      },
+      {
+        "label": "IN INTERVIEW",
+        "value": "4",
+        "delta": "",
+        "deltaColor": "#8a8a96",
+        "sub": "2 feedback forms due"
+      },
+      {
+        "label": "ACTIVE ENGAGEMENTS",
+        "value": "5",
+        "delta": "₹8.4L/mo",
+        "deltaColor": "#8a8a96",
+        "sub": "avg tenure 4.2 months"
+      }
+    ],
+    "openReqs": [
+      {
+        "id": "REQ-2291",
+        "role": "Senior React Engineers",
+        "meta": "5–8y · Bangalore / Remote · start 15 Sep",
+        "qty": "3",
+        "budget": "₹1.30–1.70L",
+        "stage": "SHORTLISTED",
+        "stageBg": "#f1ecff",
+        "stageFg": "#6d3ff0",
+        "action": "Review 6"
+      },
+      {
+        "id": "REQ-2274",
+        "role": "SAP ABAP Consultant",
+        "meta": "8y+ · Pune · start 1 Oct",
+        "qty": "1",
+        "budget": "₹2.00–2.60L",
+        "stage": "MATCHING",
+        "stageBg": "#fff3e4",
+        "stageFg": "#b45309",
+        "action": "View"
+      },
+      {
+        "id": "REQ-2260",
+        "role": "QA Automation Engineers",
+        "meta": "4–7y · Hyderabad · start immediate",
+        "qty": "2",
+        "budget": "₹1.00–1.30L",
+        "stage": "INTERVIEWING",
+        "stageBg": "#e8f6ef",
+        "stageFg": "#127a4a",
+        "action": "Schedule"
+      },
+      {
+        "id": "REQ-2255",
+        "role": "Salesforce Developer",
+        "meta": "3–5y · Remote · start 1 Oct",
+        "qty": "2",
+        "budget": "₹0.90–1.20L",
+        "stage": "NEW",
+        "stageBg": "#f3f3f7",
+        "stageFg": "#4a4a58",
+        "action": "View"
+      }
+    ],
+    "awaiting": [
+      {
+        "id": "REQ-2291",
+        "role": "Senior React Engineers",
+        "count": 6,
+        "avg": 83.5,
+        "age": "2h ago"
+      },
+      {
+        "id": "REQ-2260",
+        "role": "QA Automation Engineers",
+        "count": 5,
+        "avg": 86.2,
+        "age": "yesterday"
+      },
+      {
+        "id": "REQ-2249",
+        "role": "Node.js Platform Engineer",
+        "count": 6,
+        "avg": 79.8,
+        "age": "2 days ago"
+      }
+    ],
+    "engagements": [
+      {
+        "initials": "TV",
+        "id": "TV-3310",
+        "role": "Java Spring Boot",
+        "since": "since 3 Mar",
+        "rate": "₹1.92L",
+        "status": "Active",
+        "dot": "#16a34a"
+      },
+      {
+        "initials": "TV",
+        "id": "TV-2984",
+        "role": ".NET Core",
+        "since": "since 12 Apr",
+        "rate": "₹1.44L",
+        "status": "Active",
+        "dot": "#16a34a"
+      },
+      {
+        "initials": "TV",
+        "id": "TV-4102",
+        "role": "QA Automation",
+        "since": "since 2 Jun",
+        "rate": "₹1.26L",
+        "status": "Ends 30 Sep",
+        "dot": "#c2410c"
+      },
+      {
+        "initials": "TV",
+        "id": "TV-3877",
+        "role": "Salesforce",
+        "since": "since 19 May",
+        "rate": "₹1.18L",
+        "status": "Active",
+        "dot": "#16a34a"
+      },
+      {
+        "initials": "TV",
+        "id": "TV-4455",
+        "role": "SAP ABAP",
+        "since": "since 1 Aug",
+        "rate": "₹2.60L",
+        "status": "Onboarding",
+        "dot": "#1d4ed8"
+      }
+    ],
+    "brokerSteps": [
+      {
+        "n": "1",
+        "title": "You post, we source",
+        "body": "Talentvibes searches 14 supplier benches. Suppliers never see your name."
+      },
+      {
+        "n": "2",
+        "title": "Masked shortlist",
+        "body": "You review IDs, skills, proctored scores and rate bands only."
+      },
+      {
+        "n": "3",
+        "title": "Brokered interviews",
+        "body": "We schedule, relay feedback and hold both commercial conversations."
+      },
+      {
+        "n": "4",
+        "title": "One contract",
+        "body": "You contract with Talentvibes. We contract with the supplier."
+      }
+    ],
+    "matchPreview": [
+      {
+        "label": "Skill match",
+        "v": 42,
+        "w": "84%"
+      },
+      {
+        "label": "Within budget",
+        "v": 31,
+        "w": "62%"
+      },
+      {
+        "label": "Score ≥ 80",
+        "v": 24,
+        "w": "48%"
+      },
+      {
+        "label": "Start by 15 Sep",
+        "v": 18,
+        "w": "36%"
+      }
+    ],
+    "interviews": [
+      {
+        "mon": "AUG",
+        "day": "25",
+        "time": "11:00",
+        "id": "TV-4821",
+        "stage": "ROUND 1",
+        "stageBg": "#f1ecff",
+        "stageFg": "#6d3ff0",
+        "role": "Senior React Engineer",
+        "dur": "45 min",
+        "mode": "Google Meet · link from Talentvibes",
+        "panel": "R. Sundaram (Eng Manager), D. Kulkarni (Staff FE)",
+        "cta": "Join briefing"
+      },
+      {
+        "mon": "AUG",
+        "day": "26",
+        "time": "15:30",
+        "id": "TV-6620",
+        "stage": "ROUND 2",
+        "stageBg": "#e8f6ef",
+        "stageFg": "#127a4a",
+        "role": "QA Automation Engineer",
+        "dur": "60 min",
+        "mode": "Onsite · Whitefield campus",
+        "panel": "S. Ahuja (QA Lead), Platform pairing",
+        "cta": "View scorecard"
+      },
+      {
+        "mon": "AUG",
+        "day": "28",
+        "time": "10:00",
+        "id": "TV-7715",
+        "stage": "ROUND 1",
+        "stageBg": "#f1ecff",
+        "stageFg": "#6d3ff0",
+        "role": "Senior React Engineer",
+        "dur": "45 min",
+        "mode": "Google Meet · link from Talentvibes",
+        "panel": "D. Kulkarni (Staff FE)",
+        "cta": "Prepare questions"
+      }
+    ],
+    "feedbackRows": [
+      {
+        "label": "Technical depth",
+        "v": 4,
+        "pips": [
+          {
+            "bg": "#6d3ff0"
+          },
+          {
+            "bg": "#6d3ff0"
+          },
+          {
+            "bg": "#6d3ff0"
+          },
+          {
+            "bg": "#6d3ff0"
+          },
+          {
+            "bg": "#eeeef3"
+          }
+        ]
+      },
+      {
+        "label": "Problem solving",
+        "v": 5,
+        "pips": [
+          {
+            "bg": "#6d3ff0"
+          },
+          {
+            "bg": "#6d3ff0"
+          },
+          {
+            "bg": "#6d3ff0"
+          },
+          {
+            "bg": "#6d3ff0"
+          },
+          {
+            "bg": "#6d3ff0"
+          }
+        ]
+      },
+      {
+        "label": "Communication",
+        "v": 4,
+        "pips": [
+          {
+            "bg": "#6d3ff0"
+          },
+          {
+            "bg": "#6d3ff0"
+          },
+          {
+            "bg": "#6d3ff0"
+          },
+          {
+            "bg": "#6d3ff0"
+          },
+          {
+            "bg": "#eeeef3"
+          }
+        ]
+      },
+      {
+        "label": "Role fit",
+        "v": 4,
+        "pips": [
+          {
+            "bg": "#6d3ff0"
+          },
+          {
+            "bg": "#6d3ff0"
+          },
+          {
+            "bg": "#6d3ff0"
+          },
+          {
+            "bg": "#6d3ff0"
+          },
+          {
+            "bg": "#eeeef3"
+          }
+        ]
+      }
+    ],
+    "vendorStats": [
+      {
+        "label": "PROFILES LISTED",
+        "value": "27",
+        "delta": "+4",
+        "deltaColor": "#16a34a",
+        "sub": "of 42 on bench"
+      },
+      {
+        "label": "SHORTLISTED",
+        "value": "11",
+        "delta": "6 live",
+        "deltaColor": "#059669",
+        "sub": "across 5 requirements"
+      },
+      {
+        "label": "PLACED · YTD",
+        "value": "18",
+        "delta": "+3 Aug",
+        "deltaColor": "#16a34a",
+        "sub": "avg 6.4 month tenure"
+      },
+      {
+        "label": "MONTHLY BILLING",
+        "value": "₹7.4L",
+        "delta": "",
+        "deltaColor": "#8a8a96",
+        "sub": "5 active placements"
+      }
+    ],
+    "vendorPipeline": [
+      {
+        "id": "TV-4821",
+        "name": "A. Rathore",
+        "skills": [
+          "React",
+          "TypeScript"
+        ],
+        "rate": "₹1,38,000",
+        "stage": "INTERVIEW R1",
+        "stageBg": "#f1ecff",
+        "stageFg": "#6d3ff0",
+        "updated": "2h ago"
+      },
+      {
+        "id": "TV-6620",
+        "name": "M. Iyer",
+        "skills": [
+          "QA Automation",
+          "Playwright"
+        ],
+        "rate": "₹1,12,000",
+        "stage": "INTERVIEW R2",
+        "stageBg": "#f1ecff",
+        "stageFg": "#6d3ff0",
+        "updated": "yesterday"
+      },
+      {
+        "id": "TV-7715",
+        "name": "S. Pillai",
+        "skills": [
+          "React Native",
+          "GraphQL"
+        ],
+        "rate": "₹1,46,000",
+        "stage": "SHORTLISTED",
+        "stageBg": "#e8f6ef",
+        "stageFg": "#0f7a4a",
+        "updated": "yesterday"
+      },
+      {
+        "id": "TV-5107",
+        "name": "R. Deshmukh",
+        "skills": [
+          "Java Spring Boot",
+          "Kafka"
+        ],
+        "rate": "₹1,84,000",
+        "stage": "SHORTLISTED",
+        "stageBg": "#e8f6ef",
+        "stageFg": "#0f7a4a",
+        "updated": "2 days ago"
+      },
+      {
+        "id": "TV-6104",
+        "name": "N. Chaudhary",
+        "skills": [
+          ".NET Core",
+          "Azure"
+        ],
+        "rate": "₹98,000",
+        "stage": "NOT SHORTLISTED",
+        "stageBg": "#f3f3f7",
+        "stageFg": "#6b6b78",
+        "updated": "4 days ago"
+      }
+    ],
+    "freshSummary": [
+      {
+        "n": 32,
+        "label": "Confirmed",
+        "bg": "#e8f6ef",
+        "fg": "#0f7a4a"
+      },
+      {
+        "n": 7,
+        "label": "Expiring soon",
+        "bg": "#fff3e4",
+        "fg": "#b45309"
+      },
+      {
+        "n": 3,
+        "label": "Unconfirmed",
+        "bg": "#fdecec",
+        "fg": "#b91c1c"
+      }
+    ],
+    "assessSummary": [
+      {
+        "label": "Scored",
+        "n": 18,
+        "w": "67%",
+        "color": "#059669"
+      },
+      {
+        "label": "In progress",
+        "n": 4,
+        "w": "15%",
+        "color": "#c2410c"
+      },
+      {
+        "label": "Not started",
+        "n": 9,
+        "w": "33%",
+        "color": "#9aa0ab"
+      }
+    ],
+    "importRows": [
+      {
+        "label": "Rows imported",
+        "n": 38,
+        "color": "#059669"
+      },
+      {
+        "label": "Listed automatically",
+        "n": 34,
+        "color": "#059669"
+      },
+      {
+        "label": "Needs review",
+        "n": 4,
+        "color": "#f59e0b"
+      }
+    ],
+    "assessCards": [
+      {
+        "name": "Meghna Iyer",
+        "id": "TV-6620",
+        "track": "QA Automation track",
+        "status": "SCORED",
+        "bg": "#e8f6ef",
+        "fg": "#0f7a4a",
+        "score": "91",
+        "scoreLabel": "PROCTORED · 12 AUG",
+        "scoreColor": "#059669",
+        "b": [
+          93,
+          88,
+          86,
+          92
+        ],
+        "note": "Valid until 10 Nov",
+        "cta": "View report",
+        "bars": [
+          {
+            "label": "Coding",
+            "w": "93%"
+          },
+          {
+            "label": "DSA",
+            "w": "88%"
+          },
+          {
+            "label": "System design",
+            "w": "86%"
+          },
+          {
+            "label": "Communication",
+            "w": "92%"
+          }
+        ]
+      },
+      {
+        "name": "Arjun Rathore",
+        "id": "TV-4821",
+        "track": "Frontend / React track",
+        "status": "SCORED",
+        "bg": "#e8f6ef",
+        "fg": "#0f7a4a",
+        "score": "88",
+        "scoreLabel": "PROCTORED · 09 AUG",
+        "scoreColor": "#059669",
+        "b": [
+          91,
+          84,
+          82,
+          90
+        ],
+        "note": "Valid until 07 Nov",
+        "cta": "View report",
+        "bars": [
+          {
+            "label": "Coding",
+            "w": "91%"
+          },
+          {
+            "label": "DSA",
+            "w": "84%"
+          },
+          {
+            "label": "System design",
+            "w": "82%"
+          },
+          {
+            "label": "Communication",
+            "w": "90%"
+          }
+        ]
+      },
+      {
+        "name": "Rohit Deshmukh",
+        "id": "TV-5107",
+        "track": "Java backend track",
+        "status": "SCORED",
+        "bg": "#e8f6ef",
+        "fg": "#0f7a4a",
+        "score": "82",
+        "scoreLabel": "PROCTORED · 04 AUG",
+        "scoreColor": "#059669",
+        "b": [
+          84,
+          78,
+          88,
+          76
+        ],
+        "note": "Retake allowed after 60d",
+        "cta": "View report",
+        "bars": [
+          {
+            "label": "Coding",
+            "w": "84%"
+          },
+          {
+            "label": "DSA",
+            "w": "78%"
+          },
+          {
+            "label": "System design",
+            "w": "88%"
+          },
+          {
+            "label": "Communication",
+            "w": "76%"
+          }
+        ]
+      },
+      {
+        "name": "Sanjay Pillai",
+        "id": "TV-7715",
+        "track": "React Native track",
+        "status": "IN PROGRESS",
+        "bg": "#fff3e4",
+        "fg": "#b45309",
+        "score": "—",
+        "scoreLabel": "SECTION 2 OF 4",
+        "scoreColor": "#c2410c",
+        "b": [
+          100,
+          62,
+          0,
+          0
+        ],
+        "note": "Started 22 Aug, 14:10",
+        "cta": "Nudge candidate",
+        "bars": [
+          {
+            "label": "Coding",
+            "w": "100%"
+          },
+          {
+            "label": "DSA",
+            "w": "62%"
+          },
+          {
+            "label": "System design",
+            "w": "0%"
+          },
+          {
+            "label": "Communication",
+            "w": "0%"
+          }
+        ]
+      },
+      {
+        "name": "Ishita Bansal",
+        "id": "TV-7702",
+        "track": "Java backend track",
+        "status": "NOT STARTED",
+        "bg": "#f3f3f7",
+        "fg": "#6b6b78",
+        "score": "—",
+        "scoreLabel": "INVITE NOT SENT",
+        "scoreColor": "#9aa0ab",
+        "b": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "note": "Listed 3 days ago",
+        "cta": "Send invite",
+        "bars": [
+          {
+            "label": "Coding",
+            "w": "0%"
+          },
+          {
+            "label": "DSA",
+            "w": "0%"
+          },
+          {
+            "label": "System design",
+            "w": "0%"
+          },
+          {
+            "label": "Communication",
+            "w": "0%"
+          }
+        ]
+      },
+      {
+        "name": "Karthik Nair",
+        "id": "TV-7188",
+        "track": "QA Automation track",
+        "status": "NOT STARTED",
+        "bg": "#f3f3f7",
+        "fg": "#6b6b78",
+        "score": "—",
+        "scoreLabel": "INVITE SENT 20 AUG",
+        "scoreColor": "#9aa0ab",
+        "b": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "note": "Expires in 4 days",
+        "cta": "Resend invite",
+        "bars": [
+          {
+            "label": "Coding",
+            "w": "0%"
+          },
+          {
+            "label": "DSA",
+            "w": "0%"
+          },
+          {
+            "label": "System design",
+            "w": "0%"
+          },
+          {
+            "label": "Communication",
+            "w": "0%"
+          }
+        ]
+      }
+    ],
+    "earnStats": [
+      {
+        "label": "BILLED THIS MONTH",
+        "value": "₹7.42L",
+        "delta": "+₹1.26L",
+        "deltaColor": "#16a34a",
+        "sub": "5 active placements"
+      },
+      {
+        "label": "YTD EARNINGS",
+        "value": "₹58.6L",
+        "delta": "",
+        "deltaColor": "#8a8a96",
+        "sub": "18 placements since Jan"
+      },
+      {
+        "label": "AVG RATE / RESOURCE",
+        "value": "₹1.48L",
+        "delta": "+4%",
+        "deltaColor": "#16a34a",
+        "sub": "your contracted rate"
+      },
+      {
+        "label": "PAYMENT CYCLE",
+        "value": "7th",
+        "delta": "on time",
+        "deltaColor": "#16a34a",
+        "sub": "net 30 · last 12 cycles clear"
+      }
+    ],
+    "earnRows": [
+      {
+        "name": "Priyanka Joshi",
+        "id": "TV-3310",
+        "role": "Java Spring Boot Engineer",
+        "since": "3 Mar 2026",
+        "rate": "₹1,62,000",
+        "month": "₹1,62,000",
+        "status": "BILLED",
+        "bg": "#e8f6ef",
+        "fg": "#0f7a4a"
+      },
+      {
+        "name": "Nikhil Sharma",
+        "id": "TV-2984",
+        "role": ".NET Core Engineer",
+        "since": "12 Apr 2026",
+        "rate": "₹1,18,000",
+        "month": "₹1,18,000",
+        "status": "BILLED",
+        "bg": "#e8f6ef",
+        "fg": "#0f7a4a"
+      },
+      {
+        "name": "Aditi Verma",
+        "id": "TV-4102",
+        "role": "QA Automation Engineer",
+        "since": "2 Jun 2026",
+        "rate": "₹1,04,000",
+        "month": "₹1,04,000",
+        "status": "ENDS 30 SEP",
+        "bg": "#fff3e4",
+        "fg": "#b45309"
+      },
+      {
+        "name": "Rahul Krishnan",
+        "id": "TV-3877",
+        "role": "Salesforce Developer",
+        "since": "19 May 2026",
+        "rate": "₹96,000",
+        "month": "₹96,000",
+        "status": "BILLED",
+        "bg": "#e8f6ef",
+        "fg": "#0f7a4a"
+      },
+      {
+        "name": "Farhan Qureshi",
+        "id": "TV-4455",
+        "role": "SAP ABAP Consultant",
+        "since": "1 Aug 2026",
+        "rate": "₹2,15,000",
+        "month": "₹1,62,000",
+        "status": "PRO-RATA",
+        "bg": "#e8eefc",
+        "fg": "#1d4ed8"
+      }
+    ],
+    "weights": [
+      {
+        "label": "Skill match",
+        "pct": "30%"
+      },
+      {
+        "label": "Proctored score",
+        "pct": "22%"
+      },
+      {
+        "label": "Experience fit",
+        "pct": "16%"
+      },
+      {
+        "label": "Rate vs budget",
+        "pct": "14%"
+      },
+      {
+        "label": "Availability freshness",
+        "pct": "10%"
+      },
+      {
+        "label": "Vendor reliability",
+        "pct": "8%"
+      }
+    ],
+    "poolFilters": [
+      {
+        "label": "Skill: React ×",
+        "bg": "#fff3e4",
+        "fg": "#b45309",
+        "border": "#f0dcc0",
+        "fw": 700
+      },
+      {
+        "label": "Exp: 5–8y ×",
+        "bg": "#fff3e4",
+        "fg": "#b45309",
+        "border": "#f0dcc0",
+        "fw": 700
+      },
+      {
+        "label": "Score ≥ 75 ×",
+        "bg": "#fff3e4",
+        "fg": "#b45309",
+        "border": "#f0dcc0",
+        "fw": 700
+      },
+      {
+        "label": "Freshness: confirmed ×",
+        "bg": "#fff3e4",
+        "fg": "#b45309",
+        "border": "#f0dcc0",
+        "fw": 700
+      },
+      {
+        "label": "City: any",
+        "bg": "#fff",
+        "fg": "#6b6b78",
+        "border": "#e0e0e8",
+        "fw": 500
+      },
+      {
+        "label": "Vendor: any",
+        "bg": "#fff",
+        "fg": "#6b6b78",
+        "border": "#e0e0e8",
+        "fw": 500
+      },
+      {
+        "label": "Vendor rate ≤ ₹1.6L",
+        "bg": "#fff",
+        "fg": "#6b6b78",
+        "border": "#e0e0e8",
+        "fw": 500
+      },
+      {
+        "label": "+ Add filter",
+        "bg": "#fff",
+        "fg": "#b45309",
+        "border": "#f0dcc0",
+        "fw": 700
+      }
+    ],
+    "pool": [
+      {
+        "name": "Arjun Rathore",
+        "id": "TV-4821",
+        "vendor": "Nimbus Softworks",
+        "rel": "4.6",
+        "relColor": "#0f7a4a",
+        "skills": [
+          "React",
+          "TypeScript",
+          "Node.js"
+        ],
+        "exp": "6.2y",
+        "score": 88,
+        "vrate": "₹1,38,000",
+        "crate": "₹1,82,000",
+        "city": "Bangalore",
+        "fresh": "CONFIRMED 2d",
+        "freshBg": "#e8f6ef",
+        "freshFg": "#0f7a4a",
+        "scoreColor": "#0f7a4a"
+      },
+      {
+        "name": "Sanjay Pillai",
+        "id": "TV-7715",
+        "vendor": "Nimbus Softworks",
+        "rel": "4.6",
+        "relColor": "#0f7a4a",
+        "skills": [
+          "React Native",
+          "React",
+          "GraphQL"
+        ],
+        "exp": "7.1y",
+        "score": 84,
+        "vrate": "₹1,46,000",
+        "crate": "₹1,94,000",
+        "city": "Bangalore",
+        "fresh": "CONFIRMED 3d",
+        "freshBg": "#e8f6ef",
+        "freshFg": "#0f7a4a",
+        "scoreColor": "#b45309"
+      },
+      {
+        "name": "Meghna Iyer",
+        "id": "TV-6620",
+        "vendor": "Sparkbridge Systems",
+        "rel": "4.2",
+        "relColor": "#0f7a4a",
+        "skills": [
+          "QA Automation",
+          "Playwright"
+        ],
+        "exp": "5.4y",
+        "score": 91,
+        "vrate": "₹1,12,000",
+        "crate": "₹1,44,000",
+        "city": "Jaipur",
+        "fresh": "CONFIRMED 1d",
+        "freshBg": "#e8f6ef",
+        "freshFg": "#0f7a4a",
+        "scoreColor": "#0f7a4a"
+      },
+      {
+        "name": "Deepak Chandran",
+        "id": "TV-7024",
+        "vendor": "Helix Systems",
+        "rel": "3.9",
+        "relColor": "#b45309",
+        "skills": [
+          "React",
+          "Redux",
+          "Node.js"
+        ],
+        "exp": "5.9y",
+        "score": 81,
+        "vrate": "₹1,29,000",
+        "crate": "₹1,68,000",
+        "city": "Hyderabad",
+        "fresh": "EXPIRING 11d",
+        "freshBg": "#fff3e4",
+        "freshFg": "#b45309",
+        "scoreColor": "#b45309"
+      },
+      {
+        "name": "Ritika Agarwal",
+        "id": "TV-6612",
+        "vendor": "Trueline Consulting",
+        "rel": "3.4",
+        "relColor": "#b45309",
+        "skills": [
+          "React",
+          "Next.js"
+        ],
+        "exp": "5.2y",
+        "score": 79,
+        "vrate": "₹1,21,000",
+        "crate": "₹1,58,000",
+        "city": "Pune",
+        "fresh": "CONFIRMED 5d",
+        "freshBg": "#e8f6ef",
+        "freshFg": "#0f7a4a",
+        "scoreColor": "#b45309"
+      },
+      {
+        "name": "Rohit Deshmukh",
+        "id": "TV-5107",
+        "vendor": "Cygnet Infotech Labs",
+        "rel": "4.1",
+        "relColor": "#0f7a4a",
+        "skills": [
+          "Java Spring Boot",
+          "Kafka",
+          "AWS"
+        ],
+        "exp": "8.0y",
+        "score": 82,
+        "vrate": "₹1,84,000",
+        "crate": "₹2,36,000",
+        "city": "Pune",
+        "fresh": "EXPIRING 12d",
+        "freshBg": "#fff3e4",
+        "freshFg": "#b45309",
+        "scoreColor": "#b45309"
+      },
+      {
+        "name": "Nikhil Sharma",
+        "id": "TV-3964",
+        "vendor": "Orbit Talent Services",
+        "rel": "3.1",
+        "relColor": "#b91c1c",
+        "skills": [
+          ".NET Core",
+          "Azure",
+          "SQL Server"
+        ],
+        "exp": "4.5y",
+        "score": 76,
+        "vrate": "₹98,000",
+        "crate": "₹1,32,000",
+        "city": "Hyderabad",
+        "fresh": "UNCONFIRMED 21d",
+        "freshBg": "#fdecec",
+        "freshFg": "#b91c1c",
+        "scoreColor": "#6b6b78"
+      },
+      {
+        "name": "Suresh Balan",
+        "id": "TV-4488",
+        "vendor": "Vertex Digital",
+        "rel": "3.6",
+        "relColor": "#b45309",
+        "skills": [
+          "SAP ABAP",
+          "Fiori",
+          "HANA"
+        ],
+        "exp": "9.1y",
+        "score": 79,
+        "vrate": "₹2,15,000",
+        "crate": "₹2,88,000",
+        "city": "Bangalore",
+        "fresh": "UNCONFIRMED 26d",
+        "freshBg": "#fdecec",
+        "freshFg": "#b91c1c",
+        "scoreColor": "#b45309"
+      }
+    ],
+    "marginStats": [
+      {
+        "label": "GROSS SPREAD · AUG",
+        "value": "₹2.84L",
+        "delta": "+12%",
+        "deltaColor": "#0f7a4a",
+        "sub": "across 6 filtered placements",
+        "cardBg": "#fff",
+        "cardBorder": "#e8e8ee",
+        "labelColor": "#8a8a96",
+        "valueColor": "#101014",
+        "subColor": "#8a8a96"
+      },
+      {
+        "label": "AVERAGE MARGIN",
+        "value": "24.5%",
+        "delta": "target 22%",
+        "deltaColor": "#0f7a4a",
+        "sub": "median 25.1% · floor 18%",
+        "cardBg": "#fff",
+        "cardBorder": "#e8e8ee",
+        "labelColor": "#8a8a96",
+        "valueColor": "#101014",
+        "subColor": "#8a8a96"
+      },
+      {
+        "label": "BELOW FLOOR",
+        "value": "2",
+        "delta": "review",
+        "deltaColor": "#b45309",
+        "sub": "TV-4488 at 14.2%, TV-3964 at 17.4%",
+        "cardBg": "#fffaf2",
+        "cardBorder": "#f5e3c8",
+        "labelColor": "#b45309",
+        "valueColor": "#b45309",
+        "subColor": "#a97521"
+      },
+      {
+        "label": "RUN-RATE · ANNUAL",
+        "value": "₹3.4Cr",
+        "delta": "",
+        "deltaColor": "#8a8a96",
+        "sub": "31 live placements exchange-wide",
+        "cardBg": "#101014",
+        "cardBorder": "#101014",
+        "labelColor": "#8b8b96",
+        "valueColor": "#fff",
+        "subColor": "#8b8b96"
+      }
+    ],
+    "marginRows": [
+      {
+        "name": "Arjun Rathore",
+        "id": "TV-4821",
+        "vendor": "Nimbus",
+        "client": "Acme Finserv",
+        "role": "Senior React Engineer",
+        "vrate": "₹1,38,000",
+        "crate": "₹1,82,000",
+        "spread": "₹44,000",
+        "pct": "24.2%",
+        "bg": "#e8f6ef",
+        "fg": "#0f7a4a"
+      },
+      {
+        "name": "Meghna Iyer",
+        "id": "TV-6620",
+        "vendor": "Sparkbridge",
+        "client": "Acme Finserv",
+        "role": "QA Automation Engineer",
+        "vrate": "₹1,12,000",
+        "crate": "₹1,44,000",
+        "spread": "₹32,000",
+        "pct": "22.2%",
+        "bg": "#e8f6ef",
+        "fg": "#0f7a4a"
+      },
+      {
+        "name": "Priyanka Joshi",
+        "id": "TV-3310",
+        "vendor": "Nimbus",
+        "client": "Acme Finserv",
+        "role": "Java Spring Boot Engineer",
+        "vrate": "₹1,62,000",
+        "crate": "₹2,18,000",
+        "spread": "₹56,000",
+        "pct": "25.7%",
+        "bg": "#e8f6ef",
+        "fg": "#0f7a4a"
+      },
+      {
+        "name": "Rahul Krishnan",
+        "id": "TV-3877",
+        "vendor": "Trueline",
+        "client": "Northwind Retail",
+        "role": "Salesforce Developer",
+        "vrate": "₹96,000",
+        "crate": "₹1,31,000",
+        "spread": "₹35,000",
+        "pct": "26.7%",
+        "bg": "#e8f6ef",
+        "fg": "#0f7a4a"
+      },
+      {
+        "name": "Nikhil Sharma",
+        "id": "TV-3964",
+        "vendor": "Orbit Talent",
+        "client": "Northwind Retail",
+        "role": ".NET Core Developer",
+        "vrate": "₹98,000",
+        "crate": "₹1,18,600",
+        "spread": "₹20,600",
+        "pct": "17.4%",
+        "bg": "#fff3e4",
+        "fg": "#b45309"
+      },
+      {
+        "name": "Suresh Balan",
+        "id": "TV-4488",
+        "vendor": "Vertex Digital",
+        "client": "Acme Finserv",
+        "role": "SAP ABAP Consultant",
+        "vrate": "₹2,15,000",
+        "crate": "₹2,50,600",
+        "spread": "₹35,600",
+        "pct": "14.2%",
+        "bg": "#fdecec",
+        "fg": "#b91c1c"
+      }
+    ],
+    "dupeSides": [
+      {
+        "isFirst": true,
+        "tag": "SUBMISSION A · EARLIER",
+        "tagBg": "#e8f6ef",
+        "tagFg": "#0f7a4a",
+        "submitted": "12 AUG 09:41",
+        "name": "Arjun Rathore",
+        "id": "TV-4821",
+        "vendor": "Nimbus Softworks",
+        "keep": "Keep this one",
+        "keepBg": "#101014",
+        "keepFg": "#fff",
+        "facts": [
+          {
+            "k": "PAN hash",
+            "v": "…7f21c9",
+            "color": "#b91c1c"
+          },
+          {
+            "k": "Phone hash",
+            "v": "…4b8e",
+            "color": "#b91c1c"
+          },
+          {
+            "k": "Experience",
+            "v": "6.2 years",
+            "color": "#101014"
+          },
+          {
+            "k": "Last employer",
+            "v": "Zeta Commerce (2021–24)",
+            "color": "#b91c1c"
+          },
+          {
+            "k": "Proctored score",
+            "v": "88 · 09 Aug",
+            "color": "#0f7a4a"
+          },
+          {
+            "k": "Vendor rate",
+            "v": "₹1,38,000",
+            "color": "#101014"
+          },
+          {
+            "k": "Freshness",
+            "v": "Confirmed 2d ago",
+            "color": "#0f7a4a"
+          },
+          {
+            "k": "Vendor reliability",
+            "v": "4.6 / 5 · 34 placements",
+            "color": "#0f7a4a"
+          }
+        ]
+      },
+      {
+        "isFirst": false,
+        "tag": "SUBMISSION B · LATER",
+        "tagBg": "#fff3e4",
+        "tagFg": "#b45309",
+        "submitted": "18 AUG 16:07",
+        "name": "A. Rathore",
+        "id": "TV-7188-B",
+        "vendor": "Orbit Talent Services",
+        "keep": "Keep this one",
+        "keepBg": "#f3f3f7",
+        "keepFg": "#4a4a58",
+        "facts": [
+          {
+            "k": "PAN hash",
+            "v": "…7f21c9",
+            "color": "#b91c1c"
+          },
+          {
+            "k": "Phone hash",
+            "v": "…4b8e",
+            "color": "#b91c1c"
+          },
+          {
+            "k": "Experience",
+            "v": "6.5 years",
+            "color": "#101014"
+          },
+          {
+            "k": "Last employer",
+            "v": "Zeta Commerce (2021–24)",
+            "color": "#b91c1c"
+          },
+          {
+            "k": "Proctored score",
+            "v": "Not started",
+            "color": "#8a8a96"
+          },
+          {
+            "k": "Vendor rate",
+            "v": "₹1,52,000",
+            "color": "#101014"
+          },
+          {
+            "k": "Freshness",
+            "v": "Unconfirmed 6d",
+            "color": "#b45309"
+          },
+          {
+            "k": "Vendor reliability",
+            "v": "3.1 / 5 · 9 placements",
+            "color": "#b45309"
+          }
+        ]
+      }
+    ],
+    "dupeSignals": [
+      {
+        "label": "PAN hash identical",
+        "detail": "exact match",
+        "bg": "#fdecec",
+        "border": "#f6cfcf",
+        "fg": "#b91c1c"
+      },
+      {
+        "label": "Phone hash identical",
+        "detail": "exact match",
+        "bg": "#fdecec",
+        "border": "#f6cfcf",
+        "fg": "#b91c1c"
+      },
+      {
+        "label": "Employer history",
+        "detail": "3 of 3 overlap",
+        "bg": "#fdecec",
+        "border": "#f6cfcf",
+        "fg": "#b91c1c"
+      },
+      {
+        "label": "GitHub handle",
+        "detail": "same, on both CVs",
+        "bg": "#fff3e4",
+        "border": "#f5e3c8",
+        "fg": "#b45309"
+      },
+      {
+        "label": "Experience stated",
+        "detail": "6.2y vs 6.5y",
+        "bg": "#fff3e4",
+        "border": "#f5e3c8",
+        "fg": "#b45309"
+      },
+      {
+        "label": "Rate differs",
+        "detail": "₹14,000 apart",
+        "bg": "#f7f7fa",
+        "border": "#e8e8ee",
+        "fg": "#4a4a58"
+      }
+    ]
+  }
+}

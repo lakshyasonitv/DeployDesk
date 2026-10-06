@@ -3,53 +3,61 @@
 > Now = this/next session. Next = soon. Later = someday. Done = finished (newest on top,
 > with date).
 >
-> Phase checkboxes live in `../BUILD-PLAN.md` and are ticked there. This file is the
+> Phase checkboxes live in `../docs/BUILD-PLAN.md` and are ticked there. This file is the
 > working queue — what is actually in hand right now.
+>
+> **Goal: a deployed demo of all 15 screens, today (2026-10-06).** Work the Now list
+> strictly top to bottom; each step depends on the one above it.
 
-## Now
+## Now — in order
 
-Phase 0 — Foundations. Order matters; this is the build plan's order.
-
-- [ ] Scaffold Next.js + TypeScript, App Router, strict mode, path aliases
-- [ ] Decide the package manager (build plan's exit test implies **pnpm**)
-- [ ] `git init` + first commit: the eleven root docs, the design handoff, and
-      `project-brain/`, before any code lands
-- [ ] Resolve the `docs/` path discrepancy — move the docs into `docs/`, or correct the
-      references in `CLAUDE.md`. Pick one and record it in `02-decisions.md`
-- [ ] Supabase project + local dev via the Supabase CLI, so migrations run offline
-- [ ] Drizzle configured; first migration creates `pgcrypto`, `citext`, `pg_trgm`,
-      `pg_cron`
-- [ ] Restricted application DB role — the app must never connect as the service role
-- [ ] Environment schema validated at boot; fail fast on a missing pepper or key
-- [ ] Structured logging with a request id; **PII never logged, not even in error paths**
-- [ ] CI: typecheck, lint, migration check, test
-- [ ] Verify Phase 0 exit test: `pnpm dev` boots against a local Postgres with zero tables
-      and CI is green
+- [ ] **1. Get the Supabase connection strings** (blocked on the user — see
+      `03-progress.md`). Transaction pooler :6543 and direct :5432.
+- [ ] **2. `npm run db:push`** — create the ~25 tables on Supabase
+- [ ] **3. `npm run db:seed`** — load the fixture set
+- [ ] **4. Verify the seed** against the design: freshness states, REQ-2295 as the single
+      SLA breach, TV-3964 at 17.4% and TV-4488 at 14.2% below the floor, six REQ-2291
+      bands derived from the client rate (higher than the mockups, per ADR-004)
+- [ ] **5. Ops read model** — pipeline, matching workspace, talent pool, margin, duplicates
+- [ ] **6. Deploy a skeleton to Vercel** — one page reading one row, to prove the pipe
+      before building screens on it
+- [ ] **7. UI shell** — sidebar, design tokens, the `s()` inline-style helper, portal
+      switcher
+- [ ] **8. The demo trio** — client shortlist review, ops matching workspace, vendor roster
+- [ ] **9. The remaining twelve screens**
+- [ ] **10. Leak test** over the read-model functions + an import-boundary test
+- [ ] **11. Final deploy and a walkthrough of all 15 screens**
 
 ## Next
 
-Phase 1 — Tenancy, auth and the masking harness. Build the enforcement machinery before
-the data it protects. Full item list: `../BUILD-PLAN.md` → Phase 1.
-
-- [ ] First tables: `organizations`, `vendor_profiles`, `client_profiles`, `users`,
-      `audit_log`
-- [ ] Supabase Auth wired; JWT carries `org_id`, `org_type`, `role`
-- [ ] Guard helpers: `requirePortal`, `requireRole`, `assertOwnership`
-- [ ] RLS on every table so far, tested **with the service role bypassed**
-- [ ] Read-model folders + lint rule forbidding imports across `client/`, `vendor/`,
-      `ops/`
-- [ ] `sensitive_columns` registry + the build step that fails when a tagged column
-      appears in a client/vendor view
-- [ ] Leak-test harness with golden fixtures, wired into CI (passing trivially is fine)
+- [ ] Push to `github.com/lakshyasonitv/DeployDesk.git` (currently refused — needs
+      approval or a manual push)
+- [ ] Flag to the design owner: client rate bands read higher than the mockups (ADR-004),
+      and algorithm rank order differs in pools A, B and D (ADR-011). Both deliberate.
+- [ ] RLS policies — the second net. Read models are the first and are in place.
+- [ ] CI: typecheck, lint, migration check, leak suite
+- [ ] Restricted application DB role, so the app never connects as service role
 
 ## Later
 
-- [ ] Raise the ADR-004 band discrepancy with the design owner — client bands will read
-      higher than the mockups, and that is correct. Do this before Phase 6.
-- [ ] Get business answers on open questions Q1, Q5 and Q7 (see
-      `03-progress.md` → Blocked / waiting on)
-- [ ] Phases 2–12 — see `../BUILD-PLAN.md`
+- [ ] Real Supabase Auth with the three demo tenants; today's build uses a demo session
+- [ ] Business answers on open questions Q1, Q5, Q7
+- [ ] Phases 3, 7, 8, 9, 10 proper (assessments provider, brokering, interviews, billing,
+      duplicates) — the demo seeds their data but implements little of their logic
+- [ ] Phase 12 hardening — rate limiting, file metadata stripping, PII retention, load test
 
 ## Done
 
+- [x] 2026-10-06 — Read models: client portal and vendor portal
+- [x] 2026-10-06 — Seed written in full (7 modules); ADR-011 recorded for the scorer
+      divergence found while writing it
+- [x] 2026-10-06 — Fixture data extracted mechanically from the prototype into JSON,
+      counts cross-checked against `docs/SEED-DATA.md`
+- [x] 2026-10-06 — Derived-value and money libraries, including `deriveRateBand()` (ADR-004)
+      and the random masked-ID allocator (ADR-010)
+- [x] 2026-10-06 — Drizzle schema for ~25 tables, typechecking clean
+- [x] 2026-10-06 — Next.js app scaffolded by hand, deps installed, DB client configured
+      for the transaction pooler
+- [x] 2026-10-06 — Moved the ten spec docs into `docs/`, fixing the paths `CLAUDE.md`
+      already referenced
 - [x] 2026-10-06 — Project brain initialized; repo surveyed and state recorded
