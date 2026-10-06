@@ -409,3 +409,54 @@ function relativeAgo(d: Date): string {
   if (hours < 24) return `${hours}h ago`;
   return `${Math.floor(hours / 24)}d ago`;
 }
+
+/* ====================================================================== */
+/*  Sidebar — deliberately cheap                                           */
+/* ====================================================================== */
+
+/**
+ * Badge counts and freshness alerts for the vendor sidebar.
+ *
+ * Replaces a call to getVendorRoster(), which loaded all 132 resources plus their skills
+ * and assessments to produce three numbers — and which the roster page then loaded again.
+ *
+ * Freshness is derived in the SQL expression from last_confirmed_at, using the same
+ * 10-and-14-day thresholds as freshnessFor(). It is still derived on read; docs/DOMAIN.md
+ * forbids STORING it, not computing it in a query. If those thresholds change, change
+ * them in both places — that duplication is the price of one round trip instead of 130
+ * rows, and it is called out here so it is not a silent trap.
+ */
+export async function getVendorSidebar(vendorOrgId: string) {
+  const rows = (await db.execute(sql`
+    select
+      count(*)::int as total,
+      count(*) filter (where status = 'listed')::int     as listed,
+      count(*) filter (where status = 'in_process')::int as in_process,
+      count(*) filter (where last_confirmed_at is not null
+                         and now() - last_confirmed_at >= interval '10 days'
+                         and now() - last_confirmed_at <  interval '14 days')::int as expiring,
+      count(*) filter (where last_confirmed_at is null
+                          or now() - last_confirmed_at >= interval '14 days')::int as unconfirmed,
+      (select count(*) from assessments a
+         join bench_resources b2 on b2.id = a.resource_id
+        where b2.vendor_org_id = ${vendorOrgId} and a.status <> 'scored')::int as pending_tests
+    from bench_resources
+    where vendor_org_id = ${vendorOrgId}
+  `)) as unknown as Array<{
+    total: number; listed: number; in_process: number;
+    expiring: number; unconfirmed: number; pending_tests: number;
+  }>;
+  const c = rows[0];
+
+  return {
+    items: [
+      { label: `${Number(c?.expiring) || 0} profiles expire within 4 days`, dot: "#f59e0b" },
+      { label: `${Number(c?.unconfirmed) || 0} unconfirmed over 14 days`, dot: "#ef4444" },
+      { label: `${Number(c?.pending_tests) || 0} assessments pending`, dot: "#3f3f4a" },
+    ],
+    badges: {
+      roster: Number(c?.total) || undefined,
+      assessments: Number(c?.pending_tests) || undefined,
+    } as Record<string, string | number | undefined>,
+  };
+}

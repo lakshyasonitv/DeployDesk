@@ -429,3 +429,60 @@ function formatTime(d: Date): string {
     day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: false,
   });
 }
+
+/* ====================================================================== */
+/*  Sidebar — deliberately cheap                                           */
+/* ====================================================================== */
+
+/**
+ * Badge counts and the context aside for the client sidebar.
+ *
+ * This exists because the sidebar used to call getClientOverview() — which every client
+ * page already calls — doubling the queries on every page to produce three badge
+ * numbers. Counts belong in a COUNT query, not in a full read model.
+ *
+ * Two round trips: one aggregate, one short list for the aside rows.
+ */
+export async function getClientSidebar(clientOrgId: string) {
+  const rows = (await db.execute(sql`
+    select
+      count(*) filter (where stage in ('new','matching','shortlisted','interviewing'))::int
+        as open_requirements,
+      count(*) filter (where stage = 'shortlisted')::int  as awaiting_review,
+      count(*) filter (where stage = 'interviewing')::int as in_interview,
+      (select count(*) from engagements e
+        where e.client_org_id = ${clientOrgId}
+          and e.status in ('onboarding','active','ending'))::int
+        as active_engagements
+    from requirements
+    where client_org_id = ${clientOrgId}
+  `)) as unknown as Array<{
+    open_requirements: number; awaiting_review: number;
+    in_interview: number; active_engagements: number;
+  }>;
+  const c = rows[0];
+
+  const top = await db
+    .select({
+      code: s.requirements.code,
+      roleTitle: s.requirements.roleTitle,
+      quantity: s.requirements.quantity,
+    })
+    .from(s.requirements)
+    .where(and(
+      eq(s.requirements.clientOrgId, clientOrgId),
+      inArray(s.requirements.stage, ["new", "matching", "shortlisted", "interviewing"]),
+    ))
+    .orderBy(desc(s.requirements.postedAt))
+    .limit(3);
+
+  return {
+    badges: {
+      requirements: Number(c?.open_requirements) || undefined,
+      shortlists: Number(c?.awaiting_review) || undefined,
+      interviews: Number(c?.in_interview) || undefined,
+      engagements: Number(c?.active_engagements) || undefined,
+    } as Record<string, string | number | undefined>,
+    items: top,
+  };
+}

@@ -21,6 +21,8 @@ export default async function MatchingPage({ params }: { params: Promise<{ code:
   // Sequential: OpsAside alone issues several queries, and running it alongside others
   // exhausted the connection pool. See src/read-models/ops/index.ts.
   const aside = await OpsAside();
+  // The requirement picker needs the list; the sidebar no longer fetches it.
+  const pipeline = await getOpsPipeline();
   const dupes = await getOpsDuplicates();
   const benchRows = (await db.execute<{ n: number }>(
     sql`select count(*)::int as n from organizations where org_type = 'vendor'`,
@@ -32,7 +34,7 @@ export default async function MatchingPage({ params }: { params: Promise<{ code:
     (d) => d.blocks && d.sides.some((side) => side && poolIds.has(side.maskedId)),
   ).length;
 
-  const pickerOptions = aside.pipeline.requirements
+  const pickerOptions = pipeline.requirements
     .filter((r) => ["new", "matching", "shortlisted"].includes(r.stage))
     .map((r) => ({
       code: r.code, roleTitle: r.roleTitle, clientName: r.clientName,

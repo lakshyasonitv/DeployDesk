@@ -1,21 +1,12 @@
-import { getVendorRoster } from "@/src/read-models/vendor";
+import { getVendorSidebar } from "@/src/read-models/vendor";
 
 /**
- * The vendor sidebar's freshness alerts and nav badges — derived on read, never stored.
+ * The vendor sidebar's freshness alerts and nav badges — derived on read.
+ *
+ * Backed by getVendorSidebar(), a single COUNT query. It used to call getVendorRoster(),
+ * which loads all 132 resources with their skills and assessments, and which the roster
+ * page then loaded a second time.
  */
 export async function VendorAside(vendorOrgId: string) {
-  const { counts, total, resources } = await getVendorRoster(vendorOrgId);
-  const pendingTests = resources.filter((r) => r.assessment.status !== "scored").length;
-
-  return {
-    items: [
-      { label: `${counts.expiring} profiles expire within 4 days`, dot: "#f59e0b" },
-      { label: `${counts.unconfirmed} unconfirmed over 14 days`, dot: "#ef4444" },
-      { label: `${pendingTests} assessments pending`, dot: "#3f3f4a" },
-    ],
-    badges: {
-      roster: total,
-      assessments: pendingTests || undefined,
-    } as Record<string, string | number | undefined>,
-  };
+  return getVendorSidebar(vendorOrgId);
 }

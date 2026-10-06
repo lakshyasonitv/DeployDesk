@@ -679,3 +679,49 @@ function shortenOwner(full: string): string {
   if (parts.length < 2) return full;
   return `${parts[0][0]}. ${parts[parts.length - 1]}`;
 }
+
+/* ====================================================================== */
+/*  Sidebar — deliberately cheap                                           */
+/* ====================================================================== */
+
+/**
+ * Badge counts and today's queue for the ops sidebar.
+ *
+ * This is the biggest single win in the performance sprint. The sidebar used to call
+ * getOpsPipeline() — all 24 requirements plus their skills, sourced counts, engagements,
+ * interviews and feedback — AND getOpsDuplicates(), purely to render three numbers. On
+ * /ops/margin that was 9 of the page's 10 queries and 443ms of its 471ms: 94% of the
+ * data time spent on the sidebar rather than the margin table.
+ *
+ * One round trip. Pages that genuinely need the pipeline fetch it themselves.
+ */
+export async function getOpsSidebar() {
+  const rows = (await db.execute(sql`
+    select
+      (select count(*) from requirements
+        where stage in ('new','matching','shortlisted','interviewing','placed'))::int as total,
+      (select count(*) from requirements where stage = 'matching')::int    as matching,
+      (select count(*) from requirements where stage = 'shortlisted')::int as shortlisted,
+      (select count(*) from duplicate_flags where status = 'open')::int    as open_dupes,
+      (select count(*) from interview_feedback
+        where outcome is null and due_at is not null)::int                 as feedback_due
+  `)) as unknown as Array<{
+    total: number; matching: number; shortlisted: number;
+    open_dupes: number; feedback_due: number;
+  }>;
+  const c = rows[0];
+  const dupes = Number(c?.open_dupes) || 0;
+
+  return {
+    items: [
+      { label: `${dupes} duplicate flag${dupes === 1 ? "" : "s"} to clear`, dot: "#ef4444" },
+      { label: `${Number(c?.shortlisted) || 0} shortlists awaiting a client`, dot: "#fbbf24" },
+      { label: `${Number(c?.matching) || 0} requirements in matching`, dot: "#3f3f4a" },
+    ],
+    badges: {
+      pipeline: Number(c?.total) || undefined,
+      matching: Number(c?.matching) || undefined,
+      duplicates: dupes || undefined,
+    } as Record<string, string | number | undefined>,
+  };
+}

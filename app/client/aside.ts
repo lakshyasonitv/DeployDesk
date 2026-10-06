@@ -1,26 +1,23 @@
-import { getClientOverview } from "@/src/read-models/client";
+import { getClientSidebar } from "@/src/read-models/client";
 import { ACCENT } from "@/src/lib/ui/style";
 
 /**
- * The client sidebar's context aside and nav badges. Both are derived on read —
+ * The client sidebar's context aside and nav badges — derived on read.
  * docs/DOMAIN.md lists nav badges and column counts as values that must never be stored.
+ *
+ * Backed by getClientSidebar(), a pair of COUNT queries. It used to call
+ * getClientOverview(), which every client page already calls, doubling each page's
+ * queries to produce four badge numbers.
  */
 export async function ShellAside(clientOrgId: string) {
-  const overview = await getClientOverview(clientOrgId, "Ananya Krishnan");
-
-  const items = overview.openRequirements.slice(0, 3).map((r, i) => ({
-    label: `${r.code} · ${shortRole(r.roleTitle)} ×${r.quantity}`,
-    dot: i === 0 ? ACCENT.client : "#3f3f4a",
-  }));
+  const sidebar = await getClientSidebar(clientOrgId);
 
   return {
-    items,
-    badges: {
-      requirements: overview.stats.openRequirements || undefined,
-      shortlists: overview.stats.awaitingReview || undefined,
-      interviews: overview.stats.inInterview || undefined,
-      engagements: overview.stats.activeEngagements || undefined,
-    } as Record<string, string | number | undefined>,
+    items: sidebar.items.map((r, i) => ({
+      label: `${r.code} · ${shortRole(r.roleTitle)} ×${r.quantity}`,
+      dot: i === 0 ? ACCENT.client : "#3f3f4a",
+    })),
+    badges: sidebar.badges,
   };
 }
 
