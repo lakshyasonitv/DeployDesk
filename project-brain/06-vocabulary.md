@@ -171,9 +171,27 @@ two-word header wraps at the space whatever the column width.
 
 ---
 
-## 2. Still open
+## 2. Closed 2026-10-08
 
-### a. Confirm "Full access"
+All three remaining items were approved in one go ("yes do all the things").
+
+- **"Full access"** — **confirmed as-is.** It labels Talentvibes in the organisation switcher,
+  where the set reads *Supplies · Hires · Both sides · Full access*. It replaced "Broker" and
+  was flagged because it was not a word the owner picked; it now is.
+- **The pool subtitle** takes v2's wording: *"full detail, nothing hidden"* replaces
+  *"· unmasked ·"* (`SCREENS.md:221`). Plainer, and it is the contract.
+- **`YOUR RATE` → `YOUR MONTHLY RATE`** on the vendor roster and the vendor pipeline, so the
+  same monthly figure reads the same everywhere. Both columns had room (118px and 120px
+  against ≈111px needed) and both header rows already carried `white-space:nowrap`.
+
+  **`AddResourceForm`'s `<Group label="YOUR RATE">` is deliberately unchanged.** It is a form
+  group, not a column, and the field inside it already reads "Monthly rate to Talentvibes"
+  with "per month" beside the input. Repeating "monthly" in the group heading would say it
+  three times.
+
+### Still open
+
+### a. ~~Confirm "Full access"~~ — done, above
 
 It labels Talentvibes in the organisation switcher, where the set reads *Supplies · Hires ·
 Both sides · Full access*. It replaced "Broker" and it is **not a word the owner picked**.

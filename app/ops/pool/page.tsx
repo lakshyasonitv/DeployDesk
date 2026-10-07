@@ -51,7 +51,7 @@ export default async function PoolPage() {
     <Shell portal="ops" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }} activeKey="pool" asideTitle="TODAY'S QUEUE" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Talent pool"
-        subtitle={`${pool.poolTotal} profiles across the exchange · unmasked · ${withScores} of the ${pool.resultCount} shown have a proctored score`}
+        subtitle={`${pool.poolTotal} profiles across the exchange · full detail, nothing hidden · ${withScores} of the ${pool.resultCount} shown have a proctored score`}
         actions={<><Button>Save this view</Button><Button primary accent="var(--t1)">Add to a requirement</Button></>}
       />
 

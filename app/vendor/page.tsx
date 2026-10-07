@@ -92,7 +92,7 @@ export default async function VendorDashboard() {
               </div>
             </div>
             <div style={sx("display:grid;padding:8px 15px;background:var(--surface-2);border-bottom:1px solid var(--border)", { gridTemplateColumns: PIPE_COLS, gap: "10px" })}>
-              {["REFERENCE", "SKILLS", "YOUR RATE", "STAGE", "UPDATED"].map((h) => (
+              {["REFERENCE", "SKILLS", "YOUR MONTHLY RATE", "STAGE", "UPDATED"].map((h) => (
                 <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--t4);white-space:nowrap", { fontFamily: TOKENS.mono })}>{h}</div>
               ))}
             </div>
