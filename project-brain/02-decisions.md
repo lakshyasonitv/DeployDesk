@@ -305,3 +305,49 @@ then the matching function with self-dealing bypass tests, then UI. The 12 leak 
   invoices.
 - **Impact:** the pairing is deliberate — screen separation AND a declared fee. The column
   now uses its `fee_model` enum rather than plain `text`.
+
+
+## 2026-10-07 — Business clocks run in IST, with the holiday table still absent
+
+- **Decision:** SLA deadlines and freshness thresholds are computed in **Asia/Kolkata**,
+  per `docs/DOMAIN.md`: business hours are **09:00–19:00 IST, Monday–Saturday**. The
+  arithmetic lives in `src/lib/business-clock.ts` and uses a **fixed +05:30 offset**, which
+  is exact rather than approximate — India has had no DST since 1945.
+- **Why:** an audit found that **nothing in the codebase did this**. `IST_TZ` was declared
+  and referenced nowhere, so every deadline and every freshness threshold was plain UTC
+  elapsed time, against working agreement 3. Two concrete consequences: a profile confirmed
+  at 23:00 IST read as one day stale two IST midnights later instead of two — a ~5.5h error
+  at the boundary that decides whether a person is matchable at all; and a role due Monday
+  morning looked **40 hours** away on a Saturday evening rather than the 2 working hours it
+  actually had.
+- **Rejected:** `Intl.DateTimeFormat` round-tripping or a timezone library. For a
+  single-country product with a fixed offset both add cost and obscure the arithmetic. If a
+  second country is ever served, replace this file rather than extend it.
+- **Rejected:** hardcoding an Indian holiday list. `docs/DOMAIN.md` says to put the
+  calendar "in a table, not in code", and that table does not exist yet. A hardcoded list
+  is the invented business rule working agreement 8 forbids, and it is wrong the first year
+  a date moves. **Every function takes an optional holiday set and defaults to empty**, so
+  the table wires in without touching the arithmetic — and a test proves the hook works.
+- **Impact:** 20 tests in `tests/business-clock.test.ts` pin the boundaries. The seeded
+  demo data did not shift, because the figures only diverge across an evening or a Sunday
+  and the suite was run mid-week.
+
+## 2026-10-07 — RLS stays inert, and the product is read-model-protected
+
+- **Decision:** leave the 22 RLS policies in place and unexercised, and say so plainly
+  wherever someone might assume otherwise — a prominent note at the top of
+  `src/db/client.ts`.
+- **Why:** the app connects as `postgres`, a superuser, which **bypasses RLS entirely**,
+  and the policies key on `auth.uid()` / `current_org_id()` while the demo session is
+  resolved in application code, so those functions have nothing to read. Two independent
+  reasons it does nothing. Masking is enforced by the portal-specific read models (ADR-003)
+  and that is the net with 88 tests behind it.
+- **Rejected:** adding a restricted database role now. It would make RLS bite immediately,
+  and any policy that is wrong or missing becomes a "row not found" bug across the app
+  rather than a latent risk — a poor trade before a demo.
+- **Rejected:** testing the policies against a restricted role without switching the app.
+  Worth doing, but it proves a net nobody is standing on yet; the write-path tests were the
+  better use of the same effort.
+- **Impact:** three rules now written down where they will be read: do **not** describe this
+  system as RLS-protected, do **not** weaken a read model because "RLS will catch it", and
+  a new read path still needs its own leak test.

@@ -5,6 +5,7 @@ import { db } from "@/src/db/client";
 import * as s from "@/src/db/schema";
 import { getDemoSession } from "@/src/lib/auth/session";
 import { SLA_WINDOW_HOURS } from "@/src/lib/derived";
+import { addBusinessHours } from "@/src/lib/business-clock";
 
 /**
  * POST   /api/client/requirements — post a new role.
@@ -128,7 +129,9 @@ export async function POST(req: Request) {
       clientNote: b.clientNote ?? null,
       stage: b.stage,
       // The clock only runs on a posted role; a draft has not asked for anything yet.
-      slaDueAt: b.stage === "new" ? new Date(now.getTime() + windowHours * 3_600_000) : null,
+      // BUSINESS hours, per docs/DOMAIN.md. A role posted at 17:00 on a Saturday is due
+      // Monday morning, not at 21:00 that evening — which is what elapsed hours gave.
+      slaDueAt: b.stage === "new" ? addBusinessHours(now, windowHours) : null,
       slaWindowHours: b.stage === "new" ? windowHours : null,
       postedAt: b.stage === "new" ? now : null,
     }).returning({ id: s.requirements.id, code: s.requirements.code });

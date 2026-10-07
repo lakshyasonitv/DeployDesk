@@ -6,7 +6,8 @@
 > **The four gates** every sprint must pass before it counts as done:
 > 1. every route returns 200 — **cold and warm**, at least twice each
 > 2. `npm run db:verify` → **30/30** (21 originally; +9 across the dual-role stages)
-> 3. `npm run test:leak` → **49/49** (12 originally; +18 self-dealing, +19 dual-role UI)
+> 3. `npm test` → **88/88** — the WHOLE suite, not just `tests/leak`. `test:leak` runs only
+>    `tests/leak`, so it misses `tests/business-clock.test.ts`; use `npm test` as the gate.
 >
 > These two numbers grow as suites are added. **If a gate number here disagrees with what
 > the command prints, this line is the stale one** — check the newest journal entry, then
@@ -640,7 +641,10 @@ anything today, and each should either be built or say plainly that it is not re
       `inArray` earlier). Still worth upgrading, but 0.45.x is a breaking change, so it
       needs its own task with the 30 leak tests and 25 seed checks as the safety net — not
       a mid-sprint `npm audit fix --force`.
-- [ ] **Nothing converts to Asia/Kolkata.** `CLAUDE.md` working agreement 3 says business
+- [x] **Nothing converts to Asia/Kolkata.** ✅ FIXED — `src/lib/business-clock.ts`, 09:00–19:00
+      IST Mon–Sat, fixed +05:30 offset. **The holiday table is still absent** and every
+      function takes an optional holiday set defaulting to empty; wiring the table in needs
+      no change to the arithmetic. Old note: `CLAUDE.md` working agreement 3 says business
       days, SLA clocks and the nightly freshness sweep run in IST, but `IST_TZ` in
       `src/lib/derived.ts` is referenced nowhere — SLA state and freshness are computed in
       UTC, a ~5.5h boundary shift. Found by the 2026-10-07 dead-code audit. Low impact on a

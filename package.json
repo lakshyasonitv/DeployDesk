@@ -12,7 +12,7 @@
     "db:push": "node --env-file=.env.local ./node_modules/drizzle-kit/bin.cjs push",
     "db:migrate": "tsx --env-file=.env.local src/db/migrate.ts",
     "db:seed": "tsx --env-file=.env.local src/db/seed/run.ts",
-    "test": "vitest run --config vitest.config.ts",
+    "test": "node --env-file=.env.local ./node_modules/vitest/vitest.mjs run --config vitest.config.ts",
     "db:verify": "tsx --env-file=.env.local src/db/seed/verify.ts",
     "test:leak": "node --env-file=.env.local ./node_modules/vitest/vitest.mjs run --config vitest.config.ts tests/leak",
     "db:apply": "tsx --env-file=.env.local src/db/apply-sql.ts"

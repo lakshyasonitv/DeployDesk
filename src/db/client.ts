@@ -3,6 +3,35 @@ import postgres from "postgres";
 import * as schema from "./schema";
 
 /**
+ * ===========================================================================
+ * RLS IS CURRENTLY INERT. READ THIS BEFORE RELYING ON IT.
+ * ===========================================================================
+ *
+ * Migration 0003 defines 22 Row Level Security policies and migration 0004 narrows one of
+ * them. **None of them is doing anything at runtime**, for two independent reasons:
+ *
+ *   1. The app connects as `postgres`, a superuser, which BYPASSES RLS entirely.
+ *   2. The policies key on `auth.uid()` / `current_org_id()`, and the demo session is
+ *      resolved in application code — nothing sets a Postgres session variable, so those
+ *      functions have nothing to read.
+ *
+ * This is a known, accepted state and not an oversight. **Masking is enforced by the
+ * portal-specific read models** (ADR-003), which is the first net and the one that is
+ * actually tested: 88 tests, including 12 read-model leak tests, 19 write-path tests and
+ * the dual-role suite. RLS is the SECOND net, for the day an application bug writes a
+ * query that forgets its tenancy predicate.
+ *
+ * Activating it needs real Supabase Auth plus a restricted database role, which is
+ * docs/BUILD-PLAN.md Phase 1 work. Until then:
+ *
+ *   - Do NOT describe this system as RLS-protected. It is read-model-protected.
+ *   - Do NOT weaken a read model on the grounds that "RLS will catch it". It will not.
+ *   - A new read path still needs its own leak test; that is the net that exists.
+ *
+ * Recorded in project-brain/02-decisions.md (2026-10-07).
+ */
+
+/**
  * Two connections, deliberately.
  *
  * DATABASE_URL  -> Supavisor TRANSACTION pooler (:6543). Used by the app at runtime.

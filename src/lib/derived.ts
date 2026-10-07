@@ -6,6 +6,12 @@
  * Business clocks run in Asia/Kolkata; the database stores timestamptz in UTC.
  */
 
+import { businessHoursBetween, istCalendarDaysBetween } from "./business-clock";
+
+/**
+ * Kept for documentation. The arithmetic lives in ./business-clock.ts, which uses a fixed
+ * +05:30 offset — exact for India, which has had no DST since 1945.
+ */
 export const IST_TZ = "Asia/Kolkata";
 
 /* ---------- freshness (vendor + ops only — NEVER client, see docs/MASKING.md) ---------- */
@@ -29,7 +35,15 @@ export function freshnessFor(lastConfirmedAt: Date | null, now: Date = new Date(
       label: "Never confirmed", eligibleForMatching: false,
     };
   }
-  const days = Math.floor((now.getTime() - lastConfirmedAt.getTime()) / 86_400_000);
+  /**
+   * IST CALENDAR days, not elapsed time divided by 86.4 million.
+   *
+   * Working agreement 3 puts business clocks in Asia/Kolkata, and freshness is one: a
+   * profile confirmed at 23:00 IST and read at 01:00 IST two nights later is two days
+   * stale, not one. The old elapsed-hours version was out by up to 5.5 hours at every
+   * boundary, which decided whether a person stayed eligible for matching.
+   */
+  const days = istCalendarDaysBetween(lastConfirmedAt, now);
   const state: FreshnessState = days < 10 ? "confirmed" : days < 14 ? "expiring_soon" : "unconfirmed";
   const decayBarWidthPct = Math.max(6, (1 - Math.min(days, 28) / 28) * 100);
   const label =
@@ -63,8 +77,16 @@ export function slaFor(
   if (opts.paused) return { state: "idle", label: "Awaiting client", hoursRemaining: null };
   if (!dueAt) return { state: "ok", label: "No deadline", hoursRemaining: null };
 
+  /**
+   * BUSINESS hours remaining, per docs/DOMAIN.md: 09:00-19:00 IST, Monday-Saturday.
+   *
+   * Elapsed hours made a role look nearly due on a Saturday evening when the broker still
+   * had a full working day to act, and made a Sunday deadline look urgent when nobody was
+   * working. A deadline 14 hours away across a Sunday is not 14 hours of anyone's
+   * attention.
+   */
+  const hoursRemaining = businessHoursBetween(now, dueAt);
   const msRemaining = dueAt.getTime() - now.getTime();
-  const hoursRemaining = msRemaining / 3_600_000;
 
   if (msRemaining < 0) {
     const over = Math.max(1, Math.round(-hoursRemaining));
