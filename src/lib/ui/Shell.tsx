@@ -10,6 +10,7 @@ import { s, sx, TOKENS, PORTAL_TAG, GROUP_LABEL, BRAND } from "./style";
 import type { WorkspaceTab } from "../auth/workspace";
 import { ThemeToggle } from "./ThemeToggle";
 import { DeployDeskLogo } from "./DeployDeskLogo";
+import { ToastProvider } from "./Toast";
 
 /**
  * The global shell: sidebar + top bar + content column. Applies to all three portals.
@@ -367,7 +368,12 @@ export function Shell({
           </div>
         </div>
 
-        {children}
+        {/*
+          ToastProvider wraps the content, not the whole shell, so a toast cannot cover the
+          sidebar or top bar. It is a client component mounted from this server component,
+          which is why every page gets feedback without passing anything down.
+        */}
+        <ToastProvider>{children}</ToastProvider>
       </div>
     </div>
   );

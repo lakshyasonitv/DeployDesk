@@ -1,24 +1,60 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
+import { useToast } from "@/src/lib/ui/Toast";
 
 /**
  * The add-resource form. Identity fields are collected but are vendor+ops only —
  * docs/MASKING.md marks candidate name, contacts and employer history as never
  * visible to a client.
+ *
+ * This form used to have no submit path at all: every field was local state or an
+ * uncontrolled `defaultValue`, and both buttons did nothing. It now POSTs to
+ * /api/vendor/resources, which allocates the masked id, links the skills and writes the
+ * audit row, and the toast's Undo withdraws the listing through the same route's DELETE.
+ *
+ * Experience is entered the way a bench manager says it ("6 years 4 months") and converted
+ * to whole months at the boundary, because the column is `experience_months`. The rate is
+ * converted to paise here for the same reason — the API refuses a float (ADR-007).
  */
+
+/** "6 years 4 months" / "6y 4m" / "6.5 years" -> whole months. */
+function parseExperienceToMonths(input: string): number | null {
+  const text = input.toLowerCase().trim();
+  if (!text) return null;
+  const y = text.match(/(\d+(?:\.\d+)?)\s*(?:y|year)/);
+  const m = text.match(/(\d+)\s*(?:m|month)/);
+  if (!y && !m) {
+    // A bare number is read as years, which is how people write it.
+    const bare = text.match(/^(\d+(?:\.\d+)?)$/);
+    if (!bare) return null;
+    return Math.round(parseFloat(bare[1]) * 12);
+  }
+  const months = (y ? parseFloat(y[1]) * 12 : 0) + (m ? parseInt(m[1], 10) : 0);
+  return Math.round(months);
+}
 
 const SUGGESTED = ["Java Spring Boot", "Microservices", "PostgreSQL", "Kafka", "AWS", "React"];
 
 export function AddResourceForm({
   availableSkills, vendorName, vendorCode,
 }: { availableSkills: string[]; vendorName: string; vendorCode: string }) {
-  const [skills, setSkills] = useState<string[]>(["Java Spring Boot", "Microservices", "PostgreSQL"]);
+  const router = useRouter();
+  const toast = useToast();
+
+  const [fullName, setFullName] = useState("");
+  const [employeeCode, setEmployeeCode] = useState("");
+  const [baseCity, setBaseCity] = useState("");
+  const [experience, setExperience] = useState("");
+  const [skills, setSkills] = useState<string[]>([]);
   const [draft, setDraft] = useState("");
-  const [rate, setRate] = useState("145000");
-  const [modes, setModes] = useState<string[]>(["hybrid", "remote"]);
+  const [rate, setRate] = useState("");
+  const [modes, setModes] = useState<string[]>(["hybrid"]);
   const [availability, setAvailability] = useState("immediate");
+  const [busy, setBusy] = useState<null | "listed" | "draft">(null);
+  const [error, setError] = useState<string | null>(null);
 
   const add = (sk: string) => {
     const v = sk.trim();
@@ -28,20 +64,94 @@ export function AddResourceForm({
   };
 
   const rateNum = Number(rate.replace(/[^\d]/g, "")) || 0;
+  const months = parseExperienceToMonths(experience);
+
+  /**
+   * Validated here as well as at the API boundary, and deliberately so: the API's Zod
+   * schema is the authority, but telling someone which field is wrong before a round trip
+   * is the difference between a form that helps and one that scolds.
+   */
+  const problems: string[] = [];
+  if (fullName.trim().length < 2) problems.push("a full name");
+  if (baseCity.trim().length < 2) problems.push("a base city");
+  if (months === null) problems.push("total experience, for example \u201c6 years 4 months\u201d");
+  if (!skills.length) problems.push("at least one skill");
+  if (rateNum < 1000) problems.push("a monthly rate");
+  if (!modes.length) problems.push("at least one work mode");
+
+  async function submit(status: "listed" | "draft") {
+    if (problems.length) {
+      setError(`Still needed: ${problems.join(", ")}.`);
+      return;
+    }
+    setError(null);
+    setBusy(status === "listed" ? "listed" : "draft");
+    try {
+      const res = await fetch("/api/vendor/resources", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          fullName: fullName.trim(),
+          employeeCode: employeeCode.trim() || undefined,
+          baseCity: baseCity.trim(),
+          experienceMonths: months,
+          skills,
+          vendorRatePaise: rateNum * 100,   // rupees in the field, paise in the column
+          workModes: modes,
+          availability,
+          status,
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error === "invalid_request" ? "Some details were rejected." : "Could not save.");
+      }
+      const out = await res.json() as { maskedId: string; skillsIgnored?: string[] };
+
+      const ignored = out.skillsIgnored?.length
+        ? ` ${out.skillsIgnored.length} skill${out.skillsIgnored.length === 1 ? "" : "s"} not in our list were skipped.`
+        : "";
+
+      toast({
+        message: status === "listed"
+          ? `${fullName.trim()} is on your bench as ${out.maskedId}.${ignored}`
+          : `${fullName.trim()} saved as a draft (${out.maskedId}).${ignored}`,
+        // Real undo: withdraws the listing and writes a second audit row.
+        undo: async () => {
+          const r = await fetch("/api/vendor/resources", {
+            method: "DELETE",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ maskedId: out.maskedId }),
+          });
+          if (!r.ok) throw new Error("withdraw failed");
+          router.refresh();
+        },
+      });
+
+      // Clear the form for the next person rather than leaving the last one in the fields.
+      setFullName(""); setEmployeeCode(""); setBaseCity(""); setExperience("");
+      setSkills([]); setRate(""); setModes(["hybrid"]); setAvailability("immediate");
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not save.");
+    } finally {
+      setBusy(null);
+    }
+  }
 
   return (
     <div style={s("background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px")}>
       <Group label="IDENTITY · INTERNAL ONLY">
         <div style={s("display:grid;grid-template-columns:1fr 1fr;gap:12px")}>
           <Field label="Full name">
-            <Input defaultValue="Ishita Bansal" />
+            <Input value={fullName} onChange={setFullName} placeholder="e.g. Ishita Bansal" />
           </Field>
           <Field label="Employee ID">
-            <Input defaultValue={`${vendorCode}-3391`} />
+            <Input value={employeeCode} onChange={setEmployeeCode} placeholder={`${vendorCode}-3391`} />
           </Field>
         </div>
         <Field label="Base city">
-          <Input defaultValue="Pune" />
+          <Input value={baseCity} onChange={setBaseCity} placeholder="e.g. Pune" />
         </Field>
         <div style={s("background:var(--ok-tint);border:1px solid var(--ok-tint);border-radius:9px;padding:11px")}>
           <div style={s("font-size:11.5px;color:var(--teal);line-height:1.6")}>
@@ -82,7 +192,12 @@ export function AddResourceForm({
 
         <div style={s("display:grid;grid-template-columns:1fr 1fr;gap:12px")}>
           <Field label="Total experience">
-            <Input defaultValue="6 years 4 months" />
+            <Input value={experience} onChange={setExperience} placeholder="e.g. 6 years 4 months" />
+            {experience && months !== null ? (
+              <div style={s("font-size:10.5px;color:var(--t4);margin-top:5px")}>
+                Saved as {months} months.
+              </div>
+            ) : null}
           </Field>
           <Field label="Available from">
             <Segments
@@ -114,7 +229,7 @@ export function AddResourceForm({
         <Field label="Monthly rate to Talentvibes">
           <div style={s("display:flex;align-items:center;gap:9px")}>
             <span style={sx("font-size:14px;font-weight:700", { fontFamily: TOKENS.mono })}>₹</span>
-            <input value={rate} onChange={(e) => setRate(e.target.value)}
+            <input value={rate} onChange={(e) => setRate(e.target.value)} placeholder="145000"
               style={sx("padding:8px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:14px;font-weight:700;width:150px;outline:none", { fontFamily: TOKENS.mono })} />
             <span style={s("font-size:11px;color:var(--t4)")}>per month</span>
           </div>
@@ -148,15 +263,38 @@ export function AddResourceForm({
         </div>
       </Group>
 
-      <div style={s("display:flex;align-items:center;gap:9px;padding-top:15px;border-top:1px solid var(--border)")}>
-        <button style={s("padding:9px 15px;border:0;border-radius:8px;font-size:12.5px;font-weight:700;background:var(--teal);color:var(--surface);cursor:pointer;font-family:inherit")}>
-          List on exchange
+      {error ? (
+        <div style={s("margin-bottom:12px;background:var(--danger-tint);border:1px solid var(--danger-tint);border-radius:9px;padding:11px;font-size:12px;color:var(--danger);font-weight:600")}>
+          {error}
+        </div>
+      ) : null}
+
+      <div style={s("display:flex;align-items:center;gap:9px;padding-top:15px;border-top:1px solid var(--border);flex-wrap:wrap")}>
+        <button
+          type="button"
+          onClick={() => submit("listed")}
+          disabled={busy !== null}
+          style={sx("padding:9px 15px;border:0;border-radius:8px;font-size:12.5px;font-weight:700;color:var(--surface);font-family:inherit", {
+            background: "var(--teal)",
+            cursor: busy ? "default" : "pointer",
+            opacity: busy ? 0.6 : 1,
+          })}
+        >
+          {busy === "listed" ? "Adding\u2026" : "Add to your bench"}
         </button>
-        <button style={s("padding:9px 15px;border:1px solid var(--border-2);border-radius:8px;font-size:12.5px;font-weight:600;background:var(--surface);cursor:pointer;font-family:inherit")}>
-          Save as draft
+        <button
+          type="button"
+          onClick={() => submit("draft")}
+          disabled={busy !== null}
+          style={sx("padding:9px 15px;border:1px solid var(--border-2);border-radius:8px;font-size:12.5px;font-weight:600;background:var(--surface);font-family:inherit", {
+            cursor: busy ? "default" : "pointer",
+            opacity: busy ? 0.6 : 1,
+          })}
+        >
+          {busy === "draft" ? "Saving\u2026" : "Save as draft"}
         </button>
         <div style={s("margin-left:auto;font-size:11.5px;color:var(--t3)")}>
-          A masked ID is allocated at random on listing
+          A masked ID is allocated at random when you add someone
         </div>
       </div>
     </div>
@@ -185,10 +323,16 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function Input({ defaultValue }: { defaultValue?: string }) {
+function Input({
+  value, onChange, placeholder,
+}: { value: string; onChange: (v: string) => void; placeholder?: string }) {
   return (
-    <input defaultValue={defaultValue}
-      style={s("width:100%;padding:8px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:12.5px;font-family:inherit;outline:none")} />
+    <input
+      value={value}
+      placeholder={placeholder}
+      onChange={(e) => onChange(e.target.value)}
+      style={s("width:100%;padding:8px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:12.5px;font-family:inherit;outline:none")}
+    />
   );
 }
 

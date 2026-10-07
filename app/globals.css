@@ -112,6 +112,11 @@ a:hover { color: var(--brand-h); }
   to   { opacity: 1; transform: none; }
 }
 
+/* The toast's Undo spinner, while a compensating write is in flight. */
+@keyframes tv-spin {
+  to { transform: rotate(360deg); }
+}
+
 /* The loading skeletons' sweep. */
 @keyframes tv-shimmer {
   0%   { background-position: 100% 0; }
