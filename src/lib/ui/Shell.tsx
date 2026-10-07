@@ -492,7 +492,16 @@ export function ScoreBars({
   sections, width = 150,
 }: {
   sections: { coding: number | null; dsa: number | null; systemDesign: number | null; communication: number | null };
-  width?: number;
+  /**
+   * A number is pixels; a string is passed through, so `"100%"` fills the container.
+   *
+   * The string form exists because it was missing: the shortlist card wanted full width,
+   * could only express that as a number, and passed `9999`. That rendered a 9999px-wide
+   * div inside a `1fr` grid column -- and `1fr` is `minmax(auto, 1fr)`, so the column's
+   * minimum became the child's min-content width. The cards stretched far past the
+   * viewport, taking their own buttons off screen with them.
+   */
+  width?: number | string;
 }) {
   const rows: Array<[string, number | null]> = [
     ["COD", sections.coding],
@@ -501,7 +510,11 @@ export function ScoreBars({
     ["COM", sections.communication],
   ];
   return (
-    <div style={sx("display:flex;flex-direction:column;gap:4px", { width: `${width}px` })}>
+    <div style={sx("display:flex;flex-direction:column;gap:4px", {
+      width: typeof width === "number" ? `${width}px` : width,
+      // Never let the bars dictate the width of whatever contains them.
+      maxWidth: "100%", minWidth: 0,
+    })}>
       {rows.map(([label, v]) => (
         <div key={label} style={s("display:flex;align-items:center;gap:7px")}>
           <div style={sx("font-size:9.5px;font-weight:700;letter-spacing:.08em;color:var(--t4);width:26px;flex:none", { fontFamily: TOKENS.mono })}>

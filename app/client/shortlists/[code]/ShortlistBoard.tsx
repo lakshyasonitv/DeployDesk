@@ -210,7 +210,7 @@ export function ShortlistBoard({
 
       {/* -------- cards -------- */}
       <div style={s("flex:1;overflow:auto;padding:0 26px 26px")}>
-        <div style={s("display:grid;grid-template-columns:repeat(3,1fr);gap:12px")}>
+        <div style={s("display:grid;grid-template-columns:repeat(auto-fit,minmax(272px,1fr));gap:12px")}>
           {view.candidates.map((c) => {
             const isSelected = selected.includes(c.maskedId);
             const isPassed = passed.includes(c.maskedId);
@@ -255,7 +255,7 @@ export function ShortlistBoard({
 
                 {/* 3. breakdown */}
                 <div style={s("padding-top:10px;border-top:1px dashed var(--border)")}>
-                  <ScoreBars sections={c.sections} width={9999} />
+                  <ScoreBars sections={c.sections} width="100%" />
                 </div>
 
                 {/* 4. provenance */}
