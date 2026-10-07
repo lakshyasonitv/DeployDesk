@@ -544,7 +544,7 @@ learning curve or complex words**. Consequences already decided:
 - [x] **Remove the "My desk" filter and the hardcoded `ownerShortSelf="P. Nair"`.** Every
       Talentvibes user sees every role. **Keep the owner name visible** on each row — a
       broker still needs to know who to ask about a role.
-- [ ] **Toasts with REAL undo.** The action commits immediately; Undo writes a
+- [x] **Toasts with REAL undo.** ✅ The action commits immediately; Undo writes a
       **compensating change plus a second audit row**, so history shows it was done and then
       undone. Actions that genuinely cannot be undone get **no Undo button** rather than a
       lying one.
@@ -560,21 +560,37 @@ learning curve or complex words**. Consequences already decided:
 Each one needs the full definition of done from `../CLAUDE.md`: Zod at the boundary, a
 tenancy check, a portal-specific response shape, **an audit row**, and a leak test.
 
-- [ ] **1. Add a bench resource** — the one the user named first. Form → `bench_resources`
+- [x] **1. Add a bench resource** ✅ — the one the user named first. Form → `bench_resources`
       + `resource_skills`, a `TV-####` masked id allocated, audit row, redirect to the
       roster with a toast. Today the form has **zero** fetch calls.
-- [ ] **2. Post a new role** — form → `requirements` at stage `new` with a `REQ-####` code,
+- [x] **2. Post a new role** ✅ (the form had NO role-title field; added) — form → `requirements` at stage `new` with a `REQ-####` code,
       audit row, and it must appear on the ops pipeline immediately. Today `PostForm` only
       calls `match-preview`, which is a READ: nothing is created.
-- [ ] **3. Select / pass candidates, and request interviews** —
+- [x] **3. Select / pass candidates, and request interviews** ✅ —
       `shortlist_items.client_decision` per decision, then `interviews` rows for round 1.
       Today it is local React state that vanishes on refresh.
-- [ ] **4. Resolve a duplicate, and submit interview feedback** — `duplicate_flags.status`
+- [x] **4. Resolve a duplicate, and submit interview feedback** ✅ — `duplicate_flags.status`
       (keep A / keep B / not a duplicate) and `interview_feedback`. Both audit rows.
 
 - [ ] **CSV exports** — "Download statement" and "Export to finance" generate a real CSV
       from the **same read model the screen uses**, so the file and the screen cannot
       disagree. Masking applies: a vendor's CSV carries no client name and no margin.
+
+### A defect this sprint exposed, worth not repeating
+
+**Every multi-table write must be one transaction.** The first version of the
+post-a-role endpoint inserted the requirement, then the skills, then the audit row as
+three separate statements. A request that failed in the middle left **two committed rows
+with no skills and no audit row** — a silent violation of working agreement 5, because a
+half-created record has no audit trail at all. Both orphans had to be deleted by hand
+before `db:verify` passed again. Both create endpoints now wrap their writes in
+`db.transaction`, which makes the audit row a condition of the record existing.
+Transactions are safe on the Supavisor transaction-mode pooler — a transaction is the unit
+it pools; it is session-level state that is unavailable there.
+
+**`inArray`, never sql`= any(${array})`.** Drizzle's `sql` template spreads a JS array into
+a parameter LIST, so `= any(($1, $2))` reaches Postgres and it answers "op ANY/ALL (array)
+requires array on right side". That is what caused the failure above.
 
 ### Still dead after 7b — do not lose these
 
