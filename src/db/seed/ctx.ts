@@ -42,6 +42,11 @@ const OWNED_TABLES = [
   // mentions them. Migration 0002 backfilled org_capabilities and memberships once, and
   // the next db:seed silently destroyed both because they were absent from this list.
   "org_blocks", "memberships", "org_capabilities", "groups",
+  // Migration 0005. Same rule, same reason: `saved_views` and `extension_requests`
+  // cascade from organizations and engagements, and `interview_slots` from interviews,
+  // so a truncate empties them regardless. `holiday_calendar` references nothing and is
+  // listed anyway — the seed writes it, so the seed owns it.
+  "saved_views", "extension_requests", "interview_slots", "holiday_calendar",
   "client_profiles", "vendor_profiles", "users", "organizations",
 ];
 

@@ -6,6 +6,7 @@ import * as s from "@/src/db/schema";
 import { getDemoSession } from "@/src/lib/auth/session";
 import { SLA_WINDOW_HOURS } from "@/src/lib/derived";
 import { addBusinessHours } from "@/src/lib/business-clock";
+import { getHolidaySet } from "@/src/db/holidays";
 
 /**
  * POST   /api/client/requirements — post a new role.
@@ -108,6 +109,13 @@ export async function POST(req: Request) {
 
   const windowHours = SLA_WINDOW_HOURS.new;
 
+  /**
+   * The deadline is computed ONCE here and stored, so it is the one place that must get
+   * holidays right — every screen afterwards reads `sla_due_at`. A role posted the evening
+   * before Gandhi Jayanti is due the day after it, not on it.
+   */
+  const holidays = await getHolidaySet();
+
   const result = await db.transaction(async (tx) => {
     const [created] = await tx.insert(s.requirements).values({
       code,
@@ -131,7 +139,7 @@ export async function POST(req: Request) {
       // The clock only runs on a posted role; a draft has not asked for anything yet.
       // BUSINESS hours, per docs/DOMAIN.md. A role posted at 17:00 on a Saturday is due
       // Monday morning, not at 21:00 that evening — which is what elapsed hours gave.
-      slaDueAt: b.stage === "new" ? addBusinessHours(now, windowHours) : null,
+      slaDueAt: b.stage === "new" ? addBusinessHours(now, windowHours, holidays) : null,
       slaWindowHours: b.stage === "new" ? windowHours : null,
       postedAt: b.stage === "new" ? now : null,
     }).returning({ id: s.requirements.id, code: s.requirements.code });

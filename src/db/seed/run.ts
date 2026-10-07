@@ -23,6 +23,7 @@ import {
   seedInterviews, seedEngagements, seedDuplicates, seedBrokerThreads, seedAudit,
   seedSensitiveColumns,
 } from "./ops-extras";
+import { seedOperations } from "./operations";
 import { SEED_NOW } from "./helpers";
 
 async function main() {
@@ -44,6 +45,8 @@ async function main() {
   await seedDuplicates(org, res, demand);
   await seedBrokerThreads(org, res, demand);
   await seedAudit(org, demand, shortlist);
+  // After interviews and engagements, because slots and extension requests reference them.
+  await seedOperations(org);
   await seedSensitiveColumns();
 
   log(`\nDone in ${((Date.now() - started) / 1000).toFixed(1)}s.`);
