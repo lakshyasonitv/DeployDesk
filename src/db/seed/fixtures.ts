@@ -86,12 +86,3 @@ export const ALL_POOL_CANDIDATES: PoolCandidate[] = (() => {
   }
   return [...seen.values()];
 })();
-
-/** Which pool(s) a masked id appears in. */
-export const POOL_OF: Record<string, Array<"A" | "B" | "C" | "D">> = (() => {
-  const out: Record<string, Array<"A" | "B" | "C" | "D">> = {};
-  for (const [key, pool] of Object.entries(POOLS) as Array<["A" | "B" | "C" | "D", PoolCandidate[]]>) {
-    for (const c of pool) (out[c.id] ??= []).push(key);
-  }
-  return out;
-})();

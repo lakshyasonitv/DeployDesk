@@ -1,4 +1,3 @@
-import { notFound } from "next/navigation";
 import { Shell, EmptyState } from "@/src/lib/ui/Shell";
 import { getDemoSession, getShellNav } from "@/src/lib/auth/session";
 import { getClientShortlist } from "@/src/read-models/client";

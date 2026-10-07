@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Sun, Moon } from "lucide-react";
-import { s, sx } from "./style";
+import { sx } from "./style";
 
 /**
  * The light/dark segmented control from the v2 handoff: two 32x30 segments, sun and moon.

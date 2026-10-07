@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { and, eq, gte, inArray, ne, sql } from "drizzle-orm";
+import { and, eq, gte, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/src/db/client";
 import * as s from "@/src/db/schema";
 import { getDemoSession } from "@/src/lib/auth/session";
+import { mayBeOfferedTo } from "@/src/services/matching-eligibility";
 
 /**
  * POST /api/client/match-preview — the live match preview shown while posting.
@@ -81,14 +82,20 @@ export async function POST(req: Request) {
     .where(and(
       inArray(s.benchResources.status, ["listed", "in_process"]),
       gte(s.benchResources.lastConfirmedAt, staleCutoff),
-      ne(s.benchResources.vendorOrgId, session.orgId),
-      sql`(
-        ${s.organizations.parentGroupId} is null
-        or (select o2.parent_group_id from organizations o2 where o2.id = ${session.orgId}) is null
-        or ${s.organizations.parentGroupId}
-           <> (select o2.parent_group_id from organizations o2 where o2.id = ${session.orgId})
-      )`,
-      sql`not orgs_are_blocked(${s.benchResources.vendorOrgId}, ${session.orgId})`,
+      /**
+       * The eligibility rule, from the one place it is written as a SQL predicate.
+       *
+       * This used to be the same three conditions copied out by hand — not the same
+       * organisation, not the same declared group, not blocked in either direction. A
+       * business rule written twice drifts, and this one decides whether a company gets
+       * handed its own people.
+       *
+       * It cannot use the `is_self_dealing(resource, requirement)` SQL function that the
+       * matching path uses, because at preview time there IS no requirement yet — the
+       * client is still filling in the form. `mayBeOfferedTo()` is the organisation-level
+       * form of the same rule for exactly this case.
+       */
+      mayBeOfferedTo(session.orgId),
     ));
 
   const scored = await db

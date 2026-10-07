@@ -16,18 +16,30 @@ export default async function MatchingPage({ params }: { params: Promise<{ code:
   const session = await getDemoSession("ops");
   const nav = await getShellNav(session);
 
-  const workspace = await getOpsMatchingWorkspace(code.toUpperCase());
-  if (!workspace) notFound();
+  /**
+   * Five independent reads, issued together. This was the slowest page in the app at
+   * ~1.0s, almost all of it spent waiting on round trips one at a time.
+   *
+   * It used to carry this comment: "Sequential: OpsAside alone issues several queries,
+   * and running it alongside others exhausted the connection pool." That was true when
+   * written and is not any more — two things changed underneath it. `OpsAside()` is now
+   * ONE count query (Sprint 2 stopped it calling getOpsPipeline + getOpsDuplicates to
+   * render three badges), and the pool went from 5 to `max: 10`. A stale comment was the
+   * only thing holding the serial shape in place, which is worth remembering: a note
+   * explaining why something is slow needs re-checking when its reason is fixed.
+   */
+  const [workspace, aside, pipeline, dupes, benchRows] = await Promise.all([
+    getOpsMatchingWorkspace(code.toUpperCase()),
+    OpsAside(),
+    // The requirement picker needs the list; the sidebar no longer fetches it.
+    getOpsPipeline(),
+    getOpsDuplicates(),
+    db.execute<{ n: number }>(
+      sql`select count(*)::int as n from organizations where org_type = 'vendor'`,
+    ) as unknown as Promise<Array<{ n: number }>>,
+  ]);
 
-  // Sequential: OpsAside alone issues several queries, and running it alongside others
-  // exhausted the connection pool. See src/read-models/ops/index.ts.
-  const aside = await OpsAside();
-  // The requirement picker needs the list; the sidebar no longer fetches it.
-  const pipeline = await getOpsPipeline();
-  const dupes = await getOpsDuplicates();
-  const benchRows = (await db.execute<{ n: number }>(
-    sql`select count(*)::int as n from organizations where org_type = 'vendor'`,
-  )) as unknown as Array<{ n: number }>;
+  if (!workspace) notFound();
 
   // Which duplicate flags touch this requirement's pool.
   const poolIds = new Set(workspace.candidates.map((c) => c.maskedId));

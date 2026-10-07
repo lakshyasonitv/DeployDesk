@@ -13,7 +13,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as s from "../schema";
 import { formatPaiseExact, formatPaiseShort } from "../../lib/money/paise";
-import { marginPct, MARGIN_FLOOR_PCT } from "../../lib/money/rate-band";
+import { marginPct, isBelowFloor, MARGIN_FLOOR_PCT } from "../../lib/money/rate-band";
 import { freshnessFor, slaFor, SLA_WINDOW_HOURS } from "../../lib/derived";
 
 const url = process.env.DIRECT_URL || process.env.DATABASE_URL;
@@ -155,6 +155,20 @@ async function main() {
     .where(eq(s.requirements.code, "REQ-2320"));
   check("the dual-role requirement has a shortlist to show", dualItems.length > 0,
     `${dualItems.length} items`);
+
+  /**
+   * The commercial half of the masking rule: a company on both sides must be on a flat
+   * declared fee, because it can otherwise compare what it is paid as a supplier against
+   * what it is charged as a client and read the spread off the difference.
+   */
+  const feeRows = await db
+    .select({ name: s.organizations.name, feeModel: s.organizations.feeModel })
+    .from(s.organizations)
+    .innerJoin(s.orgCapabilities, eq(s.orgCapabilities.orgId, s.organizations.id))
+    .where(and(eq(s.orgCapabilities.canSupply, true), eq(s.orgCapabilities.canHire, true)));
+  check("every dual-role org is on a flat declared fee, not a hidden markup",
+    feeRows.length > 0 && feeRows.every((r) => r.feeModel === "flat_declared_fee"),
+    feeRows.map((r) => `${r.name}=${r.feeModel}`).join(", ") || "no dual-role org found");
   check("every dual-role band is a real range, not a point",
     dualItems.every((i) => Number(i.bandMax) > Number(i.bandMin)),
     dualItems.map((i) => `${i.maskedId} ${formatPaiseShort(Number(i.bandMin))}-${formatPaiseShort(Number(i.bandMax))}`).join(" "));
@@ -174,8 +188,26 @@ async function main() {
   });
   const late = states.filter((x) => x.state === "late");
   const idle = states.filter((x) => x.state === "idle");
-  check("exactly one SLA breach", late.length === 1, late.map((l) => l.code).join(",") || "none");
-  check("the breach is REQ-2295", late[0]?.code === "REQ-2295", late[0]?.code ?? "none");
+
+  /**
+   * These two decay with wall-clock time and say so when they fail.
+   *
+   * `sla_due_at` is an absolute timestamp written at seed time, so every seeded deadline
+   * marches toward `late` as the day goes on. `requirements.sla_window_hours` (migration
+   * 0002) widened the windows enough to stop this happening within the hour, but it
+   * cannot stop it happening eventually — the fixture describes a moment, and the clock
+   * moves. The fix is always `npm run db:seed` (~4s), never loosening the assertion.
+   *
+   * This has twice been mistaken for a code regression, so the hint is in the failure
+   * message rather than only in the project brain.
+   */
+  const staleHint = (got: string) =>
+    `${got} — if there is more than one, the seed has simply aged; run \`npm run db:seed\``;
+
+  check("exactly one SLA breach", late.length === 1,
+    staleHint(late.map((l) => l.code).join(",") || "none"));
+  check("the breach is REQ-2295", late[0]?.code === "REQ-2295",
+    staleHint(late[0]?.code ?? "none"));
   check("idle requirements are paused, not breached", idle.length >= 2, `${idle.length} idle`);
 
   /* ---------------- freshness spread, re-anchored to SEED_NOW ---------------- */
@@ -208,7 +240,7 @@ async function main() {
 
   const below = engs
     .map((e) => ({ ...e, pct: marginPct(e.clientRate, e.vendorRate) }))
-    .filter((e) => e.pct < MARGIN_FLOOR_PCT);
+    .filter((e) => isBelowFloor(e.pct));
   console.log(`\n  below the ${MARGIN_FLOOR_PCT}% floor:`);
   for (const b of below) {
     console.log(`    ${b.maskedId}  ${b.pct.toFixed(1)}%  approver ${b.approvedBy ? "set" : "MISSING"}  note ${b.note ? "set" : "MISSING"}`);

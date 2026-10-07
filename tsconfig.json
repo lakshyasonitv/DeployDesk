@@ -5,6 +5,10 @@
     "allowJs": false,
     "skipLibCheck": true,
     "strict": true,
+    // Enabled after a cleanup pass removed 20 unused imports and locals that had
+    // accumulated unnoticed. Keeping these on is what stops them coming back.
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",

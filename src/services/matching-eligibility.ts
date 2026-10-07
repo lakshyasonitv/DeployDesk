@@ -1,4 +1,4 @@
-import { and, eq, isNotNull, ne, or, sql } from "drizzle-orm";
+import { and, ne, sql } from "drizzle-orm";
 import * as s from "../db/schema";
 
 /**
@@ -79,22 +79,5 @@ export function mayBeOfferedTo(clientOrgId: string) {
     )`,
     // not blocked, in either direction
     sql`not orgs_are_blocked(${s.benchResources.vendorOrgId}, ${clientOrgId})`,
-  );
-}
-
-/**
- * Ops-only: how many people on this client's OWN bench (or its group's) match a
- * requirement. The brief asks for this note in the matching workspace, visible to ops and
- * never to the client — it is the broker's cue that a dual-role client is hiring into a
- * gap its own group could fill, which is a commercial conversation, not a shortlist.
- */
-export function ownBenchPredicate(clientOrgId: string) {
-  return or(
-    eq(s.benchResources.vendorOrgId, clientOrgId),
-    and(
-      isNotNull(s.organizations.parentGroupId),
-      sql`${s.organizations.parentGroupId}
-          = (select o2.parent_group_id from organizations o2 where o2.id = ${clientOrgId})`,
-    ),
   );
 }

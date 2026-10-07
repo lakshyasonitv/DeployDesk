@@ -173,34 +173,89 @@ export async function getClientOverview(
   clientOrgId: string,
   viewerName: string,
 ): Promise<ClientOverview> {
-  const [org] = await db
-    .select({ name: s.organizations.name })
-    .from(s.organizations)
-    .where(eq(s.organizations.id, clientOrgId))
-    .limit(1);
+  /**
+   * Five independent reads, issued together.
+   *
+   * Each round trip to the Mumbai database costs roughly 60-70ms, so running these one
+   * after another spent ~420ms almost entirely waiting. Only `shortlistCounts` genuinely
+   * depends on another read — it needs the requirement ids — so it stays in a second
+   * wave. Six serial round trips become two waves.
+   *
+   * Concurrency is safe inside the pool width (`src/db/client.ts` is `max: 10`). This
+   * mirrors `getVendorOverview`, which went 481ms -> 144ms the same way. An older gotcha
+   * in project-brain/01-architecture.md said parallelising was counterproductive; that
+   * predates the Mumbai move and the wider pool, and has been corrected there.
+   */
+  const [[org], reqs, engagements, [feedback], [accountOwner]] = await Promise.all([
+    db
+      .select({ name: s.organizations.name })
+      .from(s.organizations)
+      .where(eq(s.organizations.id, clientOrgId))
+      .limit(1),
 
-  const reqs = await db
-    .select({
-      id: s.requirements.id,
-      code: s.requirements.code,
-      roleTitle: s.requirements.roleTitle,
-      quantity: s.requirements.quantity,
-      experienceBand: s.requirements.experienceBand,
-      locationCity: s.requirements.locationCity,
-      workMode: s.requirements.workMode,
-      startDate: s.requirements.startDate,
-      budgetMinPaise: s.requirements.budgetMinPaise,
-      budgetMaxPaise: s.requirements.budgetMaxPaise,
-      stage: s.requirements.stage,
-      postedAt: s.requirements.postedAt,
-    })
-    .from(s.requirements)
-    .where(and(
-      eq(s.requirements.clientOrgId, clientOrgId),
-      inArray(s.requirements.stage, ["new", "matching", "shortlisted", "interviewing"]),
-    ))
-    .orderBy(desc(s.requirements.postedAt));
+    db
+      .select({
+        id: s.requirements.id,
+        code: s.requirements.code,
+        roleTitle: s.requirements.roleTitle,
+        quantity: s.requirements.quantity,
+        experienceBand: s.requirements.experienceBand,
+        locationCity: s.requirements.locationCity,
+        workMode: s.requirements.workMode,
+        startDate: s.requirements.startDate,
+        budgetMinPaise: s.requirements.budgetMinPaise,
+        budgetMaxPaise: s.requirements.budgetMaxPaise,
+        stage: s.requirements.stage,
+        postedAt: s.requirements.postedAt,
+      })
+      .from(s.requirements)
+      .where(and(
+        eq(s.requirements.clientOrgId, clientOrgId),
+        inArray(s.requirements.stage, ["new", "matching", "shortlisted", "interviewing"]),
+      ))
+      .orderBy(desc(s.requirements.postedAt)),
 
+    // Engagements: the client sees its own CLIENT rate. The vendor rate column is not
+    // selected, so no margin can be reconstructed from this response.
+    db
+      .select({
+        roleTitle: s.engagements.roleTitle,
+        startDate: s.engagements.startDate,
+        status: s.engagements.status,
+        clientRatePaise: s.engagements.clientRatePaise,
+        maskedId: s.benchResources.maskedId,
+      })
+      .from(s.engagements)
+      .innerJoin(s.benchResources, eq(s.benchResources.id, s.engagements.resourceId))
+      .where(and(
+        eq(s.engagements.clientOrgId, clientOrgId),
+        inArray(s.engagements.status, ["onboarding", "active", "ending"]),
+      ))
+      .orderBy(desc(s.engagements.startDate))
+      .limit(8),
+
+    // Feedback actually outstanding: submitted ratings with no outcome recorded yet, on
+    // this client's own interviews. Was previously a hardcoded 2.
+    db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(s.interviewFeedback)
+      .innerJoin(s.interviews, eq(s.interviews.id, s.interviewFeedback.interviewId))
+      .innerJoin(s.requirements, eq(s.requirements.id, s.interviews.requirementId))
+      .where(and(
+        eq(s.requirements.clientOrgId, clientOrgId),
+        sql`${s.interviewFeedback.outcome} is null`,
+      )),
+
+    // The broker is whoever Talentvibes assigned to this account, not a name in the source.
+    db
+      .select({ fullName: s.users.fullName })
+      .from(s.clientProfiles)
+      .innerJoin(s.users, eq(s.users.id, s.clientProfiles.accountOwnerId))
+      .where(eq(s.clientProfiles.orgId, clientOrgId))
+      .limit(1),
+  ]);
+
+  // Second wave: this one needs the requirement ids from above.
   const shortlistCounts = await db
     .select({
       requirementId: s.shortlists.requirementId,
@@ -216,48 +271,9 @@ export async function getClientOverview(
 
   const countByReq = new Map(shortlistCounts.map((c) => [c.requirementId, c]));
 
-  // Engagements: the client sees its own CLIENT rate. The vendor rate column is not
-  // selected, so no margin can be reconstructed from this response.
-  const engagements = await db
-    .select({
-      roleTitle: s.engagements.roleTitle,
-      startDate: s.engagements.startDate,
-      status: s.engagements.status,
-      clientRatePaise: s.engagements.clientRatePaise,
-      maskedId: s.benchResources.maskedId,
-    })
-    .from(s.engagements)
-    .innerJoin(s.benchResources, eq(s.benchResources.id, s.engagements.resourceId))
-    .where(and(
-      eq(s.engagements.clientOrgId, clientOrgId),
-      inArray(s.engagements.status, ["onboarding", "active", "ending"]),
-    ))
-    .orderBy(desc(s.engagements.startDate))
-    .limit(8);
-
   const interviewing = reqs.filter((r) => r.stage === "interviewing").length;
   const awaiting = reqs.filter((r) => r.stage === "shortlisted");
   const monthlySpend = engagements.reduce((a, e) => a + e.clientRatePaise, 0);
-
-  // Feedback actually outstanding: submitted ratings with no outcome recorded yet, on
-  // this client's own interviews. Was previously a hardcoded 2.
-  const [feedback] = await db
-    .select({ n: sql<number>`count(*)::int` })
-    .from(s.interviewFeedback)
-    .innerJoin(s.interviews, eq(s.interviews.id, s.interviewFeedback.interviewId))
-    .innerJoin(s.requirements, eq(s.requirements.id, s.interviews.requirementId))
-    .where(and(
-      eq(s.requirements.clientOrgId, clientOrgId),
-      sql`${s.interviewFeedback.outcome} is null`,
-    ));
-
-  // The broker is whoever Talentvibes assigned to this account, not a name in the source.
-  const [accountOwner] = await db
-    .select({ fullName: s.users.fullName })
-    .from(s.clientProfiles)
-    .innerJoin(s.users, eq(s.users.id, s.clientProfiles.accountOwnerId))
-    .where(eq(s.clientProfiles.orgId, clientOrgId))
-    .limit(1);
 
   return {
     greetingName: viewerName.split(" ")[0],

@@ -20,7 +20,6 @@ const ts = () => timestamp({ withTimezone: true }).notNull().defaultNow();
 
 export const membershipRole = pgEnum("membership_role", ["supply", "demand", "admin"]);
 export const kycStatus = pgEnum("kyc_status", ["pending", "in_review", "verified", "rejected"]);
-export const feeModel = pgEnum("fee_model", ["hidden_markup", "flat_declared_fee"]);
 
 /** Corporate groupings, declared by ops from the MSA. NEVER inferred from PAN or GSTIN. */
 export const groups = pgTable("groups", {

@@ -41,7 +41,7 @@ export function RosterTable({
   const [filter, setFilter] = useState<Filter>("all");
   const [confirmed, setConfirmed] = useState<Record<string, boolean>>({});
   const [visible, setVisible] = useState(9);
-  const [pending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   const confirm = async (maskedIds: string[], method: "single" | "bulk") => {
     // Optimistic: the row flips immediately, then the write lands.

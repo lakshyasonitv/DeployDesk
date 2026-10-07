@@ -21,14 +21,21 @@ export const metadata = { title: "Add bench resource · DeployDesk" };
 export default async function AddResourcePage() {
   const session = await getDemoSession("vendor");
   const nav = await getShellNav(session);
-  // Sequential. VendorAside alone issues several queries; fanning out alongside it
-  // exhausted the pool. See the note in src/read-models/ops/index.ts.
-  const aside = await VendorAside(session.orgId);
-  const imports = await getVendorImports(session.orgId);
-  const skills = await db.select({ label: s.skills.label })
-    .from(s.skills).where(eq(s.skills.isActive, true));
-  const org = await db.select({ name: s.organizations.name, code: s.organizations.publicCode })
-    .from(s.organizations).where(eq(s.organizations.id, session.orgId)).limit(1);
+  /**
+   * Four independent reads, issued together.
+   *
+   * The comment this replaces said VendorAside "alone issues several queries" and that
+   * fanning out exhausted the pool. Both halves are out of date: `VendorAside` is now a
+   * single aggregate (`getVendorSidebar`), and the pool is `max: 10`, not 5.
+   */
+  const [aside, imports, skills, org] = await Promise.all([
+    VendorAside(session.orgId),
+    getVendorImports(session.orgId),
+    db.select({ label: s.skills.label })
+      .from(s.skills).where(eq(s.skills.isActive, true)),
+    db.select({ name: s.organizations.name, code: s.organizations.publicCode })
+      .from(s.organizations).where(eq(s.organizations.id, session.orgId)).limit(1),
+  ]);
 
   const vendorName = org[0]?.name ?? "your company";
   const vendorCode = org[0]?.code ?? "";

@@ -100,6 +100,29 @@ export async function seedDualRole(org: OrgSeed) {
   const dual = capRows.filter((c) => c.canSupply && c.canHire).length;
   log(`  org_capabilities: ${capRows.length} (${dual} dual-role)`);
 
+  /* ------------------------------------------------------------ fee model */
+
+  /**
+   * A dual-role organisation is put on a FLAT DECLARED FEE, not a hidden markup.
+   *
+   * This is the commercial half of the masking rule and the schema comment on
+   * `organizations.fee_model` has always described it, but nothing implemented it — every
+   * organisation sat on the column's `hidden_markup` default, the dual-role one included.
+   *
+   * Why it matters: a company that both supplies and hires can compare what it is PAID as
+   * a supplier against what it is CHARGED as a client. With a hidden markup those two
+   * numbers reveal the spread. With the fee declared there is no spread left to infer —
+   * which is why the brief pairs this with "the two rate views never share a screen"
+   * rather than relying on screen separation alone.
+   */
+  const dualRoleIds = capRows.filter((c) => c.canSupply && c.canHire).map((c) => c.orgId);
+  if (dualRoleIds.length) {
+    await db.update(s.organizations)
+      .set({ feeModel: "flat_declared_fee" })
+      .where(inArray(s.organizations.id, dualRoleIds));
+    log(`  fee_model: ${dualRoleIds.length} dual-role org(s) -> flat_declared_fee (no margin to infer)`);
+  }
+
   /* ------------------------- promote the dual-role org's admin ----------- */
 
   /**

@@ -1,7 +1,16 @@
-import { pgTable, uuid, text, integer, numeric, timestamp, jsonb, index } from "drizzle-orm/pg-core";
+import { pgTable, pgEnum, uuid, text, integer, numeric, timestamp, jsonb, index } from "drizzle-orm/pg-core";
 import { orgType, orgStatus, userRole, userStatus } from "./enums";
 
 const ts = () => timestamp({ withTimezone: true }).notNull().defaultNow();
+
+/**
+ * How Talentvibes is paid on a placement.
+ *
+ * Declared here rather than in ./dual-role.ts because the column lives on this table and
+ * that module already imports from this one — putting the enum there and importing it
+ * back would be a cycle.
+ */
+export const feeModel = pgEnum("fee_model", ["hidden_markup", "flat_declared_fee"]);
 
 export const organizations = pgTable("organizations", {
   id: uuid().primaryKey().defaultRandom(),
@@ -22,7 +31,7 @@ export const organizations = pgTable("organizations", {
    * supplies would let it infer the margin by comparing what it is paid as a supplier
    * against what it is charged as a client.
    */
-  feeModel: text("fee_model"),
+  feeModel: feeModel("fee_model").notNull().default("hidden_markup"),
   createdAt: ts(),
   updatedAt: ts(),
 });

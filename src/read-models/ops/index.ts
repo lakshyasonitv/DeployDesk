@@ -12,7 +12,7 @@ import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../db/client";
 import * as s from "../../db/schema";
 import { formatPaiseExact, formatPaiseShort } from "../../lib/money/paise";
-import { marginBand, marginPct, MARGIN_FLOOR_PCT, MARGIN_TARGET_PCT } from "../../lib/money/rate-band";
+import { marginBand, marginPct, isBelowFloor, MARGIN_FLOOR_PCT, MARGIN_TARGET_PCT } from "../../lib/money/rate-band";
 import {
   SLA_WINDOW_HOURS, ageLabel, formatExperience, freshnessFor, slaFor, type SlaState,
 } from "../../lib/derived";
@@ -173,7 +173,10 @@ export async function getOpsPipeline(opts: {
       if (eng) {
         const pct = marginPct(eng.clientRatePaise, eng.vendorRatePaise);
         label = `Margin ${pct.toFixed(1)}%`;
-        state = pct >= MARGIN_TARGET_PCT ? "ok" : pct >= MARGIN_FLOOR_PCT ? "warn" : "late";
+        // Derived from marginBand() rather than re-testing the thresholds here. The
+        // vocabulary differs (SLA states, not margin colours) but the cut points must
+        // not: two copies of 25/18 drift the first time one is tuned.
+        state = ({ green: "ok", amber: "warn", red: "late" } as const)[marginBand(pct)];
       } else { label = "Placed"; state = "ok"; }
     } else if (r.stage === "interviewing") {
       const fb = feedbackBy.get(r.id);
@@ -300,6 +303,21 @@ export async function getOpsMatchingWorkspace(requirementCode: string) {
 
   if (!req) return null;
 
+  /**
+   * OPS ONLY: how many people on this client's OWN organisation or declared group could
+   * fill this requirement. Never shown to the client — it is the broker's cue that a
+   * dual-role client is hiring into a gap its own group could fill, which is a commercial
+   * conversation, not a shortlist.
+   *
+   * Issued here rather than at the point of use: it needs only `req.id`, so there is no
+   * reason for it to queue behind the candidate and assessment queries. It is awaited at
+   * the bottom of the function. Each Mumbai round trip costs ~60-70ms and this one now
+   * overlaps the next two.
+   */
+  const ownBenchQuery = db.execute<{ own_bench_matches: number }>(sql`
+    select own_bench_matches from ops_v_own_bench_matches where requirement_id = ${req.id}
+  `);
+
   const rows = await db
     .select({
       algoScore: s.matches.algoScore,
@@ -415,15 +433,8 @@ export async function getOpsMatchingWorkspace(requirementCode: string) {
     };
   });
 
-  /**
-   * OPS ONLY: how many people on this client's OWN organisation or declared group could
-   * fill this requirement. Never shown to the client — it is the broker's cue that a
-   * dual-role client is hiring into a gap its own group could fill, which is a commercial
-   * conversation, not a shortlist.
-   */
-  const [ownBench] = await db.execute<{ own_bench_matches: number }>(sql`
-    select own_bench_matches from ops_v_own_bench_matches where requirement_id = ${req.id}
-  `) as unknown as Array<{ own_bench_matches: number }>;
+  // Started before the candidate queries (see the note where it is issued), awaited here.
+  const [ownBench] = (await ownBenchQuery) as unknown as Array<{ own_bench_matches: number }>;
 
   return {
     ownBenchMatches: Number(ownBench?.own_bench_matches) || 0,
@@ -611,7 +622,7 @@ export async function getOpsMargin() {
       band: marginBand(pct),
       status: r.status,
       startDate: r.startDate,
-      exception: pct < MARGIN_FLOOR_PCT
+      exception: isBelowFloor(pct)
         ? { approverName: r.approverName, note: r.marginExceptionNote }
         : null,
     };
@@ -629,13 +640,13 @@ export async function getOpsMargin() {
       runRateLabel: formatPaiseShort(runRate),
       averageMarginLabel: `${avgMargin.toFixed(1)}%`,
       livePlacements: rows.filter((r) => r.status === "active" || r.status === "onboarding").length,
-      belowFloorCount: enriched.filter((r) => r.pct < MARGIN_FLOOR_PCT).length,
+      belowFloorCount: enriched.filter((r) => isBelowFloor(r.pct)).length,
     },
     rows: enriched,
     guardrail: {
       floorPct: MARGIN_FLOOR_PCT,
       targetPct: MARGIN_TARGET_PCT,
-      breaches: enriched.filter((r) => r.pct < MARGIN_FLOOR_PCT),
+      breaches: enriched.filter((r) => isBelowFloor(r.pct)),
     },
   };
 }

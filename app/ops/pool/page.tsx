@@ -1,4 +1,4 @@
-import { Shell, PageHeader, Scroll, Button } from "@/src/lib/ui/Shell";
+import { Shell, PageHeader, Button } from "@/src/lib/ui/Shell";
 import { getDemoSession, getShellNav } from "@/src/lib/auth/session";
 import { getOpsTalentPool } from "@/src/read-models/ops";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";

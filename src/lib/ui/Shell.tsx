@@ -35,13 +35,6 @@ import { ThemeToggle } from "./ThemeToggle";
 
 export type Portal = "client" | "vendor" | "ops";
 
-export interface NavItem {
-  href: string;
-  label: string;
-  badge?: string | number;
-  active?: boolean;
-}
-
 export interface AsideItem {
   label: string;
   dot: string;
@@ -309,7 +302,24 @@ export function Shell({
               <span style={s("font-size:12.5px;color:var(--t3);white-space:nowrap;flex:none")}>Acting as</span>
               <div style={s("display:flex;gap:3px;min-width:0")}>
                 {identities.map((p) => (
-                  <Link
+                  /*
+                   * A plain <a>, NOT next/link — and this is load-bearing.
+                   *
+                   * `p.href` points at /demo/act-as, which is a ROUTE HANDLER, not a page.
+                   * It answers with a 307 and a Set-Cookie. next/link performs a
+                   * client-side RSC navigation: it fetches the destination expecting a
+                   * flight payload, gets a redirect to an HTML page instead, and the
+                   * transition silently does nothing — which is exactly how this bug
+                   * presented ("the Acting as names are not clickable").
+                   *
+                   * next/link also PREFETCHES by default, so simply rendering this bar
+                   * would have issued a GET to the handler and set the cookie with no
+                   * click at all. A full browser navigation is what is wanted here: it
+                   * follows the redirect and honours Set-Cookie.
+                   *
+                   * Rule of thumb: next/link for pages, <a> for route handlers.
+                   */
+                  <a
                     key={p.orgId}
                     href={p.href}
                     title={`${p.orgName} — ${p.role}`}
@@ -319,7 +329,7 @@ export function Shell({
                     })}
                   >
                     {p.orgName}
-                  </Link>
+                  </a>
                 ))}
               </div>
               <ChevronDown size={14} strokeWidth={1.75} style={{ color: "var(--t4)", flex: "none" }} />

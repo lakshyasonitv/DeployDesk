@@ -3,8 +3,8 @@ import { db, log, rng, schema as s } from "./ctx";
 import { SCREENS } from "./fixtures";
 import { daysAgo, daysAhead, hoursAgo, hoursAhead, fixtureDateToOffset, SEED_NOW } from "./helpers";
 import { parseMoneyToPaise } from "../../lib/money/paise";
-import { marginPct, MARGIN_FLOOR_PCT } from "../../lib/money/rate-band";
-import { identityHash, hashTail } from "../../lib/masked-id";
+import { marginPct, isBelowFloor, MARGIN_FLOOR_PCT } from "../../lib/money/rate-band";
+import { hashTail } from "../../lib/masked-id";
 import type { OrgSeed } from "./orgs";
 import type { ResourceSeed } from "./resources";
 import type { DemandSeed, ShortlistSeed } from "./demand";
@@ -122,7 +122,7 @@ export async function seedEngagements(
     const vendorRate = parseMoneyToPaise(m.vrate as string);
     const clientRate = parseMoneyToPaise(m.crate as string);
     const pct = marginPct(clientRate, vendorRate);
-    const isBelow = pct < MARGIN_FLOOR_PCT;
+    const isBelow = isBelowFloor(pct);
     if (isBelow) belowFloor.push(`${maskedId} ${pct.toFixed(1)}%`);
 
     rows.push({
@@ -178,7 +178,7 @@ export async function seedEngagements(
   const opsAdmin = org.opsByShort.get("D. Rao")!;
   for (const r of rows) {
     const pct = marginPct(r.clientRatePaise, r.vendorRatePaise);
-    if (pct >= MARGIN_FLOOR_PCT || r.marginApprovedBy) continue;
+    if (!isBelowFloor(pct) || r.marginApprovedBy) continue;
     r.marginApprovedBy = opsAdmin.id;
     r.marginExceptionNote =
       `Approved at ${pct.toFixed(1)}%, below the ${MARGIN_FLOOR_PCT}% floor, to hold the ` +

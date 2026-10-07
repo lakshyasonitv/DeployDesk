@@ -1,8 +1,7 @@
 import { Shell } from "@/src/lib/ui/Shell";
 import { getDemoSession, getShellNav } from "@/src/lib/auth/session";
 import { db } from "@/src/db/client";
-import * as s from "@/src/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { getOpsPipeline } from "@/src/read-models/ops";
 import { OpsAside } from "./aside";
 import { PipelineBoard } from "./PipelineBoard";

@@ -1,7 +1,7 @@
 import { db, log, rng, schema as s } from "./ctx";
-import { ALL_POOL_CANDIDATES, type PoolCandidate } from "./fixtures";
+import { ALL_POOL_CANDIDATES } from "./fixtures";
 import {
-  daysAgo, fixtureDateToOffset, freshnessLabelToLastConfirmed, hoursAgo,
+  daysAgo, freshnessLabelToLastConfirmed, hoursAgo,
   parseAssessment, parseExperienceToMonths, parseNotice, slugify,
 } from "./helpers";
 import { parseMoneyToPaise } from "../../lib/money/paise";

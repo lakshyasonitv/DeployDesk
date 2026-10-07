@@ -3,8 +3,8 @@ import { cookies } from "next/headers";
 import { db } from "../../db/client";
 import * as s from "../../db/schema";
 import {
-  getOrgCapabilities, getMembershipRoles, availableSides, requiredCapability,
-  workspaceTabs, type WorkspaceTab, type Portal,
+  getOrgCapabilities, requiredCapability, workspaceTabs,
+  type WorkspaceTab, type Portal,
 } from "./workspace";
 
 /**

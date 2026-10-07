@@ -1,13 +1,13 @@
 import { and, eq } from "drizzle-orm";
-import { db, log, rng, schema as s } from "./ctx";
+import { db, log, schema as s } from "./ctx";
 import { POOLS, REQS, SHORTLIST_CANDS, type Requirement } from "./fixtures";
 import {
-  SEED_NOW, daysAgo, daysAhead, hoursAgo, hoursAhead, fixtureDateToOffset,
+  hoursAgo, hoursAhead, fixtureDateToOffset,
   parseAgeToDate, parseExperienceBand, parseLocation, parseNotice,
 } from "./helpers";
 import { parseBandToPaise, parseMoneyToPaise } from "../../lib/money/paise";
 import { deriveRateBand } from "../../lib/money/rate-band";
-import { SLA_WINDOW_HOURS, slaFor } from "../../lib/derived";
+import { SLA_WINDOW_HOURS } from "../../lib/derived";
 import type { OrgSeed, SkillMap } from "./orgs";
 import type { ResourceSeed } from "./resources";
 import type { DualRoleSeed } from "./dual-role";

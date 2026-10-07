@@ -40,14 +40,6 @@ function allocateWide(taken: ReadonlySet<string>): string {
   throw new Error("allocateMaskedId: exhausted the widened space");
 }
 
-/**
- * A duplicate-flagged second submission gets a suffixed id (TV-7188-B) that is shown
- * in OPS VIEWS ONLY. Clients never see suffixed ids.
- */
-export function opsSuffixedId(maskedId: string, suffix: string): string {
-  return `${maskedId}-${suffix}`;
-}
-
 /* ---------- identity hashing ---------- */
 
 /**

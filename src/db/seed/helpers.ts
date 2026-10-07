@@ -78,12 +78,6 @@ export function parseExperienceToMonths(exp: string): number {
   return Math.round(Number(m[1]) * 12);
 }
 
-/** "4.6 / 5" -> 4.6 */
-export function parseReliability(rel: string): number {
-  const m = /^([\d.]+)/.exec(rel.trim());
-  return m ? Number(m[1]) : 0;
-}
-
 /** "Immediate" | "15 days" | "30 days" | "30 Sep" | "Unknown" | "15 Sep" */
 export function parseNotice(notice: string): {
   noticePeriodDays: number | null;
