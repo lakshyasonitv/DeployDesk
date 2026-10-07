@@ -549,12 +549,16 @@ learning curve or complex words**. Consequences already decided:
       **compensating change plus a second audit row**, so history shows it was done and then
       undone. Actions that genuinely cannot be undone get **no Undo button** rather than a
       lying one.
-- [ ] **"How this works" explainer** behind the `?` button — plain English, the brokered
-      model in a few lines. The user picked this over the palette; it reduces the learning
-      curve more than any shortcut.
-- [ ] **Search: everything in the caller's portal**, server-backed, grouped by type.
-      **Masking still applies per portal** — this is a new read path, so `docs/MASKING.md`
-      governs it and it needs a leak test.
+- [x] **"How this works" explainer** ✅ 2026-10-07 — per-portal plain English behind the `?`,
+      which was previously a div that did nothing. Written per portal on purpose: a client is
+      not told how the supplier side works, because telling them would itself be a masking
+      problem. Each point says what you see, what you do not, **and why** — "why" is what
+      stops someone asking for the supplier's name.
+- [x] **Search: everything in the caller's portal** ✅ 2026-10-07 — server-backed, grouped
+      by type, **three read models rather than one with a role branch** (ADR-003: search is
+      the most tempting place in the product to break that rule). 17 leak tests, and the
+      assertions are about ABSENCE because that is the direction that matters. ⌘K removed
+      entirely and verified gone from all three portals.
 
 ### The four write paths the user chose, in their order
 
@@ -573,9 +577,14 @@ tenancy check, a portal-specific response shape, **an audit row**, and a leak te
 - [x] **4. Resolve a duplicate, and submit interview feedback** ✅ — `duplicate_flags.status`
       (keep A / keep B / not a duplicate) and `interview_feedback`. Both audit rows.
 
-- [ ] **CSV exports** — "Download statement" and "Export to finance" generate a real CSV
-      from the **same read model the screen uses**, so the file and the screen cannot
-      disagree. Masking applies: a vendor's CSV carries no client name and no margin.
+- [x] **CSV exports** ✅ 2026-10-07 — `/api/export`, built from the same read model the
+      screen uses, so masking is **inherited rather than re-implemented**: a vendor CSV
+      cannot carry a client name because `getVendorEarnings` cannot return one. Two details
+      worth keeping: a **UTF-8 BOM** (Excel on Windows mangles ₹ without it, and every
+      figure here has one) and a **formula-injection guard** — Excel EXECUTES a value
+      starting with `=`, `+`, `-` or `@`, so `=1+1` is written as `'=1+1`. Buttons use a
+      `download` variant that renders a plain `<a>`; next/link would do an RSC navigation
+      and the download would never start.
 
 ### A defect this sprint exposed, worth not repeating
 

@@ -5,7 +5,8 @@
 > it: the commands are at the bottom.
 >
 > Gates at the time of writing, commit `cbf6df1`:
-> **20 pages + 10 API routes · `db:verify` 30/30 · `npm test` 105/105 · build + typecheck clean**
+> **20 pages + 12 API routes · 39 base tables · `db:verify` 30/30 · `npm test` 105/105 ·
+> build + typecheck clean**
 >
 > `npm test` is the gate, not `npm run test:leak` — the latter only runs `tests/leak` and
 > would miss `tests/business-clock.test.ts` entirely.
@@ -28,6 +29,8 @@ These persist to Supabase, write an audit row, and are covered by tests.
 | **Live match preview** | `/client/requirements/new` | aggregate counts only, buckets anything under 5, excludes own-group and blocked supply |
 | **Light / dark theme** | everywhere | persists in `localStorage`, applied before first paint so there is no flash |
 | **Search** | sidebar, all three portals | server-backed, grouped by type, **masking per portal** — client sees `TV-####` + a band, vendor sees its own people's names, ops sees everything. 17 leak tests |
+| **"How this works" explainer** | `?` in the top bar, all portals | per-portal plain English; the `?` was a div that did nothing |
+| **CSV exports** | client People working · vendor Your earnings · ops Margin | built from the SAME read model the screen uses, so file and screen cannot disagree. UTF-8 BOM for the rupee sign, and a formula-injection guard |
 | **Act as another organisation** | top bar | demo affordance; the dual-role org is reachable this way |
 | **Hiring | Bench switcher** | top bar, dual-role orgs only | a single-sided org sees **nothing** — verified in markup |
 
@@ -59,20 +62,47 @@ Each needs a decision, not just wiring. Grouped by what they actually need.
 
 **Needs only work, no decisions**
 - **Download statement** (`/client/engagements`, `/vendor/earnings`), **Export to finance** (`/ops/margin`) — agreed: real CSV from the same read model the screen uses, so file and screen cannot disagree
-- **Load more** (`/ops/pool`) — server-side paging
+- **Load more** (`/ops/pool`) — server-side paging. The roster's version of this is
+  **fixed**: "Load more" said neither how many more nor how many were left, and with 42
+  people meant four clicks. It now reads "Show all 42 people" and the count beside it is a
+  sentence rather than a bare ratio.
 - **Add to a requirement** (`/ops/pool`) — add a pool candidate to a match set
 - **Ask Talentvibes** (`/client/shortlists` index) — opens nothing; the drawer exists only on the detail page
 - **Sending a broker message** — the thread now READS real data, but Send only appends locally; there is no write endpoint for a client message
 
+## 3b. Unblocked by migration 0005 — tables exist and are seeded, UI not wired
+
+Applied 2026-10-07 after the SQL was shown and approved. The data is there; **the buttons
+still do nothing**, which is the next piece of work.
+
+| Table | Seeded | Control waiting on it |
+|---|---|---|
+| `holiday_calendar` | 6 rows (3 fixed national dates × 2 years) | **already in use** — the create endpoint reads it when setting a deadline |
+| `interview_slots` | 7 (2 accepted, 1 declined with a reason) | Propose new slots · Reschedule · Panel availability |
+| `extension_requests` | 1, at `with_supplier` | Request an extension |
+| `saved_views` | 2, scoped to user **and** org | Save this view |
+
+**Holidays: three rows a year on purpose.** Republic Day, Independence Day and Gandhi
+Jayanti are the only Indian public holidays with a fixed nationwide date. Diwali, Holi, Eid
+and Good Friday move with a lunar or liturgical calendar or vary by state, and a date stated
+from memory would not fail loudly — it would silently shift a real SLA deadline by a working
+day. HR supplies the rest. Proven to work: a role posted 1 Oct 17:00 IST + 4 business hours
+lands 2 Oct without the table and **3 Oct with it**, because 2 Oct is Gandhi Jayanti.
+
+Two tables deliberately NOT created: feedback drafts (a null `outcome` in
+`interview_feedback` already IS a draft, and the endpoint supports it) and duplicate
+detection rules (no agreed thresholds exist; inventing them is what working agreement 8
+forbids).
+
 ## 4. Agreed next, not started
 
-- **"How this works" explainer** — behind the `?` button, plain English. The owner picked
-  this over the ⌘K palette: it reduces the learning curve more than any shortcut.
-- **CSV exports** — "Download statement" and "Export to finance", generated from the same
-  read model the screen uses so the file and the screen cannot disagree.
+**Wiring the five controls that migration 0005 unblocked** — see section 3b. The endpoints
+for two of them already exist and are tested (`ops/duplicates/resolve`,
+`client/interviews/feedback`); the other three need an endpoint as well as a screen.
 
-~~Search~~ — **done**, see section 1. ⌘K was removed entirely on the owner's instruction
-("what does that even mean") and verified absent from all three portals.
+~~Search~~, ~~the explainer~~ and ~~CSV exports~~ are **done** — see section 1. ⌘K was
+removed entirely on the owner's instruction ("what does that even mean") and verified
+absent from all three portals.
 
 ## 5. Known gaps, deliberately left
 
