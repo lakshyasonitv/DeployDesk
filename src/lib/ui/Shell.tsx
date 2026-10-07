@@ -11,6 +11,7 @@ import type { WorkspaceTab } from "../auth/workspace";
 import { ThemeToggle } from "./ThemeToggle";
 import { DeployDeskLogo } from "./DeployDeskLogo";
 import { ToastProvider } from "./Toast";
+import { Search, SEARCH_EXAMPLES } from "./Search";
 
 /**
  * The global shell: sidebar + top bar + content column. Applies to all three portals.
@@ -176,13 +177,15 @@ export function Shell({
           </div>
         </div>
 
-        {/* search — opens the command palette (wired in 7b) */}
-        <div style={s("margin:0 12px 14px;height:38px;padding:0 11px;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:space-between;color:var(--t4);font-size:13px")}>
-          Search or jump to…
-          <span style={sx("font-size:11px;font-weight:500;border:1px solid var(--border-2);border-radius:5px;padding:1px 5px;color:var(--t3)", { fontFamily: TOKENS.mono })}>
-            ⌘K
-          </span>
-        </div>
+        {/*
+          A real search box, not a hint.
+
+          This was "Search or jump to… ⌘K" and did nothing when clicked — a dead control,
+          which v2 rule 4 forbids, advertising a keyboard shortcut the audience would have
+          to be taught. The product owner's words on ⌘K were "what does that even mean".
+          There is now no shortcut and no modal: type, and results appear underneath.
+        */}
+        <Search portal={portal} examples={SEARCH_EXAMPLES[portal]} />
 
         <div style={s("padding:0 12px 6px;font-size:10.5px;font-weight:700;letter-spacing:.09em;color:var(--t4)")}>
           {GROUP_LABEL[portal]}
