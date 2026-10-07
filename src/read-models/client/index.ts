@@ -392,6 +392,9 @@ export async function getClientFeedbackDue(clientOrgId: string) {
 
   return rows.map((r) => ({
     maskedId: r.maskedId,
+    // The NUMBER as well as the label: the feedback endpoint identifies a round by
+    // (maskedId, roundNo), and the label is display text that must not be parsed back.
+    roundNo: r.roundNo,
     roundLabel: `Round ${r.roundNo}`,
     roleTitle: r.roleTitle,
     requirementCode: r.requirementCode,
@@ -400,7 +403,9 @@ export async function getClientFeedbackDue(clientOrgId: string) {
       { label: "Problem solving", value: r.problemSolving },
       { label: "Communication", value: r.communication },
       { label: "Role fit", value: r.roleFit },
-    ].filter((x) => x.value != null) as Array<{ label: string; value: number }>,
+      // NOT filtered to the ones already answered. The card is a form now, and a rating
+      // nobody has given yet still needs a row to click on. `null` means unanswered.
+    ] as Array<{ label: string; value: number | null }>,
     notes: r.notes,
     dueAt: r.dueAt?.toISOString() ?? null,
   }));

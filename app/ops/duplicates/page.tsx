@@ -3,6 +3,7 @@ import { getDemoSession, getShellNav } from "@/src/lib/auth/session";
 import { getOpsDuplicates } from "@/src/read-models/ops";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
 import { OpsAside } from "../aside";
+import { ResolveActions } from "./ResolveActions";
 
 /**
  * Ops · Duplicate candidates. Ops-only, always.
@@ -66,7 +67,7 @@ export default async function DuplicatesPage() {
               </div>
 
               <div style={s("display:grid;grid-template-columns:1fr 200px 1fr")}>
-                {f.sides[0] ? <SidePanel side={f.sides[0]} primary /> : <div />}
+                {f.sides[0] ? <SidePanel side={f.sides[0]} /> : <div />}
 
                 <div style={s("background:var(--surface-2);border-left:1px solid var(--surface-3);border-right:1px solid var(--surface-3);padding:13px")}>
                   <SectionLabel>MATCH SIGNALS</SectionLabel>
@@ -94,12 +95,16 @@ export default async function DuplicatesPage() {
                   Notify the other supplier that the profile is already represented; neither the
                   client nor the candidate is told.
                 </div>
-                <div style={s("display:flex;gap:8px;flex:none")}>
-                  <Button primary accent="var(--t1)">
-                    Keep {keeper?.vendorName.split(" ")[0] ?? "A"}
-                  </Button>
-                  <Button>Not a duplicate</Button>
-                </div>
+                {/*
+                  These were <Button> elements with no handler while
+                  /api/ops/duplicates/resolve already existed and was tested. The page is a
+                  server component, so the buttons live in a client island.
+                */}
+                <ResolveActions
+                  code={f.code}
+                  keepALabel={f.sides[0]?.vendorName.split(" ")[0] ?? "A"}
+                  keepBLabel={f.sides[1]?.vendorName.split(" ")[0] ?? "B"}
+                />
               </div>
             </div>
           );
@@ -135,7 +140,7 @@ export default async function DuplicatesPage() {
   );
 }
 
-function SidePanel({ side, primary }: { side: Side; primary?: boolean }) {
+function SidePanel({ side }: { side: Side }) {
   return (
     <div style={s("padding:13px 15px")}>
       <div style={s("display:flex;align-items:center;gap:8px;flex-wrap:wrap")}>
@@ -168,16 +173,13 @@ function SidePanel({ side, primary }: { side: Side; primary?: boolean }) {
         ))}
       </div>
 
-      <div style={s("display:flex;gap:7px;margin-top:11px")}>
-        <div style={sx("padding:6px 11px;border-radius:7px;font-size:11px;font-weight:700", {
-          background: primary ? "var(--t1)" : "var(--surface-3)", color: primary ? "var(--surface)" : "var(--t2)",
-        })}>
-          Keep this one
-        </div>
-        <div style={s("padding:6px 11px;border:1px solid var(--border-2);border-radius:7px;font-size:11px;font-weight:600;background:var(--surface)")}>
-          Contact vendor
-        </div>
-      </div>
+      {/*
+        The decorative "Keep this one" / "Contact vendor" chips that used to sit here are
+        gone. They looked like controls and were plain divs, and now that the card footer
+        carries real working buttons, two competing affordances for the same decision is
+        worse than one. "Contact vendor" also had nowhere to go — relaying to a supplier is
+        the broker-thread write path, which does not exist yet.
+      */}
     </div>
   );
 }

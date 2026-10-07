@@ -3,6 +3,7 @@ import { getDemoSession, getShellNav } from "@/src/lib/auth/session";
 import { getClientInterviews, getClientFeedbackDue } from "@/src/read-models/client";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
 import { ShellAside } from "../aside";
+import { FeedbackCard } from "./FeedbackCard";
 
 /**
  * Client · Interviews & feedback.
@@ -105,42 +106,21 @@ export default async function ClientInterviewsPage() {
                 <SectionLabel>FEEDBACK DUE</SectionLabel>
                 <Pill bg="var(--warn-tint)" fg="var(--warn)">{feedback.length}</Pill>
               </div>
+              {/*
+                Was a read-only set of bars with two dead buttons while
+                /api/client/interviews/feedback already existed and was tested. Now a form.
+              */}
               {feedback.slice(0, 2).map((f) => (
-                <div key={f.maskedId + f.roundLabel} style={s("margin-bottom:14px")}>
-                  <div style={s("font-size:12.5px;font-weight:700")}>
-                    <span style={{ fontFamily: TOKENS.mono }}>{f.maskedId}</span> · {f.roundLabel}
-                  </div>
-                  <div style={s("font-size:11px;color:var(--t4);margin-top:2px")}>
-                    {f.roleTitle} · {f.requirementCode}
-                  </div>
-
-                  <div style={s("margin-top:11px;display:flex;flex-direction:column;gap:9px")}>
-                    {f.ratings.map((r) => (
-                      <div key={r.label}>
-                        <div style={s("display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px")}>
-                          <span style={s("color:var(--t2)")}>{r.label}</span>
-                          <span style={sx("font-weight:700", { fontFamily: TOKENS.mono })}>{r.value}</span>
-                        </div>
-                        <div style={s("display:flex;gap:3px")}>
-                          {[1, 2, 3, 4, 5].map((n) => (
-                            <span key={n} style={sx("flex:1;height:5px;border-radius:3px", { background: n <= r.value ? "var(--brand)" : "var(--border)" })} />
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {f.notes ? (
-                    <div style={s("margin-top:11px;background:var(--surface-2);border-radius:8px;padding:10px;font-size:11.5px;color:var(--t2);line-height:1.55")}>
-                      {f.notes}
-                    </div>
-                  ) : null}
-
-                  <div style={s("margin-top:11px;display:flex;gap:7px")}>
-                    <Button primary>Submit feedback</Button>
-                    <Button>Save draft</Button>
-                  </div>
-                </div>
+                <FeedbackCard
+                  key={f.maskedId + f.roundLabel}
+                  maskedId={f.maskedId}
+                  roundNo={f.roundNo}
+                  roundLabel={f.roundLabel}
+                  roleTitle={f.roleTitle}
+                  requirementCode={f.requirementCode}
+                  ratings={f.ratings}
+                  notes={f.notes}
+                />
               ))}
               <div style={s("font-size:10.5px;color:var(--t4);line-height:1.55;padding-top:10px;border-top:1px solid var(--surface-3)")}>
                 Talentvibes relays a redacted summary to the supplier with your company name and
