@@ -50,11 +50,11 @@ export default async function OrganisationsPage() {
     >
       <PageHeader
         title="Organisations"
-        subtitle="What every company on the exchange may do, who it is related to, and what it is worth · visible to Talentvibes only"
+        subtitle="What every company can do, who it is related to, and what it is worth · Talentvibes only"
       />
       <Scroll>
         <div style={s("display:grid;grid-template-columns:repeat(auto-fit,minmax(198px,1fr));gap:14px")}>
-          <StatCard label="ON THE EXCHANGE" value={orgs.length} sub={`${orgs.filter((o) => o.canSupply).length} supply · ${orgs.filter((o) => o.canHire).length} hire`} />
+          <StatCard label="COMPANIES" value={orgs.length} sub={`${orgs.filter((o) => o.canSupply).length} supply · ${orgs.filter((o) => o.canHire).length} hire`} />
           <StatCard label="DUAL ROLE" value={dualRole.length} sub={dualRole.map((o) => o.name).join(", ") || "none"} />
           <StatCard label="DECLARED GROUPS" value={grouped.length ? grouped.length / 2 : 0} sub={grouped.length ? `${grouped[0].groupName} · self-dealing blocked` : "none declared"} />
           <StatCard label="BLOCK PAIRS" value={blocked.length ? blocked.length / 2 : 0} sub={blocked.length ? "hidden from each other both ways" : "none"} />

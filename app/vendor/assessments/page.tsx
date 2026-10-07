@@ -11,7 +11,7 @@ import { VendorAside } from "../aside";
  * /api/vendor/* route to a score column, which is why this screen is read-only about
  * scores and says so.
  */
-export const metadata = { title: "Assessments · DeployDesk" };
+export const metadata = { title: "Skill tests · DeployDesk" };
 
 const STATUS_PILL: Record<string, { bg: string; fg: string; label: string }> = {
   scored: { bg: "var(--ok-tint)", fg: "var(--ok)", label: "SCORED" },
@@ -38,7 +38,7 @@ export default async function VendorAssessmentsPage() {
   return (
     <Shell portal="vendor" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }} activeKey="assessments" asideTitle="FRESHNESS ALERTS" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
-        title="Assessments"
+        title="Skill tests"
         subtitle="Proctored by Talentvibes. Scores are visible to you and to clients — you cannot edit them."
         actions={<Button primary accent="var(--teal)">Invite {a.summary.notStarted} to test</Button>}
       />

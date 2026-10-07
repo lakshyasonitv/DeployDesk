@@ -13,7 +13,7 @@ import { VendorAside } from "../aside";
  *
  * No client rate, client name or margin may appear anywhere in this portal.
  */
-export const metadata = { title: "Earnings · DeployDesk" };
+export const metadata = { title: "Your earnings · DeployDesk" };
 
 const COLS = "168px 1fr 96px 120px 120px 130px";
 
@@ -36,7 +36,7 @@ export default async function VendorEarningsPage() {
   return (
     <Shell portal="vendor" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }} activeKey="earnings" asideTitle="FRESHNESS ALERTS" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
-        title="Earnings"
+        title="Your earnings"
         subtitle="Your contracted rate per placement. Talentvibes contracts separately with the client."
         actions={<><Button>Download statement</Button><Button primary accent="var(--teal)">Raise invoice</Button></>}
       />
@@ -45,7 +45,7 @@ export default async function VendorEarningsPage() {
           <StatCard label="BILLED THIS MONTH" value={e.stats.billedThisMonthLabel}
             sub={`${e.stats.activePlacements} active placements`} />
           <StatCard label="RUN-RATE · MONTHLY" value={e.stats.runRateLabel} sub="at your contracted rates" />
-          <StatCard label="ACTIVE PLACEMENTS" value={e.stats.activePlacements} sub="across the exchange" />
+          <StatCard label="ACTIVE PLACEMENTS" value={e.stats.activePlacements} sub="across all our suppliers" />
           <StatCard label="INVOICES RAISED" value={e.rows.length} sub="net 30 terms" />
         </div>
 

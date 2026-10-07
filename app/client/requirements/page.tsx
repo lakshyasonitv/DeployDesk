@@ -6,7 +6,7 @@ import { s, sx, TOKENS, stageMeta } from "@/src/lib/ui/style";
 import { ShellAside } from "../aside";
 
 /** Client · Requirements. The client's own note is visible to them; never to a vendor. */
-export const metadata = { title: "Requirements · DeployDesk" };
+export const metadata = { title: "Open roles · DeployDesk" };
 
 const COLS = "96px 1fr 60px 128px 118px 124px 86px";
 
@@ -21,7 +21,7 @@ export default async function ClientRequirementsPage() {
   return (
     <Shell portal="client" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }} activeKey="requirements" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
-        title="Requirements"
+        title="Open roles"
         subtitle={`${rows.length} requirements · Talentvibes sources from every supplier bench on the exchange`}
         actions={<Button primary href="/client/requirements/new">Post a requirement</Button>}
       />

@@ -10,7 +10,7 @@ import { ShellAside } from "../aside";
  * The client sees the rate IT pays. engagements.vendor_rate_paise is not selected by
  * the client read model, so no spread is reconstructible from this page.
  */
-export const metadata = { title: "Engagements · DeployDesk" };
+export const metadata = { title: "People working · DeployDesk" };
 
 const COLS = "120px 1fr 120px 128px 128px";
 
@@ -33,15 +33,15 @@ export default async function ClientEngagementsPage() {
   return (
     <Shell portal="client" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }} activeKey="engagements" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
-        title="Engagements"
-        subtitle="You contract with Talentvibes for every placement. One invoice, one counterparty."
+        title="People working"
+        subtitle="Everyone currently working for you through Talentvibes. One contract and one invoice, with us — never with the supplier."
         actions={<><Button>Download statement</Button><Button primary>Request an extension</Button></>}
       />
       <Scroll>
         <div style={s("display:grid;grid-template-columns:repeat(3,1fr);gap:12px")}>
           <StatCard label="ACTIVE ENGAGEMENTS" value={overview.stats.activeEngagements} sub="across your requirements" />
           <StatCard label="MONTHLY SPEND" value={overview.stats.monthlySpendLabel} sub="the rate you pay Talentvibes" />
-          <StatCard label="CONTRACTING PARTY" value="Talentvibes" sub="single counterparty for all placements" />
+          <StatCard label="CONTRACTING PARTY" value="Talentvibes" sub="one contract for everyone you hire" />
         </div>
 
         <div style={s("margin-top:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden")}>

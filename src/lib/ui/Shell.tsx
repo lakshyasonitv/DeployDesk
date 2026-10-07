@@ -9,6 +9,7 @@ import {
 import { s, sx, TOKENS, PORTAL_TAG, GROUP_LABEL, BRAND } from "./style";
 import type { WorkspaceTab } from "../auth/workspace";
 import { ThemeToggle } from "./ThemeToggle";
+import { DeployDeskLogo } from "./DeployDeskLogo";
 
 /**
  * The global shell: sidebar + top bar + content column. Applies to all three portals.
@@ -157,9 +158,13 @@ export function Shell({
       <div style={s("width:260px;flex:none;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:16px 0;overflow:hidden")}>
         {/* logo lockup — 30x30 brand tile, name and byline, never wrapping */}
         <div style={s("padding:0 16px 14px;display:flex;align-items:center;gap:10px")}>
-          <div style={s("width:30px;height:30px;border-radius:9px;flex:none;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800")}>
-            T
-          </div>
+          {/*
+            The Bridge mark from deploydesk-logo-kit. Cool strokes are the suppliers, warm
+            strokes the clients, and they both point at one blue centre — Talentvibes. The
+            two sides never touch, which is the product's promise, so the kit's rules say
+            not to recolour individual strokes or swap the halves.
+          */}
+          <DeployDeskLogo size={32} className="tv-logo" />
           <div style={s("min-width:0")}>
             <div style={s("font-size:14.5px;font-weight:800;letter-spacing:-.3px;white-space:nowrap")}>
               {BRAND.name}

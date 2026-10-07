@@ -11,7 +11,7 @@ import { OpsAside } from "../aside";
  * losing vendor is told only that the profile is already represented — never who else
  * submitted it (docs/DATA-MODEL.md section 9).
  */
-export const metadata = { title: "Duplicates · DeployDesk" };
+export const metadata = { title: "Duplicate checks · DeployDesk" };
 
 type Flags = Awaited<ReturnType<typeof getOpsDuplicates>>;
 type Side = NonNullable<Flags[number]["sides"][number]>;
@@ -41,7 +41,7 @@ export default async function DuplicatesPage() {
   return (
     <Shell portal="ops" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: `${session.orgName} · ${session.role}` }} activeKey="duplicates" asideTitle="TODAY'S QUEUE" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
-        title="Duplicate candidates"
+        title="Duplicate checks"
         subtitle="Same person submitted by two suppliers · resolve before a shortlist goes out"
         actions={<><Button>Detection rules</Button><Button primary accent="var(--t1)">{open.length} open flags</Button></>}
       />

@@ -6,7 +6,7 @@ import { s, sx, TOKENS } from "@/src/lib/ui/style";
 import { ShellAside } from "../aside";
 
 /** Client · Shortlists index. Each row opens the masked review screen. */
-export const metadata = { title: "Shortlists · DeployDesk" };
+export const metadata = { title: "Candidate shortlists · DeployDesk" };
 
 export default async function ShortlistsIndex() {
   const session = await getDemoSession("client");
@@ -19,8 +19,8 @@ export default async function ShortlistsIndex() {
   return (
     <Shell portal="client" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }} activeKey="shortlists" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
-        title="Shortlists"
-        subtitle="Masked profiles delivered by your broker. Names, photos and suppliers are withheld."
+        title="Candidate shortlists"
+        subtitle="Masked profiles sent to you by your broker. You see skills, scores and a rate range — names, photos and supplier companies stay hidden."
         actions={<Button>Ask Talentvibes</Button>}
       />
       <Scroll>

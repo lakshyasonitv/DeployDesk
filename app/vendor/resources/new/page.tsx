@@ -16,7 +16,7 @@ import { AddResourceForm } from "./AddResourceForm";
  * name. Both are true because of how the schema is shaped — the client-facing table has
  * no name and no vendor column at all (ADR-009).
  */
-export const metadata = { title: "Add bench resource · DeployDesk" };
+export const metadata = { title: "Add people · DeployDesk" };
 
 export default async function AddResourcePage() {
   const session = await getDemoSession("vendor");
@@ -43,7 +43,7 @@ export default async function AddResourcePage() {
   return (
     <Shell portal="vendor" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }} activeKey="add" asideTitle="FRESHNESS ALERTS" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
-        title="Add bench resource"
+        title="Add people"
         subtitle={`Listed as a masked profile. ${vendorName} is never exposed to a client.`}
       />
       <Scroll>

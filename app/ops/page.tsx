@@ -6,7 +6,7 @@ import { getOpsPipeline } from "@/src/read-models/ops";
 import { OpsAside } from "./aside";
 import { PipelineBoard } from "./PipelineBoard";
 
-export const metadata = { title: "Pipeline · DeployDesk" };
+export const metadata = { title: "Role pipeline · DeployDesk" };
 
 export default async function OpsPipelinePage() {
   const session = await getDemoSession("ops");
@@ -26,7 +26,6 @@ export default async function OpsPipelinePage() {
       asideItems={aside.items} badges={aside.badges}>
       <PipelineBoard
         requirements={pipeline.requirements}
-        ownerShortSelf="P. Nair"
         clientCount={Number(counts.clients)}
         vendorCount={Number(counts.vendors)}
       />

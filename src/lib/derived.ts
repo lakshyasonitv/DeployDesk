@@ -61,7 +61,7 @@ export function slaFor(
 ): Sla {
   const now = opts.now ?? new Date();
   if (opts.paused) return { state: "idle", label: "Awaiting client", hoursRemaining: null };
-  if (!dueAt) return { state: "ok", label: "No SLA", hoursRemaining: null };
+  if (!dueAt) return { state: "ok", label: "No deadline", hoursRemaining: null };
 
   const msRemaining = dueAt.getTime() - now.getTime();
   const hoursRemaining = msRemaining / 3_600_000;
@@ -72,7 +72,9 @@ export function slaFor(
   }
   const fractionLeft = hoursRemaining / windowHours;
   const state: SlaState = fractionLeft <= 0.25 ? "warn" : "ok";
-  return { state, label: `SLA ${Math.max(1, Math.round(hoursRemaining))}h`, hoursRemaining };
+  // "SLA 22h" read as jargon to the senior, non-technical audience this is built for.
+  // "Due in 22h" says the same thing without an abbreviation to decode.
+  return { state, label: `Due in ${Math.max(1, Math.round(hoursRemaining))}h`, hoursRemaining };
 }
 
 /** Targets from docs/DOMAIN.md, in hours. */

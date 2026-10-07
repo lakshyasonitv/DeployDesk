@@ -224,7 +224,7 @@ export function PostForm({ availableSkills }: { availableSkills: string[] }) {
           </div>
           <div style={s("display:flex;flex-direction:column;gap:11px;margin-top:12px")}>
             {[
-              ["You post, we source", "Talentvibes searches every supplier bench on the exchange. Suppliers never see your name."],
+              ["You post, we source", "We search every supplier we work with. None of them sees your company name."],
               ["Masked shortlist", "You review IDs, skills, proctored scores and rate bands only."],
               ["Brokered interviews", "We schedule, relay feedback and hold both commercial conversations."],
               ["One contract", "You contract with Talentvibes. We contract with the supplier."],

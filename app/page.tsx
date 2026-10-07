@@ -3,6 +3,7 @@ import { sql } from "drizzle-orm";
 import { db } from "@/src/db/client";
 import { getPortalSwitcherOptions } from "@/src/lib/auth/session";
 import { s, TOKENS, ACCENT_GRADIENT, BRAND } from "@/src/lib/ui/style";
+import { DeployDeskLogo } from "@/src/lib/ui/DeployDeskLogo";
 
 /**
  * Deployment smoke page. It exists to prove the whole pipe end to end — Vercel build,
@@ -78,8 +79,9 @@ export default async function Home() {
   return (
     <main style={s("max-width:860px;margin:0 auto;padding:48px 26px 60px")}>
       <div style={s("display:flex;align-items:center;gap:11px;margin-bottom:6px")}>
-        <div style={{ ...s("width:28px;height:28px;border-radius:7px;flex:none"), background: ACCENT_GRADIENT.ops }} />
-        <h1 style={s("font-size:24px;font-weight:800;letter-spacing:-.6px;margin:0")}>
+        {/* The lockup carries the name and tagline itself, so no separate <h1> text. */}
+        <DeployDeskLogo variant="lockup" size={44} />
+        <h1 style={s("position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);margin:0")}>
           {BRAND.full}
         </h1>
       </div>

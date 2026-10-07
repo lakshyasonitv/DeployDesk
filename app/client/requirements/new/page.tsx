@@ -7,7 +7,7 @@ import { ShellAside } from "../../aside";
 import { PostForm } from "./PostForm";
 
 /** Client · Post a requirement. */
-export const metadata = { title: "Post a requirement · DeployDesk" };
+export const metadata = { title: "Post a new role · DeployDesk" };
 
 export default async function NewRequirementPage() {
   const session = await getDemoSession("client");
@@ -21,8 +21,8 @@ export default async function NewRequirementPage() {
     <Shell portal="client" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }} activeKey="requirements" asideTitle="OPEN REQS"
       asideItems={aside.items} badges={aside.badges}>
       <PageHeader
-        title="Post a requirement"
-        subtitle="Talentvibes sources from every supplier bench on the exchange. Suppliers never see your name."
+        title="Post a new role"
+        subtitle="Tell us what you need. We look across every supplier we work with, and none of them sees your company name."
       />
       <Scroll>
         <PostForm availableSkills={skills.map((x) => x.label).sort()} />

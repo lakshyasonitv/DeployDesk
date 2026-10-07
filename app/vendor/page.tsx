@@ -78,7 +78,7 @@ export default async function VendorDashboard() {
 
           <StatCard label="PROFILES LISTED" value={o.stats.listed} sub={`of ${o.stats.onBench} on bench`} />
           <StatCard label="IN PROCESS" value={o.stats.inProcess} sub="shortlisted or interviewing" />
-          <StatCard label="PLACEMENTS" value={o.placements} sub="to date, across the exchange" />
+          <StatCard label="PLACEMENTS" value={o.placements} sub="to date, across all our suppliers" />
           <StatCard label="BILLED THIS MONTH" value={o.stats.billedThisMonthLabel} sub="your contracted rates" />
         </div>
 

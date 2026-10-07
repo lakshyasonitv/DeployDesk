@@ -1,5 +1,6 @@
 import { s, sx, GROUP_LABEL, BRAND } from "./style";
 import { NAV_COUNT, type Portal } from "./Shell";
+import { DeployDeskLogo } from "./DeployDeskLogo";
 
 /**
  * Navigation feedback.
@@ -32,9 +33,7 @@ export function ShellSkeleton({ portal }: { portal: Portal }) {
       {/* ---- sidebar: real geometry, no fabricated content ---- */}
       <div style={s("width:260px;flex:none;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:16px 0")}>
         <div style={s("padding:0 16px 14px;display:flex;align-items:center;gap:10px")}>
-          <div style={s("width:30px;height:30px;border-radius:9px;flex:none;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800")}>
-            T
-          </div>
+          <DeployDeskLogo size={32} />
           <div style={s("min-width:0")}>
             <div style={s("font-size:14.5px;font-weight:800;letter-spacing:-.3px;white-space:nowrap;color:var(--t1)")}>
               {BRAND.name}

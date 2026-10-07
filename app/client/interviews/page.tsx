@@ -26,7 +26,7 @@ export default async function ClientInterviewsPage() {
   return (
     <Shell portal="client" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }} activeKey="interviews" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
-        title="Interviews & feedback"
+        title="Interviews"
         subtitle="Talentvibes schedules every round and issues the meeting link. Your panel never contacts the supplier."
         actions={<><Button>Panel availability</Button><Button primary>Propose new slots</Button></>}
       />

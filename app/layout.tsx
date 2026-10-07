@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Plus_Jakarta_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
@@ -54,9 +54,29 @@ const mono = IBM_Plex_Mono({
   variable: "--font-mono",
 });
 
+/**
+ * Icons and manifest come from deploydesk-logo-kit/, installed into /public per its README.
+ *
+ * Declared through the `metadata` export rather than hand-written <link> tags, which is
+ * what the App Router wants — Next emits the tags and dedupes them. `themeColor` lives in
+ * `viewport`, not `metadata`; Next 15 warns if it is put in the wrong one.
+ */
 export const metadata: Metadata = {
   title: "DeployDesk by Talentvibes",
   description: "Brokered marketplace for IT bench capacity",
+  manifest: "/site.webmanifest",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
+};
+
+export const viewport: Viewport = {
+  // The brand blue, same value as --brand in app/globals.css.
+  themeColor: "#0b6ed9",
 };
 
 /**

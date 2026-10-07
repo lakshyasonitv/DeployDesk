@@ -21,16 +21,14 @@ const STAGE_ACTION: Record<string, string> = {
 const WIP_LIMIT = 6;
 
 export function PipelineBoard({
-  requirements, ownerShortSelf, clientCount, vendorCount,
+  requirements, clientCount, vendorCount,
 }: {
   requirements: OpsPipelineRequirement[];
-  ownerShortSelf: string;
   clientCount: number;
   vendorCount: number;
 }) {
   const [view, setView] = useState<"board" | "list">("board");
   const [query, setQuery] = useState("");
-  const [myDesk, setMyDesk] = useState(false);
   const [atRisk, setAtRisk] = useState(false);
   const [needsSourcing, setNeedsSourcing] = useState(false);
   const [stageOverride, setStageOverride] = useState<Record<string, string>>({});
@@ -50,14 +48,13 @@ export function PipelineBoard({
         r.clientName.toLowerCase().includes(q) || r.ownerShort.toLowerCase().includes(q) ||
         r.skills.some((sk) => sk.toLowerCase().includes(q))
       )) return false;
-      if (myDesk && r.ownerShort !== ownerShortSelf) return false;
       if (atRisk && !(r.sla.state === "warn" || r.sla.state === "late")) return false;
       if (needsSourcing && r.sourcedCount !== 0) return false;
       return true;
     });
-  }, [rows, query, myDesk, atRisk, needsSourcing, ownerShortSelf]);
+  }, [rows, query, atRisk, needsSourcing]);
 
-  const anyFilter = Boolean(query || myDesk || atRisk || needsSourcing);
+  const anyFilter = Boolean(query || atRisk || needsSourcing);
   const breaches = rows.filter((r) => r.sla.state === "late").length;
 
   const move = async (code: string, toStage: string) => {
@@ -96,11 +93,14 @@ export function PipelineBoard({
       <div style={s("padding:20px 26px 14px;background:var(--surface);border-bottom:1px solid var(--border);flex:none")}>
         <div style={s("display:flex;align-items:flex-end;justify-content:space-between;gap:16px")}>
           <div>
-            <div style={s("font-size:22px;font-weight:800;letter-spacing:-.6px")}>Requirement pipeline</div>
-            <div style={s("font-size:12.5px;color:var(--t3);margin-top:4px")}>
-              {rows.length} live requirements · {clientCount} clients · {vendorCount} supplier
-              benches · {breaches} SLA breach{breaches === 1 ? "" : "es"} · drag a card between
-              columns or use ← →
+            <div style={s("font-size:26px;font-weight:800;letter-spacing:-.6px")}>Role pipeline</div>
+            <div style={s("font-size:14px;color:var(--t2);margin-top:4px")}>
+              {rows.length} open {rows.length === 1 ? "role" : "roles"} · {clientCount} hiring
+              companies · {vendorCount} supplier benches
+              {breaches ? <> · <strong>{breaches} running late</strong></> : null}
+            </div>
+            <div style={s("font-size:12.5px;color:var(--t4);margin-top:3px")}>
+              Drag a card to a new column to move a role along, or use the ← → arrows on a card.
             </div>
           </div>
           <div style={s("display:flex;align-items:center;gap:8px;flex:none")}>
@@ -123,18 +123,28 @@ export function PipelineBoard({
           </div>
         </div>
 
-        {/* ---------------- filters ---------------- */}
+        {/*
+          ---------------- filters ----------------
+
+          There is deliberately NO "my roles" filter. Every Talentvibes user sees every
+          role: the product owner's instruction, and the brokering desk is shared work.
+          The owner's name still shows on each row, because a broker needs to know who to
+          ask about a role — that is information, not a filter.
+
+          The previous version had a "My desk · P. Nair" toggle whose name was a HARDCODED
+          STRING in app/ops/page.tsx, so it filtered to that person no matter who was
+          signed in.
+        */}
         <div style={s("display:flex;align-items:center;gap:7px;margin-top:13px;flex-wrap:wrap")}>
           <input
             value={query} onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search REQ, role, client, owner, skill…"
+            placeholder="Search by role, company, person or code"
             style={s("padding:6px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:12px;width:270px;font-family:inherit;outline:none")}
           />
-          <Toggle on={myDesk} onClick={() => setMyDesk((v) => !v)}>My desk · {ownerShortSelf}</Toggle>
-          <Toggle on={atRisk} onClick={() => setAtRisk((v) => !v)}>SLA at risk</Toggle>
-          <Toggle on={needsSourcing} onClick={() => setNeedsSourcing((v) => !v)}>Needs sourcing</Toggle>
+          <Toggle on={atRisk} onClick={() => setAtRisk((v) => !v)}>Running late</Toggle>
+          <Toggle on={needsSourcing} onClick={() => setNeedsSourcing((v) => !v)}>Needs candidates</Toggle>
           {anyFilter ? (
-            <button onClick={() => { setQuery(""); setMyDesk(false); setAtRisk(false); setNeedsSourcing(false); }}
+            <button onClick={() => { setQuery(""); setAtRisk(false); setNeedsSourcing(false); }}
               style={s("padding:5px 10px;border:0;background:transparent;font-size:11.5px;font-weight:600;color:var(--brand);cursor:pointer;font-family:inherit")}>
               Clear filters
             </button>
@@ -269,7 +279,7 @@ function ListView({
   return (
     <div style={s("flex:1;overflow:auto")}>
       <div style={sx("display:grid;padding:9px 26px;background:var(--surface-2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:2", { gridTemplateColumns: LIST_COLS, gap: "10px" })}>
-        {["REQ", "ROLE", "CLIENT", "QTY", "VALUE/MO", "OWNER", "STAGE · MOVE", "SLA", "ACTION"].map((h) => (
+        {["REQ", "ROLE", "CLIENT", "QTY", "VALUE/MO", "OWNER", "STAGE · MOVE", "Due", "ACTION"].map((h) => (
           <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
             {h}
           </div>
