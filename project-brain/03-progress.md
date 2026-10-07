@@ -122,9 +122,8 @@ percent-encoded (`@` becomes `%40`). Ask the user for credentials; do not guess.
 
 ## Start here next time
 
-**Sprint 6 is effectively complete** (6a `f100d0a`, 6b `d6a7fad`). One small item remains
-from its brief: *one broker thread per workspace, never mixed* — `db:verify` asserts two
-linked threads exist, the UI does not separate them by side yet.
+**Sprint 6 is COMPLETE** (6a `f100d0a`, 6b `d6a7fad`, threads `78e4ef4`). Every item from
+the dual-role brief is built, verified and committed.
 
 **Sprint 7b — the shell's interactive parts** is the main open work. 7a left these as
 static markup, and the first one is a visible flaw: **the sidebar search box advertises ⌘K
@@ -214,7 +213,5 @@ Demo tenant: **Cygnet Infotech Labs** at `/ops/matching/REQ-2320`.
 
 ### Verified state at the end of 2026-10-07
 
-All four gates green: **19 routes 200** (both dynamic routes included), `db:verify`
-**25/25**, `test:leak` **30/30**, build and typecheck clean. The v2 tokens, both palettes
-and both self-hosted font faces were verified in the **served** stylesheet, not just the
-source.
+All four gates green: **22 routes x2 all 200**, `db:verify` **30/30**, `test:leak`
+**49/49**, build and typecheck clean under `noUnusedLocals`.

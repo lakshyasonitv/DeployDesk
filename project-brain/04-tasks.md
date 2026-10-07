@@ -5,8 +5,8 @@
 >
 > **The four gates** every sprint must pass before it counts as done:
 > 1. every route returns 200 — **cold and warm**, at least twice each
-> 2. `npm run db:verify` → **28/28** (21 originally; +4 dual-role, +2 shortlist, +1 fee model)
-> 3. `npm run test:leak` → **45/45** (12 originally; +18 self-dealing, +15 dual-role UI)
+> 2. `npm run db:verify` → **30/30** (21 originally; +9 across the dual-role stages)
+> 3. `npm run test:leak` → **49/49** (12 originally; +18 self-dealing, +19 dual-role UI)
 >
 > These two numbers grow as suites are added. **If a gate number here disagrees with what
 > the command prints, this line is the stale one** — check the newest journal entry, then
@@ -363,9 +363,17 @@ typecheck clean. One screen, `/ops/organisations`, because these items are one s
       existed since migration 0002 with nothing reading them. **Read, not reimplemented**: a
       second definition in TypeScript would drift from the SQL. Currently flags nobody on the
       seeded data, which is honest — the view needs a shortlist to sit 5 days unanswered.
-- [ ] **One broker thread per workspace, never mixed** — still open, and the last item from
-      the brief. `db:verify` asserts two linked threads exist; the UI does not separate them
-      by side yet.
+- [x] **One broker thread per workspace, never mixed** ✅ 2026-10-07 — the last item from the
+      brief, now closed. **Why it matters:** for every org except a dual-role one,
+      `counterparty_org_id` alone identifies the conversation. A dual-role org has two
+      threads with the SAME counterparty id, so `side` is the discriminator — filtering only
+      on the organisation mixes them. Three gaps were closed: Cygnet had no threads at all
+      (now one per side, deliberately **unlinked** — `linked_thread_id` means "the
+      counterpart half of one relayed exchange", ADR-008, which these are not); there was no
+      vendor-side read model, so a vendor never saw its thread (`getVendorBrokerThread`,
+      which never selects `redaction_note`); and the client Ask panel seeded itself from a
+      **hardcoded message in the component** while the real conversation sat unread and
+      `getClientBrokerThread` was called by nothing.
 
 **Two first-draft mistakes worth remembering:**
 1. The broker rendered "Hidden markup" — it holds the column default because every row
