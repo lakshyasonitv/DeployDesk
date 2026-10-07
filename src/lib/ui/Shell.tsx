@@ -72,7 +72,23 @@ const NAV: Record<
     { href: "/ops/pool", label: "Talent pool", key: "pool", Icon: Database },
     { href: "/ops/margin", label: "Margin", key: "margin", Icon: BarChart2 },
     { href: "/ops/duplicates", label: "Duplicate checks", key: "duplicates", Icon: AlertTriangle },
+    // Beyond v2's five ops screens, and deliberately: the dual-role brief asks for
+    // capability, group, fee-model and block-list visibility, and v2's SCREENS.md has no
+    // home for it. Ops is the internal console, so an extra screen here costs nothing
+    // that the handoff is protecting.
+    { href: "/ops/organisations", label: "Organisations", key: "organisations", Icon: Building2 },
   ],
+};
+
+/**
+ * How many nav rows each portal has, so the loading skeleton reserves the right height.
+ * Derived from NAV rather than restated — ops has six and the other two have five, and a
+ * hardcoded count made the sidebar jump when the real shell replaced the skeleton.
+ */
+export const NAV_COUNT: Record<Portal, number> = {
+  client: NAV.client.length,
+  vendor: NAV.vendor.length,
+  ops: NAV.ops.length,
 };
 
 /** Who is signed in. Comes from the session, never from a table in this file. */

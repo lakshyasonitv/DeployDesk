@@ -31,7 +31,8 @@ import {
   requiredCapability,
 } from "../../src/lib/auth/workspace";
 import { getClientShortlist } from "../../src/read-models/client";
-import { getVendorRoster } from "../../src/read-models/vendor";
+import { getVendorRoster, getVendorOverview } from "../../src/read-models/vendor";
+import { getOpsOrgDirectory } from "../../src/read-models/ops";
 
 interface Org { id: string; name: string }
 interface User { id: string; fullName: string }
@@ -268,5 +269,76 @@ describe("a role at a dual-role org only opens the side it holds", () => {
   it("gives an empty list when the membership holds no usable role", async () => {
     const caps = await getOrgCapabilities(cygnet.id);
     expect(availableSides(caps, [])).toEqual([]);
+  });
+});
+
+/* ====================================================================== */
+/*  The ops organisation directory is the most sensitive screen built      */
+/* ====================================================================== */
+
+describe("the ops org directory carries what only the broker may see", () => {
+  it("reports capabilities, group, fee model and blocks — so the screen is worth guarding", async () => {
+    const dir = await getOpsOrgDirectory();
+    expect(dir.length).toBeGreaterThan(0);
+
+    const cyg = dir.find((o) => o.name === "Cygnet Infotech Labs")!;
+    expect(cyg.isDualRole).toBe(true);
+    // The commercial half of the masking rule: a company on both sides must be on a
+    // declared fee, or it reads the spread off its own two statements.
+    expect(cyg.feeModel).toBe("flat_declared_fee");
+
+    const helix = dir.find((o) => o.name === "Helix Systems")!;
+    const vantage = dir.find((o) => o.name === "Vantage Insurance")!;
+    expect(helix.groupName).toBe("Helix Group");
+    expect(helix.groupSiblings).toContain("Vantage Insurance");
+    expect(vantage.groupSiblings).toContain("Helix Systems");
+
+    // A block hides each side from the other, so it must appear on BOTH rows. A
+    // one-directional reading here would mean one of the two still sees the other.
+    const north = dir.find((o) => o.name === "Northwind Retail")!;
+    const orbit = dir.find((o) => o.name === "Orbit Talent Services")!;
+    expect(north.blockedWith).toContain("Orbit Talent Services");
+    expect(orbit.blockedWith).toContain("Northwind Retail");
+
+    // The broker is not a party and has no side, no fee and no bench.
+    const broker = dir.find((o) => o.name === "Talentvibes")!;
+    expect(broker.canSupply).toBe(false);
+    expect(broker.canHire).toBe(false);
+    expect(broker.feeModelLabel).toBe("—");
+  });
+
+  it("is the ONLY place both sides of one org's money appear together", async () => {
+    const dir = await getOpsOrgDirectory();
+    const cyg = dir.find((o) => o.name === "Cygnet Infotech Labs")!;
+
+    // Ops sees both figures. For a dual-role org these two ARE the spread, which is why
+    // this screen is ops-only and why such orgs are on a declared fee.
+    expect(cyg).toHaveProperty("billedAsClientLabel");
+    expect(cyg).toHaveProperty("paidAsSupplierLabel");
+
+    // Neither portal read model carries anything of the sort for the same organisation.
+    const [overview, roster] = await Promise.all([
+      getVendorOverview(cyg.orgId, "Test Viewer"),
+      getVendorRoster(cyg.orgId),
+    ]);
+    const payload = JSON.stringify({ overview, roster });
+    for (const forbidden of [
+      "billedAsClient", "paidAsSupplier", "netPosition",
+      "canSupply", "canHire", "isDualRole",
+      "feeModel", "blockedWith", "groupSiblings",
+      "probingSuspect",
+    ]) {
+      expect(payload).not.toMatch(new RegExp(forbidden, "i"));
+    }
+  });
+
+  it("does not invent a probing threshold the spec never defined", async () => {
+    const dir = await getOpsOrgDirectory();
+    // `isProbingSuspect` must track the view's own count and nothing else. An earlier
+    // draft also flagged "3+ open roles and never placed", a rule that appears nowhere in
+    // the brief; CLAUDE.md working agreement 8 forbids inventing one silently.
+    for (const o of dir) {
+      expect(o.isProbingSuspect).toBe(o.probingSuspectRequirements > 0);
+    }
   });
 });

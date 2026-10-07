@@ -1,5 +1,5 @@
 import { s, sx, GROUP_LABEL, BRAND } from "./style";
-import type { Portal } from "./Shell";
+import { NAV_COUNT, type Portal } from "./Shell";
 
 /**
  * Navigation feedback.
@@ -50,7 +50,7 @@ export function ShellSkeleton({ portal }: { portal: Portal }) {
         </div>
 
         <div style={s("padding:0 8px;display:flex;flex-direction:column;gap:2px")}>
-          {[0, 1, 2, 3, 4].map((i) => (
+          {Array.from({ length: NAV_COUNT[portal] }, (_, i) => i).map((i) => (
             <div
               key={i}
               style={sx("height:38px;border-radius:10px;display:flex;align-items:center;gap:10px;padding:0 10px", {

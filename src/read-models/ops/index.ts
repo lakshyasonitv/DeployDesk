@@ -807,3 +807,190 @@ export async function getOpsSidebar() {
     } as Record<string, string | number | undefined>,
   };
 }
+
+
+/* ====================================================================== */
+/*  Organisation directory — OPS ONLY                                      */
+/* ====================================================================== */
+
+export interface OpsOrgRow {
+  orgId: string;
+  name: string;
+  publicCode: string | null;
+  /** "Both sides" | "Supplies" | "Hires" | "Broker" — derived from capabilities. */
+  roleLabel: string;
+  isDualRole: boolean;
+  canSupply: boolean;
+  canHire: boolean;
+  groupName: string | null;
+  /** Other members of the same declared group. Empty when ungrouped. */
+  groupSiblings: string[];
+  feeModel: string;
+  feeModelLabel: string;
+  /** Organisations hidden from this one, in either direction. */
+  blockedWith: string[];
+  /** Per-org money. A dual-role org is the only one where both sides are non-zero. */
+  billedAsClientLabel: string;
+  paidAsSupplierLabel: string;
+  netPositionLabel: string;
+  netPositionPaise: number;
+  benchCount: number;
+  openRequirements: number;
+  placementsEver: number;
+  probingSuspectRequirements: number;
+  isProbingSuspect: boolean;
+}
+
+/**
+ * Every organisation, with the facts ops needs to broker safely.
+ *
+ * OPS ONLY, and the reason is specific rather than cautious. Three fields here would each
+ * be a masking breach on their own in another portal:
+ *
+ *   - `isDualRole` / capabilities. Telling a CLIENT that its supplier also hires, or a
+ *     VENDOR that its buyer also supplies, narrows the counterparty to a handful of
+ *     companies on an exchange this size.
+ *   - `billedAsClient` beside `paidAsSupplier`. For a dual-role organisation these two
+ *     numbers ARE the spread. This is the one screen in the product where they may sit
+ *     together, because the audience is the broker — which is also why dual-role orgs are
+ *     put on `flat_declared_fee`, so the spread is declared rather than inferable.
+ *   - `blockedWith` and `probingSuspect`. A block is a commercial judgement about a
+ *     counterparty, and a probing flag is an accusation. Neither party may see either.
+ *
+ * `v_org_probing_signals` is read rather than reimplemented: migration 0002 defines the
+ * signal, and a second definition in TypeScript would drift from it.
+ */
+export async function getOpsOrgDirectory(): Promise<OpsOrgRow[]> {
+  const rows = (await db.execute<{
+    org_id: string; name: string; public_code: string | null; org_type: string;
+    can_supply: boolean; can_hire: boolean; fee_model: string;
+    group_name: string | null; bench_count: number;
+    billed_as_client: string; paid_as_supplier: string;
+    open_requirements: number; placements_ever: number; probing_suspect_requirements: number;
+  }>(sql`
+    select o.id                      as org_id,
+           o.name,
+           o.public_code,
+           o.org_type::text           as org_type,
+           c.can_supply,
+           c.can_hire,
+           o.fee_model::text          as fee_model,
+           g.name                     as group_name,
+           (select count(*) from bench_resources b
+             where b.vendor_org_id = o.id)::int                         as bench_count,
+           coalesce((select sum(e.client_rate_paise) from engagements e
+             where e.client_org_id = o.id), 0)                          as billed_as_client,
+           coalesce((select sum(e.vendor_rate_paise) from engagements e
+             join bench_resources br on br.id = e.resource_id
+            where br.vendor_org_id = o.id), 0)                          as paid_as_supplier,
+           ps.open_requirements::int,
+           ps.placements_ever::int,
+           ps.probing_suspect_requirements::int
+      from organizations o
+      join org_capabilities c on c.org_id = o.id
+      left join groups g on g.id = o.parent_group_id
+      left join v_org_probing_signals ps on ps.org_id = o.id
+     order by (c.can_supply and c.can_hire) desc, o.name
+  `)) as unknown as Array<Record<string, unknown>>;
+
+  const orgIds = rows.map((r) => String(r.org_id));
+
+  // Group siblings and block pairs, two small queries rather than correlated subqueries
+  // per row. Both are bidirectional lookups, so they are resolved in memory.
+  const [groupRows, blockRows] = await Promise.all([
+    db
+      .select({
+        orgId: s.organizations.id,
+        groupId: s.organizations.parentGroupId,
+        name: s.organizations.name,
+      })
+      .from(s.organizations)
+      .where(sql`${s.organizations.parentGroupId} is not null`),
+    db
+      .select({
+        orgId: s.orgBlocks.orgId,
+        blockedOrgId: s.orgBlocks.blockedOrgId,
+      })
+      .from(s.orgBlocks),
+  ]);
+
+  const nameById = new Map<string, string>();
+  const byGroup = new Map<string, string[]>();
+  for (const g of groupRows) {
+    nameById.set(g.orgId, g.name);
+    if (g.groupId) byGroup.set(g.groupId, [...(byGroup.get(g.groupId) ?? []), g.orgId]);
+  }
+  const groupOf = new Map(groupRows.map((g) => [g.orgId, g.groupId]));
+
+  // Names for everything a block can point at, including orgs outside the group set.
+  const allNames = await db
+    .select({ id: s.organizations.id, name: s.organizations.name })
+    .from(s.organizations)
+    .where(inArray(s.organizations.id, orgIds));
+  for (const n of allNames) nameById.set(n.id, n.name);
+
+  const blockedWith = new Map<string, string[]>();
+  for (const b of blockRows) {
+    // Both directions: one row hides each organisation from the other.
+    blockedWith.set(b.orgId, [...(blockedWith.get(b.orgId) ?? []), nameById.get(b.blockedOrgId) ?? "—"]);
+    blockedWith.set(b.blockedOrgId, [...(blockedWith.get(b.blockedOrgId) ?? []), nameById.get(b.orgId) ?? "—"]);
+  }
+
+  return rows.map((r) => {
+    const orgId = String(r.org_id);
+    const canSupply = Boolean(r.can_supply);
+    const canHire = Boolean(r.can_hire);
+    const isBroker = String(r.org_type) === "talentvibes";
+    const billed = Number(r.billed_as_client) || 0;
+    const paid = Number(r.paid_as_supplier) || 0;
+
+    const gid = groupOf.get(orgId) ?? null;
+    const siblings = gid
+      ? (byGroup.get(gid) ?? []).filter((id) => id !== orgId).map((id) => nameById.get(id) ?? "—")
+      : [];
+
+    const open = Number(r.open_requirements) || 0;
+    const placements = Number(r.placements_ever) || 0;
+    const suspect = Number(r.probing_suspect_requirements) || 0;
+
+    return {
+      orgId,
+      name: String(r.name),
+      publicCode: (r.public_code as string | null) ?? null,
+      roleLabel: isBroker ? "Broker"
+        : canSupply && canHire ? "Both sides"
+        : canSupply ? "Supplies" : canHire ? "Hires" : "—",
+      isDualRole: canSupply && canHire,
+      canSupply,
+      canHire,
+      groupName: (r.group_name as string | null) ?? null,
+      groupSiblings: siblings,
+      feeModel: String(r.fee_model),
+      // The broker is not a party to the exchange, so it has no fee model to show. The
+      // column carries the table default for it; that is storage, not meaning.
+      feeModelLabel: isBroker ? "—"
+        : String(r.fee_model) === "flat_declared_fee" ? "Flat declared fee" : "Hidden markup",
+      blockedWith: blockedWith.get(orgId) ?? [],
+      billedAsClientLabel: billed ? formatPaiseShort(billed) : "—",
+      paidAsSupplierLabel: paid ? formatPaiseShort(paid) : "—",
+      netPositionLabel: billed || paid ? formatPaiseShort(billed - paid) : "—",
+      netPositionPaise: billed - paid,
+      benchCount: Number(r.bench_count) || 0,
+      openRequirements: open,
+      placementsEver: placements,
+      probingSuspectRequirements: suspect,
+      /**
+       * Only the view's own signal. `v_requirement_probing` defines a suspect as a
+       * requirement that received a shortlist and never an interview request after five
+       * days; `v_org_probing_signals` counts those per organisation.
+       *
+       * An earlier draft also flagged `open >= 3 && placements === 0`. That threshold
+       * appears nowhere in the spec — it was invented here, which CLAUDE.md working
+       * agreement 8 forbids doing silently. `openRequirements` and `placementsEver` are
+       * returned alongside so ops can apply its own judgement, which is exactly what the
+       * view's comment advises, rather than having a number guess for them.
+       */
+      isProbingSuspect: suspect > 0,
+    };
+  });
+}
