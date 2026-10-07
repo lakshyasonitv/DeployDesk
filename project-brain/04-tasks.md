@@ -516,6 +516,93 @@ All four gates green: **19 routes 200** (including both dynamic routes), `db:ver
    bug directly — it reports **0** now. Re-run it after any further colour work:
    it is the only cheap guard against a token swap making text vanish.
 
+## SPRINT 7b — Make it a working POC · IN PROGRESS
+
+Scope agreed with the user on 2026-10-07 after a question round. The governing instruction:
+**"make this a fully working POC"** — if there is a backend, the UI should use it. A button
+that does nothing is not acceptable; a button that says plainly it is not ready is.
+
+### The audience, which drives the copy decisions
+
+Senior people with years of experience who **do not want a technical system with a steep
+learning curve or complex words**. Consequences already decided:
+
+- **⌘K is removed entirely.** The user's words: *"what does that even mean"*. A keyboard
+  shortcut is a thing to learn; this audience will not learn it. The search box becomes a
+  normal, visible, working search.
+- **Follow v2's `SCREENS.md` copy exactly.** It was written for non-technical HR staff, and
+  keeping one source of truth beats inventing a third vocabulary. **7a renamed the nav but
+  not the page headings**, so the app currently contradicts itself — sidebar "Open roles"
+  against heading "Requirements". Fixing that is not a preference, it is a defect.
+- **Four terms stay as they are**, confirmed by the user: **masked** (the product's core
+  promise, and in the brief), **margin / spread** (ops-only, internal finance vocabulary),
+  **bench / bench roster** (what vendor users say daily), **proctored** (it is the reason a
+  client can trust the score).
+
+### Decided
+
+- [x] **Remove the "My desk" filter and the hardcoded `ownerShortSelf="P. Nair"`.** Every
+      Talentvibes user sees every role. **Keep the owner name visible** on each row — a
+      broker still needs to know who to ask about a role.
+- [ ] **Toasts with REAL undo.** The action commits immediately; Undo writes a
+      **compensating change plus a second audit row**, so history shows it was done and then
+      undone. Actions that genuinely cannot be undone get **no Undo button** rather than a
+      lying one.
+- [ ] **"How this works" explainer** behind the `?` button — plain English, the brokered
+      model in a few lines. The user picked this over the palette; it reduces the learning
+      curve more than any shortcut.
+- [ ] **Search: everything in the caller's portal**, server-backed, grouped by type.
+      **Masking still applies per portal** — this is a new read path, so `docs/MASKING.md`
+      governs it and it needs a leak test.
+
+### The four write paths the user chose, in their order
+
+Each one needs the full definition of done from `../CLAUDE.md`: Zod at the boundary, a
+tenancy check, a portal-specific response shape, **an audit row**, and a leak test.
+
+- [ ] **1. Add a bench resource** — the one the user named first. Form → `bench_resources`
+      + `resource_skills`, a `TV-####` masked id allocated, audit row, redirect to the
+      roster with a toast. Today the form has **zero** fetch calls.
+- [ ] **2. Post a new role** — form → `requirements` at stage `new` with a `REQ-####` code,
+      audit row, and it must appear on the ops pipeline immediately. Today `PostForm` only
+      calls `match-preview`, which is a READ: nothing is created.
+- [ ] **3. Select / pass candidates, and request interviews** —
+      `shortlist_items.client_decision` per decision, then `interviews` rows for round 1.
+      Today it is local React state that vanishes on refresh.
+- [ ] **4. Resolve a duplicate, and submit interview feedback** — `duplicate_flags.status`
+      (keep A / keep B / not a duplicate) and `interview_feedback`. Both audit rows.
+
+- [ ] **CSV exports** — "Download statement" and "Export to finance" generate a real CSV
+      from the **same read model the screen uses**, so the file and the screen cannot
+      disagree. Masking applies: a vendor's CSV carries no client name and no margin.
+
+### Still dead after 7b — do not lose these
+
+The user asked for these to be recorded so they are not forgotten. None of them persists
+anything today, and each should either be built or say plainly that it is not ready.
+
+| Where | Control | Note |
+|---|---|---|
+| `/client/interviews` | **Join** | needs a real meeting link; v2 says Talentvibes issues it |
+| `/client/interviews` | **Reschedule**, **Propose new slot**, **Panel availability** | needs an availability model that does not exist yet |
+| `/client/interviews` | **Save draft** | feedback drafts have no column; add one or drop the button |
+| `/client/engagements` | **Request an extension** | needs an extension request table |
+| `/client/shortlists` | **Ask Talentvibes** (index page) | opens nothing; the drawer only exists on the detail page |
+| `/vendor/assessments` | **Invite N to a test** | needs the assessment provider adapter (ADR-006) |
+| `/ops/duplicates` | **Detection rules** | a settings screen that does not exist |
+| `/ops/pool` | **Save this view**, **Load more** | saved views need a table; Load more needs paging |
+| `/ops/matching` | **Ask the supplier** relay | the write side of the broker thread |
+| everywhere | **sending a broker message** | `getClientBrokerThread` now READS real data, but Send still only appends locally — there is no write endpoint for a client message |
+
+### Not in 7b, deliberately
+
+- The **322px portal-switcher dropdown** and the **ops dark internal-view strip** are
+  cosmetic; they wait for 7c–7e with the rest of the screens.
+- The **Ask Talentvibes drawer** as v2 specifies it (412px, typing indicator, mocked reply)
+  is a redesign of a panel that now works; the write endpoint above matters more.
+
+---
+
 ## Backlog — not assigned to a sprint
 
 - [x] **Deployment is the user's.** Import `lakshyasonitv/DeployDesk` into their own ✅ 2026-10-07
