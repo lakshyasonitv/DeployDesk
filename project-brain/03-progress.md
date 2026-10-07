@@ -127,6 +127,36 @@ endpoint with a dead button), and the 16 controls that still do nothing, each wi
 whether it needs a data model, an external system, or just work. It was verified by
 inspection on 2026-10-07, not written from memory, and it carries the commands to re-verify.
 
+## Vocabulary
+
+Plain-language pass across all three portals, 2026-10-07. The audit — what changed, what is
+recommended and waiting, and what is deliberately unchanged **and why** — is
+**`project-brain/06-vocabulary.md`**. Read it before renaming anything a user reads.
+
+One rule: **one concept, one word, everywhere it is shown.** A column header, the filter chip
+that drives it and the CSV column exported from it are three views of one concept.
+
+Two things to know before touching copy:
+
+1. **Never find-and-replace.** `app/vendor/page.tsx:42` and `:144` look freshness counters up
+   on the **label text** and swallow a miss into `?? 0`. A sed over "Freshness" makes the
+   vendor dashboard silently report zero — it type-checks, it builds, no test fails.
+2. **A header on a masked column is a masking decision.** `/client/engagements` shows
+   `maskedId` alone; "NAME" above it would imply a name exists to be seen.
+
+**All of it is applied**, including the owner's choice of **"your Talentvibes team"** over
+"broker" in 21 client-facing strings. **Checked against the v2 UI contract afterwards —
+which was the wrong order.** `design_handoff_bench_exchange_v2/SCREENS.md` prescribes column
+names: two renames turned out to be conformance, five are deliberate owner-directed
+divergences now recorded in `06-vocabulary.md` §4. **Read the handoff before renaming
+anything a user reads.** Ops keeps "broker" in its own copy, the same standing
+call that kept `margin` and `spread`. Two small things remain open — §2: confirm "Full access"
+in the organisation switcher, and decide whether a vendor should see a **shortened** name of
+their own employee.
+
+A third thing to carry forward: **no test asserts any UI string.** The suite proves nothing
+else broke; it cannot prove the copy is right.
+
 ## Start here next time
 
 **Sprint 6 is COMPLETE** (6a `f100d0a`, 6b `d6a7fad`, threads `78e4ef4`). Every item from

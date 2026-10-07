@@ -629,6 +629,80 @@ anything today, and each should either be built or say plainly that it is not re
 
 ---
 
+## Vocabulary — plain language across all three portals
+
+Full audit, including what is deliberately unchanged and why:
+**`project-brain/06-vocabulary.md`**.
+
+- [x] **Talent pool columns** ✅ 2026-10-07 — `SUPPLIER` → `EMPLOYER`, `EXP` → `EXPERIENCE`,
+      `SCORE` → `TEST SCORE`, `FRESHNESS` → `LAST CONFIRMED`, and the **filter chips renamed
+      in the same edit** — a chip and a column naming one filter differently is the defect
+      this pass exists to remove. The driver was not jargon: `SUPPLIER` sat directly beside
+      `VENDOR RATE`, one company under two words on one table.
+- [x] **`FRESHNESS` everywhere** ✅ 2026-10-07 — 11 sites. `LAST CONFIRMED` on the four
+      headers; `NEEDS CONFIRMING` on the five vendor asides, because "LAST CONFIRMED ALERTS"
+      is nonsense and an aside listing work takes the imperative.
+- [x] **`RESOURCE` → `NAME`** ✅ 2026-10-07 — on the **three** tables that render `fullName`.
+      The two that render an identifier were left: `NAME` over a masked ID implies a name is
+      there to be seen, which on `/client/engagements` is the opposite of the guarantee.
+- [x] **"Talentvibes · broker"** ✅ 2026-10-07 — was the raw `user_role` enum; the chip now
+      shows the organisation alone, as the other two portals always did. A `ROLE_LABEL` map of
+      guessed job titles was written and then deleted — *"no admin or anything but just
+      something simple"*.
+- [x] **`Expiring 2d` → `Expiring in 2d`** ✅ 2026-10-07 — it counts **forward**
+      (`14 - days`), so under a `LAST CONFIRMED` header the bare form said the opposite of
+      what it meant.
+- [x] **A display string is never a sort key** ✅ 2026-10-07 — the switcher sorted on
+      `a.role === "Broker"`; renaming that label would have reordered it silently.
+
+### Round 2 — all six approved and applied ✅ 2026-10-07
+
+- [x] **(a) "broker" → "your Talentvibes team"** ✅ — **21 strings, not 16**: the first sweep
+      scoped itself to `app/**/*.tsx` and missed an API note, two in `ShortlistBoard`, the
+      explainer heading and a read-model fallback. **The trap:** `brokerName` is a *name* whose
+      fallback was the phrase `"your Talentvibes broker"`, so a blanket swap would have
+      rendered *"your Talentvibes team, Talentvibes:"* — type-checking, building and passing
+      all 108 tests, since no test asserts UI copy. The three render sites were reworded first,
+      each to read correctly with a real name **and** with the fallback. **Ops keeps "broker"**
+      ("The brokering desk"): internal console, same standing call as `margin` and `spread`.
+- [x] **(b) the gap the pool rename opened** ✅ — `app/api/export/route.ts:134`
+      `Supplier` → `Employer`.
+- [x] **(c) screens adopt their own CSV wording** ✅ — `WORKING SINCE`, `YOUR MONTHLY RATE`,
+      `BILLED THIS MONTH`.
+- [x] **(d) the two identifier columns** ✅ — `RESOURCE` → `REFERENCE` on
+      `/client/engagements` and the `/vendor` pipeline, where the cell is a masked ID.
+- [x] **(e) `rel 4.2` → `reliability 4.2`** ✅
+- [x] **(f) `QTY` → `HOW MANY`, `BUDGET/MO` → `BUDGET / MONTH`, `VALUE/MO` → `VALUE / MONTH`**
+      ✅ — `REQ` kept: requirements really are `REQ-####`. `HOW MANY` is ≈52px and the ops
+      pipeline's column was **exactly** 52px, so it was widened to 68px; six more header cells
+      took `white-space:nowrap`.
+
+- [x] **Checked against the v2 UI contract** ✅ 2026-10-07 — done *after* the renames, which
+      was the wrong order. `design_handoff_bench_exchange_v2/SCREENS.md` prescribes column
+      names. Two renames turned out to be **conformance** (`reliability` is v2's own word at
+      `:222`; `TEST SCORE` resolves a contradiction between v2's `:65` and `:222`) and five are
+      **deliberate owner-directed divergences** now recorded in `06-vocabulary.md` §4 so they
+      are not "corrected" back. **Read the handoff first next time.**
+- [x] **Fixed a mismatch (c) created** ✅ 2026-10-07 — the new client-engagements headers were
+      copied from the **vendor earnings** CSV (`route.ts:95`); that screen's own CSV is line
+      **112** and said `Since` / `Your rate`. Renamed in place, order untouched — the row
+      builder is positional, so reordering a header alone would mislabel every cell.
+
+### Still open — `06-vocabulary.md` §2
+
+- [ ] **Take v2's pool subtitle** — `SCREENS.md:221` says *"full detail, nothing hidden"*
+      where the app says *"· unmasked ·"*. Plainer, and it is the contract.
+- [ ] **`YOUR RATE` vs `YOUR MONTHLY RATE`** — the vendor roster and pipeline still say the
+      short form for the same monthly figure that earnings now spells out. Both columns have
+      room (118px and 120px against ≈111px needed). Exposed by (c), not caused by it; left
+      because it was outside what was approved.
+- [ ] **Confirm "Full access"** — it labels Talentvibes in the organisation switcher
+      (*Supplies · Hires · Both sides · Full access*), replacing "Broker". Not a word the
+      owner picked.
+- [ ] **A product question, not a rename:** `/vendor` shows a vendor a **shortened** name of
+      their own employee (`src/read-models/vendor/index.ts:251`). Deliberate, or masking
+      over-applied inward? They see the full name on the roster.
+
 ## Backlog — not assigned to a sprint
 
 - [x] **Deployment is the user's.** Import `lakshyasonitv/DeployDesk` into their own ✅ 2026-10-07

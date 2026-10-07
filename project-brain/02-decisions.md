@@ -351,3 +351,64 @@ then the matching function with self-dealing bypass tests, then UI. The 12 leak 
 - **Impact:** three rules now written down where they will be read: do **not** describe this
   system as RLS-protected, do **not** weaken a read model because "RLS will catch it", and
   a new read path still needs its own leak test.
+
+## 2026-10-07 — One concept, one word, and never a find-and-replace to get there
+
+**Decision.** User-facing vocabulary is governed by one rule: **one concept, one word,
+everywhere it is shown.** A column header, the filter chip that drives it, and the CSV column
+exported from it are three views of one concept and must read the same. The full audit,
+including everything deliberately left alone, lives in `project-brain/06-vocabulary.md`.
+
+**Why.** Every defect found in the pass was the same shape, not an ugly word: the talent pool
+had `SUPPLIER` sitting directly beside `VENDOR RATE` — one company under two words on one
+table. A reader cannot tell whether that is one party or two. That costs more than jargon
+does.
+
+**Rejected: flattening "vendor" and "supplier" into one word.** It is the obvious fix for the
+same-table defect, and the owner declined it (*"i dont want you to change vendor to supplier
+or vice versa"*). `EMPLOYER` resolves the collision without pre-empting that choice, and
+`docs/DOMAIN.md:7` supplies the word directly — bench is *"Engineers a vendor **employs** but
+has not deployed"*. If one word is ever wanted it is a single decision applied everywhere at
+once, never screen by screen.
+
+**Rejected: renaming all five `RESOURCE` columns to `NAME`.** Two of the five render an
+identifier and no name — `/client/engagements` renders `maskedId` alone, because the client
+has no name to be shown. "NAME" there would imply one exists to be seen, which is the opposite
+of the product's guarantee. **A header on a masked column is a masking decision, not a
+label.** Those two are recommended as `REFERENCE`, which is already what the CSV calls them.
+
+**Rejected: a find-and-replace.** `app/vendor/page.tsx:42` and `:144` look freshness counters
+up on the **label text** and swallow a miss into `?? 0`. A sed over "Freshness" — or over
+`Confirmed`/`Expiring`/`Unconfirmed` — makes the vendor dashboard silently report zero; it
+type-checks, it builds, and no test fails. Every rename was a targeted replacement with an
+asserted occurrence count, and the lookups were re-verified against their producer afterwards.
+
+**Corollary, applied the same session.** A display string must never also be a sort or lookup
+key. `getShellNav` sorted the organisation switcher on `a.role === "Broker"`, so renaming that
+label would have silently changed the order; it now sorts on `isOps`. Where a label and a key
+must coexist, the key is separate and stable.
+
+---
+
+## 2026-10-07 — A person's role is never rendered, and no job titles were invented
+
+**Decision.** The shell shows the **organisation only**. `DemoSession.role` keeps the real
+`user_role` enum value as data, and its doc comment says never to render it.
+
+**Why.** Six ops pages rendered ``org: `${orgName} · ${session.role}` ``, printing the stored
+enum into the top bar: **"Talentvibes · broker"** — and **"Talentvibes · ops_admin"**,
+underscore included, for the other two ops values. A person's own title is the last place a
+schema detail should surface.
+
+**Rejected: a `ROLE_LABEL` map of job titles.** Written first, then deleted. It mapped
+`broker → "Account manager"`, `ops_admin → "Admin"` and so on, which meant **the product
+inventing job titles for a company whose titles it does not know**. The owner's instruction
+settled it — *"no admin or anything but just something simple"* — and the simplest answer was
+also the consistent one: the client and vendor portals already passed `org: session.orgName`
+with no role, so only ops was the odd one out. Dropping it removes the objected-to word,
+labels nobody, and makes all three portals identical. Dead code carrying guessed titles is
+worse than no code.
+
+**Still open:** `"your broker"` appears in 16 client-facing strings and in the "How this works"
+explainer. That is a brand decision, deliberately not guessed — `06-vocabulary.md` §3a has the
+options and the trade-offs.
