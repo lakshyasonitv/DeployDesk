@@ -44,14 +44,19 @@ write-path tests. Neither has any UI wired to it, so the buttons on screen still
 | `POST /api/ops/duplicates/resolve` | `/ops/duplicates` → "Keep this one" / "Not a duplicate" | the screen is a server component; it needs a small client island to call the route and show the toast |
 | `POST /api/client/interviews/feedback` | `/client/interviews` → "Submit feedback" / "Save draft" | same, plus the ratings need to become controlled inputs |
 
-## 3. Visible but inert — 16 controls that do nothing
+**The placement panel** — `/client/engagements`, 2026-10-07. Every row opens everything the
+client may know about that placement, and it is where **"Request an extension"** now works
+(`POST`/`DELETE /api/client/engagements/extension`, audit row both ways, real Undo via
+`withdrawn` rather than a delete). `getClientEngagements` is a new client read path with
+three leak tests. The name is absent and the panel **says why** — see `02-decisions.md`.
+
+## 3. Visible but inert — 15 controls that do nothing
 
 Each needs a decision, not just wiring. Grouped by what they actually need.
 
 **Needs a data model that does not exist yet**
 - **Reschedule**, **Propose new slots**, **Panel availability** (`/client/interviews`) — no availability/slot model
 - **Save draft** (`/client/interviews`) — feedback drafts have no column; the endpoint supports a null outcome, so this is close
-- **Request an extension** (`/client/engagements`) — no extension-request table
 - **Save this view** (`/ops/pool`) — saved views need a table
 - **Detection rules** (`/ops/duplicates`) — a settings screen that does not exist
 
@@ -79,7 +84,7 @@ still do nothing**, which is the next piece of work.
 |---|---|---|
 | `holiday_calendar` | 6 rows (3 fixed national dates × 2 years) | **already in use** — the create endpoint reads it when setting a deadline |
 | `interview_slots` | 7 (2 accepted, 1 declined with a reason) | Propose new slots · Reschedule · Panel availability |
-| `extension_requests` | 1, at `with_supplier` | Request an extension |
+| `extension_requests` | 1, at `with_supplier` | ~~Request an extension~~ — **wired 2026-10-07** |
 | `saved_views` | 2, scoped to user **and** org | Save this view |
 
 **Holidays: three rows a year on purpose.** Republic Day, Independence Day and Gandhi

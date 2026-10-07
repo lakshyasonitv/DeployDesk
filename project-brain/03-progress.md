@@ -127,6 +127,23 @@ endpoint with a dead button), and the 16 controls that still do nothing, each wi
 whether it needs a data model, an external system, or just work. It was verified by
 inspection on 2026-10-07, not written from memory, and it carries the commands to re-verify.
 
+## People working, and one layout bug
+
+`/client/engagements` rows now open a **placement panel** — the contract, the engineer, the
+independent test result, and a working **"Request an extension"** (`extension_requests`, the
+last of migration 0005's tables to be wired). New client read path
+`getClientEngagements`, three leak tests, 113 tests green.
+
+**The panel carries no name, and says why on screen.** A name is a side channel to the
+supplier: name → public profile → current employer. `docs/MASKING.md:20` is a flat `❌` with
+no placement exception, and `SCREENS.md:99` says the same for this screen. Showing the name
+post-placement was put to the owner and declined.
+
+Also fixed, reported from the screen: the shortlist candidate cards stretched past the
+viewport. `<ScoreBars width={9999} />` — full width was unrepresentable, so a sentinel number
+stood in, and **`1fr` is `minmax(auto, 1fr)`**, so the child's min-content width became the
+column's minimum. `tests/layout-guards.test.ts` now fails any pixel width over 2000px.
+
 ## Vocabulary
 
 Plain-language pass across all three portals, 2026-10-07. The audit — what changed, what is

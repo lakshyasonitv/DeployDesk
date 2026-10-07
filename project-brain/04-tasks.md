@@ -612,7 +612,7 @@ anything today, and each should either be built or say plainly that it is not re
 | `/client/interviews` | **Join** | needs a real meeting link; v2 says Talentvibes issues it |
 | `/client/interviews` | **Reschedule**, **Propose new slot**, **Panel availability** | needs an availability model that does not exist yet |
 | `/client/interviews` | **Save draft** | feedback drafts have no column; add one or drop the button |
-| `/client/engagements` | **Request an extension** | needs an extension request table |
+| ~~`/client/engagements`~~ | ~~**Request an extension**~~ | ✅ 2026-10-07 — wired to `extension_requests` with an audit row and a real Undo, inside the new placement panel |
 | `/client/shortlists` | **Ask Talentvibes** (index page) | opens nothing; the drawer only exists on the detail page |
 | `/vendor/assessments` | **Invite N to a test** | needs the assessment provider adapter (ADR-006) |
 | `/ops/duplicates` | **Detection rules** | a settings screen that does not exist |
@@ -740,3 +740,46 @@ Full audit, including what is deliberately unchanged and why:
 - [ ] Real Supabase Auth replacing `src/lib/auth/session.ts`, including the portal check
       that returns 404 rather than 403
 - [ ] Import-boundary test: no client page may import the ops or vendor read models
+
+## People working: the placement panel · ✅ DONE 2026-10-07
+
+Asked for as "make the people working in client portal clickable … i get a full information
+about the resource like name date of joining etc."
+
+- [x] **Each row opens a placement panel** ✅ — contract (started, how long, ends, what you
+      pay), the engineer (experience, city, work modes, notice period, skills), the
+      independent test result with its four-section breakdown, and the extension state.
+- [x] **"Request an extension" works** ✅ — `POST`/`DELETE
+      /api/client/engagements/extension`. Zod-validated, tenancy-scoped, audit row on both
+      paths, and the Undo sets `withdrawn` rather than deleting: a commercial request in a
+      brokered marketplace is exactly what a dispute is argued over later.
+- [x] **`getClientEngagements`, a new client read path** ✅ — three leak tests. It reaches
+      `bench_resources` directly, so columns are named explicitly; `github_handle` and
+      `last_project_note` are available and deliberately not selected.
+- [x] **The missing table columns** ✅ — `ENDS` (amber and bold when close, per
+      `SCREENS.md:100`), a fourth stat card and the `TOTAL PER MONTH` footer. The page no
+      longer calls `getClientOverview` at all: the new read model already returns every row,
+      so the counts are derived rather than fetched twice.
+- [x] **The name is absent and the panel says why** ✅ — a name is a side channel to the
+      supplier. See `02-decisions.md`.
+
+### Not done, and why
+
+- **No page-level "Request an extension"**, which `SCREENS.md:96` puts in the header. An
+  extension belongs to one person and a header button cannot say which. Deliberate.
+- **Average tenure** as the fourth stat (v2's choice) was replaced by **ENDING SOON**, which
+  is actionable and needed no new field.
+
+## Shortlist cards: the 9999px bug · ✅ FIXED 2026-10-07
+
+Reported as "they can expanded horizontally so it is not making any sense and also it is not
+working properly".
+
+- [x] **`ScoreBars` takes `number | string`** ✅ — `width={9999}` existed because `"100%"`
+      was unrepresentable. `1fr` is `minmax(auto, 1fr)`, so a 9999px child made each grid
+      column's *minimum* 9999px; the cards ran off screen and took their buttons with them.
+      One cause, both reported symptoms. The shortlist always did persist correctly through
+      `/api/client/shortlists/decide`.
+- [x] **`tests/layout-guards.test.ts`** ✅ — fails any inline pixel width over 2000px.
+      Verified by reintroducing the bug and watching it fail, not by assertion.
+- [x] **The grid is responsive** ✅ — was `repeat(3, 1fr)` at every width.

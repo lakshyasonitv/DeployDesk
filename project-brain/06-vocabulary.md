@@ -184,7 +184,23 @@ Both sides · Full access*. It replaced "Broker" and it is **not a word the owne
 (`src/read-models/vendor/index.ts:251`). Either that is deliberate or masking has been
 over-applied inward — the vendor employs this person and sees their full name on the roster.
 
-### c. `YOUR RATE` vs `YOUR MONTHLY RATE`
+### c. One string the pass missed, found later and fixed
+
+`src/read-models/client/index.ts` produced **"Broker is confirming supplier release"** for an
+interview awaiting vendor release. The vocabulary sweep grepped for `your broker` / `Your
+broker` / `Talentvibes broker`, and this matched none of them — it was found a session later
+while reading `tests/leak/read-models.test.ts`, which asserts the exact string.
+
+Now **"Your Talentvibes team is confirming availability"**, which also matches the shape
+agreed for extension requests: the client learns someone is working on it, never that a
+supplier is being asked. The leak test's assertion and two code comments were updated with
+it.
+
+**The lesson for any future copy pass:** grep for the WORD (`broker`), then filter, rather
+than for the phrases you expect to find it in. Phrase-greps miss the sentence you did not
+think of.
+
+### d. `YOUR RATE` vs `YOUR MONTHLY RATE`
 
 Exposed by (c) rather than caused by it. The vendor **earnings** table now says
 `YOUR MONTHLY RATE` (matching its CSV), while the vendor **roster** and the vendor
@@ -194,7 +210,7 @@ CSV, so nothing contradicts them — but it is the same one-concept-two-words ru
 Both columns have room (`118px` and `120px` against ≈111px needed), so it is a two-line
 change plus `nowrap`. Not done because it was outside what was approved.
 
-### d. Cosmetic, low priority
+### e. Cosmetic, low priority
 
 `initials(view.brokerName)` draws the shortlist footer avatar. With no account owner it now
 renders "YT" from "Your Talentvibes team" (it was "yT" from the old fallback). Pre-existing,

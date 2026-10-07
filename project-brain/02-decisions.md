@@ -412,3 +412,85 @@ worse than no code.
 **Still open:** `"your broker"` appears in 16 client-facing strings and in the "How this works"
 explainer. That is a brand decision, deliberately not guessed — `06-vocabulary.md` §3a has the
 options and the trade-offs.
+
+## 2026-10-07 — A masked column's header, and a masked panel's absences, are masking decisions
+
+**Decision.** The "People working" rows open a panel carrying everything the client may know
+about a placement. It carries **no name**, and it says so in plain words on the panel itself.
+
+**Why the name is withheld, stated properly.** Not because names are sensitive in themselves.
+A name is a **side channel to the supplier**: name → public profile → current employer → the
+supplier, whom the client could then contract with directly, which ends the business.
+`docs/MASKING.md:20` is a flat `❌` for the client with no placement exception, its
+side-channel table is the authority, and the v2 handoff says the same for this exact screen —
+*"Rows are anonymous (TV id and role only)"* (`SCREENS.md:99`).
+
+**Why it is written on the screen and not just enforced.** The owner asked for "full
+information about the resource like name date of joining etc." An absence with no explanation
+reads as a bug, and the next person to ask will ask again. The panel's footer gives the
+reason, which is also the one argument that makes a client content with it: the same rule
+keeps *their* rate private from the supplier.
+
+**Rejected: showing the name post-placement.** There is a real argument — once someone works
+at your company daily you already know their name, so masking it protects nothing. Put to the
+owner explicitly and declined. If it is ever revisited it needs its own ADR,
+`docs/MASKING.md` amended, the leak suite updated and `SCREENS.md:99` overridden; it is not a
+change to make inside a feature.
+
+**Rejected: a read-only panel.** Assessed and argued against before building. The rich
+content — the proctored score and its four-section breakdown — lives on `shortlist_items`,
+and the seed creates engagements with `requirement_id = null`, so **most placements have no
+snapshot at all**. Strip it and the panel largely restates the row it was opened from. A test
+score is also the least decision-relevant fact about someone seven months into a placement:
+you know their actual performance better than any test does. So the panel is where you ACT —
+it carries the extension request, a button that had existed with no handler since the screen
+was built.
+
+**Rejected: keeping "Request an extension" in the page header**, which is where
+`SCREENS.md:96` puts it. An extension belongs to one person, and a header button has no way
+to say which of five placements is meant — it would either guess or open a chooser that the
+row click already is. A deliberate departure from the handoff, recorded here.
+
+**Consequence for the read model.** `getClientEngagements` reaches `bench_resources`
+directly rather than through the shortlist snapshot, and that table carries `full_name`,
+`vendor_org_id`, `vendor_rate_paise`, contact details, the PAN/phone/email hashes and
+`last_confirmed_at`. Columns are named explicitly (working agreement 7). Two available
+columns are deliberately **not** selected: `github_handle`, because a repository handle
+identifies a person as surely as a name, and `last_project_note`, because a note about
+someone's last project can name the supplier's other client.
+
+**Tenancy has two predicates, not one.** `shortlist_items` has no client column; it reaches a
+client only through `shortlists → requirements.client_org_id`. So the snapshot query pins
+**both** the engagement's `client_org_id` and the requirement's. With only the first, a
+resource placed at two clients would match the other client's shortlist row and we would
+serve its snapshot. Asserted by `tests/leak/read-models.test.ts`.
+
+---
+
+## 2026-10-07 — A sentinel number is not a layout, and `1fr` means `minmax(auto, 1fr)`
+
+**Decision.** `ScoreBars` accepts `width?: number | string`, so `"100%"` expresses "fill the
+container". `tests/layout-guards.test.ts` fails any inline pixel width above 2000px.
+
+**Why.** Reported from the screen: the shortlist candidates "can expanded horizontally so it
+is not making any sense and also it is not working properly". The cause was
+`<ScoreBars sections={...} width={9999} />`. `ScoreBars` could only be given a number, so
+full width was **unrepresentable** and a sentinel stood in for it — rendering a 9999px-wide
+div inside a `repeat(3, 1fr)` grid. **`1fr` is `minmax(auto, 1fr)`**, so each column's
+*minimum* became its child's min-content width. The cards stretched far past the viewport and
+took their own buttons off screen with them, which is why the screen also looked broken. One
+cause, both symptoms.
+
+**The API gap was the bug.** Clamping the number would have hidden it; the fix is to make the
+intent sayable. `maxWidth: 100%` and `minWidth: 0` were added to the bars as well, so they can
+never dictate their container's width again.
+
+**Rejected: a behaviour test.** Same reasoning as `tests/client-boundary.test.ts`. This
+type-checked, built clean, server-rendered correct HTML and passed every test; it was visible
+only to a person looking at the page. A DOM test would cover the one component that happened
+to break, so the guard is a lint over every file instead — and it was **verified by
+reintroducing the bug and watching it fail** with the file, line and reason.
+
+**Also fixed in passing:** the grid was `repeat(3, 1fr)` at every width, so three columns
+squashed on a narrow window. Now `repeat(auto-fit, minmax(272px, 1fr))` — three across on a
+desktop, then two, then one, which is what `SCREENS.md` intended by "auto-fit, min 300px".
