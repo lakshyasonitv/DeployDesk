@@ -5,7 +5,10 @@
 > it: the commands are at the bottom.
 >
 > Gates at the time of writing, commit `cbf6df1`:
-> **20 pages + 9 API routes · `db:verify` 30/30 · `npm test` 88/88 · build + typecheck clean**
+> **20 pages + 10 API routes · `db:verify` 30/30 · `npm test` 105/105 · build + typecheck clean**
+>
+> `npm test` is the gate, not `npm run test:leak` — the latter only runs `tests/leak` and
+> would miss `tests/business-clock.test.ts` entirely.
 
 ---
 
@@ -24,6 +27,7 @@ These persist to Supabase, write an audit row, and are covered by tests.
 | **Send a masked shortlist** | `/ops/matching/[code]` | immutable snapshot (ADR-009), duplicate and eligibility pre-checks |
 | **Live match preview** | `/client/requirements/new` | aggregate counts only, buckets anything under 5, excludes own-group and blocked supply |
 | **Light / dark theme** | everywhere | persists in `localStorage`, applied before first paint so there is no flash |
+| **Search** | sidebar, all three portals | server-backed, grouped by type, **masking per portal** — client sees `TV-####` + a band, vendor sees its own people's names, ops sees everything. 17 leak tests |
 | **Act as another organisation** | top bar | demo affordance; the dual-role org is reachable this way |
 | **Hiring | Bench switcher** | top bar, dual-role orgs only | a single-sided org sees **nothing** — verified in markup |
 
@@ -62,9 +66,13 @@ Each needs a decision, not just wiring. Grouped by what they actually need.
 
 ## 4. Agreed next, not started
 
-- **Search** — one visible box per portal, server-backed, grouped by type, masking applied per portal. ⌘K was removed on the owner's instruction ("what does that even mean").
-- **"How this works" explainer** — behind the `?` button, plain English.
-- **CSV exports** — see above.
+- **"How this works" explainer** — behind the `?` button, plain English. The owner picked
+  this over the ⌘K palette: it reduces the learning curve more than any shortcut.
+- **CSV exports** — "Download statement" and "Export to finance", generated from the same
+  read model the screen uses so the file and the screen cannot disagree.
+
+~~Search~~ — **done**, see section 1. ⌘K was removed entirely on the owner's instruction
+("what does that even mean") and verified absent from all three portals.
 
 ## 5. Known gaps, deliberately left
 
@@ -77,6 +85,7 @@ Each needs a decision, not just wiring. Grouped by what they actually need.
 | **`rate_changes` never written** | no rate-change path is built | working agreement 5 needs the audit row when it is |
 | **Roster moves 173 rows** | 42 cards are actually rendered, so it is proportionate | at ~2,000 bench resources it needs server-side paging, which also moves the filter pills server-side |
 | **Demo session, not auth** | `src/lib/auth/session.ts` picks an org; it is not a security boundary | Phase 1: real session, a portal check that 404s, an ownership check per row |
+| **Test files run serially** | six suites share one database, and acceptance test 6 deliberately mutates a capability | `fileParallelism: false`. Costs a few seconds; removes a whole class of flake |
 
 ## 6. How to re-verify this page
 
@@ -96,3 +105,16 @@ find app/api -name route.ts                  # 9 endpoints
 grep -rl "use client" app --include=*.tsx    # which components can write
 grep -rn "<Button" app --include=*.tsx | grep -v "href=\|onClick"   # dead controls
 ```
+
+
+---
+
+## 7. Two traps that cost time, so they are written down
+
+**Anything `Shell.tsx` imports ends up in the browser bundle.** `Shell` is imported by
+client components, so importing a UI constant from a read model dragged the Postgres driver
+in with it and the build failed on `Can't resolve 'fs'`. Presentation copy belongs in
+`src/lib/ui/`, not in `src/read-models/`.
+
+**`npx vitest` does not load `.env.local`; `npm test` does.** A suite run the first way
+reports "no tests" and looks broken when it is simply missing `DIRECT_URL`.

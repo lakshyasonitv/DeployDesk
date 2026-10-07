@@ -120,6 +120,13 @@ percent-encoded (`@` becomes `%40`). Ask the user for credentials; do not guess.
    continuously. The four gates are at the top of `04-tasks.md`.
 4. **Update this brain as you go**, not at the end — the user has asked twice.
 
+## Where to look first
+
+**`05-status.md` is the honest picture** — what works end to end, what is half done (an
+endpoint with a dead button), and the 16 controls that still do nothing, each with a note on
+whether it needs a data model, an external system, or just work. It was verified by
+inspection on 2026-10-07, not written from memory, and it carries the commands to re-verify.
+
 ## Start here next time
 
 **Sprint 6 is COMPLETE** (6a `f100d0a`, 6b `d6a7fad`, threads `78e4ef4`). Every item from
