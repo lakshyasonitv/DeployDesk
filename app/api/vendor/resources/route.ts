@@ -34,6 +34,19 @@ import { allocateMaskedId, identityHash } from "@/src/lib/masked-id";
  * PAN and phone are hashed with the server-side pepper for duplicate detection, and the
  * hashes are OPS ONLY (docs/MASKING.md). They are written here because duplicate
  * detection is the reason they exist; nothing in this response returns them.
+ *
+ * ---------------------------------------------------------------------------
+ * WHY THE CREATE IS ONE TRANSACTION
+ * ---------------------------------------------------------------------------
+ *
+ * The row insert, the skill links and the audit row are one unit. The sibling route for
+ * posting a role proved why: with three separate statements, a request that failed in the
+ * middle left a committed row with no skills and no audit row — a silent violation of
+ * working agreement 5, since a half-created record has no audit trail at all. Two orphans
+ * had to be deleted by hand before `db:verify` passed again.
+ *
+ * Transactions are safe on the Supavisor transaction-mode pooler: a transaction is the
+ * unit it pools. It is session-level state that is unavailable there.
  */
 
 const Body = z.object({
@@ -78,87 +91,87 @@ export async function POST(req: Request) {
 
   /* ----------------------------------------------------------- the row ---- */
 
-  const [created] = await db.insert(s.benchResources).values({
-    vendorOrgId: session.orgId,          // from the session, never the request
-    maskedId,
-    fullName: b.fullName,
-    employeeCode: b.employeeCode ?? null,
-    baseCity: b.baseCity,
-    experienceMonths: b.experienceMonths,
-    availableFrom: null,                  // null means immediate; a date is a later feature
-    noticePeriodDays: NOTICE_DAYS[b.availability] ?? null,
-    workModes: b.workModes,
-    vendorRatePaise: b.vendorRatePaise,
-    status: b.status,
-    // A profile is confirmed fresh the moment it is listed, which is what the freshness
-    // decay measures from.
-    lastConfirmedAt: b.status === "listed" ? now : null,
-    listedAt: b.status === "listed" ? now : null,
-    contactEmail: b.contactEmail ?? null,
-    contactPhone: b.contactPhone ?? null,
-    panHash: b.pan ? identityHash(b.pan) : null,
-    phoneHash: b.contactPhone ? identityHash(b.contactPhone) : null,
-    emailHash: b.contactEmail ? identityHash(b.contactEmail.toLowerCase()) : null,
-  }).returning({ id: s.benchResources.id, maskedId: s.benchResources.maskedId });
-
-  /* --------------------------------------------------------- the skills ---- */
-
-  // Only skills already on the platform are linked. A free-typed skill that is not in the
-  // catalogue is ignored rather than silently creating a near-duplicate row ("React.js"
-  // beside "React"), which is how a skills taxonomy rots.
-  const known = await db
-    .select({ id: s.skills.id, label: s.skills.label })
-    .from(s.skills)
-    .where(inArray(s.skills.label, b.skills));
-
-  if (known.length) {
-    /**
-     * Ordered by the vendor's own input, not by whatever order Postgres returned.
-     *
-     * `isPrimary` marks the headline skill shown on a roster row and a shortlist card, so
-     * it has to be the first skill the VENDOR typed. Using the query's order made it
-     * whichever row the index happened to return first — the first test wrote
-     * "Kafka (primary)" for a profile whose vendor had led with Java Spring Boot.
-     */
-    const rank = new Map(b.skills.map((label, i) => [label, i]));
-    const ordered = [...known].sort(
-      (x, y) => (rank.get(x.label) ?? 99) - (rank.get(y.label) ?? 99),
-    );
-    await db.insert(s.resourceSkills).values(
-      ordered.map((sk, i) => ({
-        resourceId: created.id,
-        skillId: sk.id,
-        isPrimary: i === 0,
-      })),
-    );
-  }
-  const unknown = b.skills.filter((label) => !known.some((k) => k.label === label));
-
-  /* ---------------------------------------------------------- the audit ---- */
-
-  await db.insert(s.auditLog).values({
-    actorId: session.userId,
-    actorOrgId: session.orgId,
-    action: b.status === "listed" ? "resource.listed" : "resource.drafted",
-    entityType: "bench_resource",
-    entityId: created.id,
-    before: null,
-    after: {
-      masked_id: created.maskedId,
+  const { created, unknown } = await db.transaction(async (tx) => {
+    const [row] = await tx.insert(s.benchResources).values({
+      vendorOrgId: session.orgId,          // from the session, never the request
+      maskedId,
+      fullName: b.fullName,
+      employeeCode: b.employeeCode ?? null,
+      baseCity: b.baseCity,
+      experienceMonths: b.experienceMonths,
+      availableFrom: null,                  // null means immediate; a date is a later feature
+      noticePeriodDays: NOTICE_DAYS[b.availability] ?? null,
+      workModes: b.workModes,
+      vendorRatePaise: b.vendorRatePaise,
       status: b.status,
-      vendor_rate_paise: b.vendorRatePaise,
-      experience_months: b.experienceMonths,
-      base_city: b.baseCity,
-      skills: b.skills.filter((l) => known.some((k) => k.label === l)),
-    },
-    context: { source: "vendor_portal", skills_not_in_catalogue: unknown },
-    occurredAt: now,
+      // A profile is confirmed fresh the moment it is listed, which is what the freshness
+      // decay measures from.
+      lastConfirmedAt: b.status === "listed" ? now : null,
+      listedAt: b.status === "listed" ? now : null,
+      contactEmail: b.contactEmail ?? null,
+      contactPhone: b.contactPhone ?? null,
+      panHash: b.pan ? identityHash(b.pan) : null,
+      phoneHash: b.contactPhone ? identityHash(b.contactPhone) : null,
+      emailHash: b.contactEmail ? identityHash(b.contactEmail.toLowerCase()) : null,
+    }).returning({ id: s.benchResources.id, maskedId: s.benchResources.maskedId });
+
+    // Only skills already on the platform are linked. A free-typed skill that is not in
+    // the catalogue is ignored rather than silently creating a near-duplicate row
+    // ("React.js" beside "React"), which is how a skills taxonomy rots.
+    const known = await tx
+      .select({ id: s.skills.id, label: s.skills.label })
+      .from(s.skills)
+      .where(inArray(s.skills.label, b.skills));
+
+    if (known.length) {
+      /**
+       * Ordered by the vendor's own input, not by whatever order Postgres returned.
+       *
+       * `isPrimary` marks the headline skill shown on a roster row and a shortlist card,
+       * so it has to be the first skill the VENDOR typed. Using the query's order made it
+       * whichever row the index happened to return first — the first test wrote
+       * "Kafka (primary)" for a profile whose vendor had led with Java Spring Boot.
+       */
+      const rank = new Map(b.skills.map((label, i) => [label, i]));
+      const ordered = [...known].sort(
+        (x, y) => (rank.get(x.label) ?? 99) - (rank.get(y.label) ?? 99),
+      );
+      await tx.insert(s.resourceSkills).values(
+        ordered.map((sk, i) => ({
+          resourceId: row.id,
+          skillId: sk.id,
+          isPrimary: i === 0,
+        })),
+      );
+    }
+    const notInCatalogue = b.skills.filter((label) => !known.some((k) => k.label === label));
+
+    await tx.insert(s.auditLog).values({
+      actorId: session.userId,
+      actorOrgId: session.orgId,
+      action: b.status === "listed" ? "resource.listed" : "resource.drafted",
+      entityType: "bench_resource",
+      entityId: row.id,
+      before: null,
+      after: {
+        masked_id: row.maskedId,
+        status: b.status,
+        vendor_rate_paise: b.vendorRatePaise,
+        experience_months: b.experienceMonths,
+        base_city: b.baseCity,
+        skills: b.skills.filter((l) => known.some((k) => k.label === l)),
+      },
+      context: { source: "vendor_portal", skills_not_in_catalogue: notInCatalogue },
+      occurredAt: now,
+    });
+
+    return { created: row, unknown: notInCatalogue, linked: known.map((k) => k.label) };
   });
 
   return NextResponse.json({
     maskedId: created.maskedId,
     status: b.status,
-    skillsLinked: known.map((k) => k.label),
+    skillsLinked: b.skills.filter((l) => !unknown.includes(l)),
     skillsIgnored: unknown,
   }, { status: 201 });
 }

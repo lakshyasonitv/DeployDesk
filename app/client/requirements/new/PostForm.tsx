@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/src/lib/ui/Toast";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
 
 /**
@@ -29,7 +31,24 @@ interface Preview {
 }
 
 export function PostForm({ availableSkills }: { availableSkills: string[] }) {
-  const [skills, setSkills] = useState<string[]>(["React", "TypeScript", "Node.js"]);
+  const router = useRouter();
+  const toast = useToast();
+
+  /**
+   * `roleTitle` is new. The form had no role-title field at all, while
+   * `requirements.role_title` is NOT NULL — so there was no way to post a role even once
+   * the endpoint existed. It is the first thing a hiring manager would type, so it is now
+   * the first field on the form.
+   */
+  const [roleTitle, setRoleTitle] = useState("");
+  const [duration, setDuration] = useState("6 months, extendable");
+  const [location, setLocation] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState<null | "new" | "draft">(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const [skills, setSkills] = useState<string[]>([]);
   const [draft, setDraft] = useState("");
   const [band, setBand] = useState<string>("5-8");
   const [qty, setQty] = useState(3);
@@ -76,11 +95,88 @@ export function PostForm({ availableSkills }: { availableSkills: string[] }) {
     return () => { cancelled = true; clearTimeout(t); };
   }, [key, skills, band, minL, maxL]);
 
+  const problems: string[] = [];
+  if (roleTitle.trim().length < 3) problems.push("a role title");
+  if (!skills.length) problems.push("at least one skill");
+  if (!notice.length) problems.push("at least one notice period you would accept");
+  if (maxL < minL) problems.push("a budget range where the top is not below the bottom");
+
+  async function submit(stage: "new" | "draft") {
+    if (problems.length) {
+      setError(`Still needed: ${problems.join(", ")}.`);
+      return;
+    }
+    setError(null);
+    setBusy(stage);
+    try {
+      const res = await fetch("/api/client/requirements", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          roleTitle: roleTitle.trim(),
+          skills,
+          experienceBand: band,
+          quantity: qty,
+          budgetMinPaise: Math.round(minL * LAKH),
+          budgetMaxPaise: Math.round(maxL * LAKH),
+          engagementType: engagement,
+          durationText: duration.trim() || undefined,
+          locationCity: location.trim() || undefined,
+          workMode: mode,
+          startDate: startDate || undefined,
+          noticeAccepted: notice,
+          clientNote: note.trim() || undefined,
+          stage,
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error === "invalid_request" ? "Some details were rejected." : "Could not save.");
+      }
+      const out = await res.json() as { code: string; slaHours: number | null; skillsIgnored?: string[] };
+      const ignored = out.skillsIgnored?.length
+        ? ` ${out.skillsIgnored.length} skill${out.skillsIgnored.length === 1 ? "" : "s"} not in our list were skipped.`
+        : "";
+
+      toast({
+        message: stage === "new"
+          ? `${out.code} is with your broker. First profiles usually arrive within ${out.slaHours ?? 36} hours.${ignored}`
+          : `${out.code} saved as a draft.${ignored}`,
+        // Real undo: cancels the role and writes a second audit row. The endpoint refuses
+        // once a broker has moved it past `new`, which the toast surfaces as an error.
+        undo: async () => {
+          const r = await fetch("/api/client/requirements", {
+            method: "DELETE",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ code: out.code }),
+          });
+          if (!r.ok) throw new Error("cancel failed");
+          router.refresh();
+        },
+      });
+
+      setRoleTitle(""); setSkills([]); setLocation(""); setStartDate(""); setNote("");
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not save.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
   return (
     <div style={s("display:grid;grid-template-columns:1.6fr 1fr;gap:18px;align-items:start")}>
       {/* ---------------- form ---------------- */}
       <div style={s("background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px")}>
         <Group label="ROLE">
+          <Field label="What is the role called?">
+            <input
+              value={roleTitle}
+              onChange={(e) => setRoleTitle(e.target.value)}
+              placeholder="e.g. Senior React Engineer"
+              style={s("width:100%;padding:8px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:12.5px;font-family:inherit;outline:none")}
+            />
+          </Field>
           <Field label="Primary skills">
             <div style={s("display:flex;flex-wrap:wrap;gap:5px;align-items:center")}>
               {skills.map((sk) => (
@@ -154,14 +250,16 @@ export function PostForm({ availableSkills }: { availableSkills: string[] }) {
           </Field>
 
           <Field label="Duration">
-            <input defaultValue="6 months, extendable"
+            <input value={duration} onChange={(e) => setDuration(e.target.value)}
+              placeholder="e.g. 6 months, extendable"
               style={s("width:100%;padding:8px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:12.5px;font-family:inherit;outline:none")} />
           </Field>
         </Group>
 
         <Group label="LOGISTICS">
           <Field label="Location">
-            <input defaultValue="Bangalore · Whitefield"
+            <input value={location} onChange={(e) => setLocation(e.target.value)}
+              placeholder="e.g. Bangalore"
               style={s("width:100%;padding:8px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:12.5px;font-family:inherit;outline:none")} />
           </Field>
           <Field label="Work mode">
@@ -171,7 +269,7 @@ export function PostForm({ availableSkills }: { availableSkills: string[] }) {
             />
           </Field>
           <Field label="Start date">
-            <input type="date" defaultValue="2026-09-15"
+            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)}
               style={s("padding:8px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:12.5px;font-family:inherit;outline:none")} />
           </Field>
           <Field label="Notice period accepted">
@@ -193,7 +291,9 @@ export function PostForm({ availableSkills }: { availableSkills: string[] }) {
           </Field>
           <Field label="Note for your broker">
             <textarea
-              defaultValue="Prefer someone who has shipped a design system. Budget can stretch 10% for the right person."
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Anything that would help us pick the right people. Only your broker sees this."
               rows={3}
               style={s("width:100%;padding:9px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:12px;font-family:inherit;outline:none;resize:vertical;line-height:1.5")}
             />
@@ -203,12 +303,32 @@ export function PostForm({ availableSkills }: { availableSkills: string[] }) {
           </Field>
         </Group>
 
-        <div style={s("display:flex;align-items:center;gap:9px;padding-top:15px;border-top:1px solid var(--border)")}>
-          <button style={s("padding:9px 15px;border:0;border-radius:8px;font-size:12.5px;font-weight:700;background:var(--brand);color:#fff;cursor:pointer;font-family:inherit")}>
-            Send to Talentvibes
+        {error ? (
+          <div style={s("margin-bottom:12px;background:var(--danger-tint);border:1px solid var(--danger-tint);border-radius:9px;padding:11px;font-size:12px;color:var(--danger);font-weight:600")}>
+            {error}
+          </div>
+        ) : null}
+
+        <div style={s("display:flex;align-items:center;gap:9px;padding-top:15px;border-top:1px solid var(--border);flex-wrap:wrap")}>
+          <button
+            type="button"
+            onClick={() => submit("new")}
+            disabled={busy !== null}
+            style={sx("padding:9px 15px;border:0;border-radius:8px;font-size:12.5px;font-weight:700;background:var(--brand);color:#fff;font-family:inherit", {
+              cursor: busy ? "default" : "pointer", opacity: busy ? 0.6 : 1,
+            })}
+          >
+            {busy === "new" ? "Sending\u2026" : "Send to Talentvibes"}
           </button>
-          <button style={s("padding:9px 15px;border:1px solid var(--border-2);border-radius:8px;font-size:12.5px;font-weight:600;background:var(--surface);cursor:pointer;font-family:inherit")}>
-            Save draft
+          <button
+            type="button"
+            onClick={() => submit("draft")}
+            disabled={busy !== null}
+            style={sx("padding:9px 15px;border:1px solid var(--border-2);border-radius:8px;font-size:12.5px;font-weight:600;background:var(--surface);font-family:inherit", {
+              cursor: busy ? "default" : "pointer", opacity: busy ? 0.6 : 1,
+            })}
+          >
+            {busy === "draft" ? "Saving\u2026" : "Save draft"}
           </button>
           <div style={s("margin-left:auto;font-size:11.5px;color:var(--t3)")}>
             Typical first shortlist: <strong style={s("font-weight:700")}>36 hours</strong>
