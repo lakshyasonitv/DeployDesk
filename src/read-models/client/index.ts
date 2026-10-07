@@ -448,7 +448,7 @@ export async function getClientInterviews(clientOrgId: string) {
     // awaiting_vendor must never surface a supplier name. This is the exact copy the
     // design promises the client.
     waitingLabel: r.status === "awaiting_vendor"
-      ? "Broker is confirming supplier release"
+      ? "Your Talentvibes team is confirming availability"
       : null,
     requestedAgo: r.requestedAt ? relativeAgo(r.requestedAt) : null,
   }));
@@ -498,7 +498,261 @@ export async function getClientBrokerThread(clientOrgId: string, requirementCode
   };
 }
 
+/* ------------------------------------------- people working: the full view */
+
+/**
+ * One person working for this client, with everything the client is allowed to know.
+ *
+ * This backs the click-through on "People working". The owner asked for "full information
+ * about the resource like name date of joining etc." The date of joining is here. The NAME
+ * can never be, and the reason is worth stating, because it is not "names are sensitive":
+ *
+ *   A name is a SIDE CHANNEL TO THE SUPPLIER. Name -> public profile -> current employer ->
+ *   the supplier, whom the client could then contract with directly, cutting Talentvibes
+ *   out. Supplier identity is the one thing this product exists to protect.
+ *   docs/MASKING.md's side-channel table is the authority, and the v2 handoff says the same
+ *   for this exact screen: "Rows are anonymous (TV id and role only)" (SCREENS.md:99).
+ *
+ * Every field below is `OK` or `own-records-only` for the client in the visibility matrix.
+ *
+ * Columns are named explicitly, per working agreement 7, because `bench_resources` carries
+ * `full_name`, `vendor_org_id`, `vendor_rate_paise`, the contact details, the PAN/phone/
+ * email hashes and `last_confirmed_at` — freshness, which is ops/vendor-only because
+ * "unconfirmed 26d" tells a client that a supplier is slow.
+ *
+ * Two further columns are available and deliberately NOT selected: `github_handle`, because
+ * a repository handle identifies a person as surely as a name does, and
+ * `last_project_note`, because a note about someone's last project can name the supplier's
+ * other client.
+ */
+export interface ClientEngagement {
+  maskedId: string;
+  roleTitle: string;
+  status: string;
+  /** The date of joining — what the owner asked to surface. */
+  startedOn: string;
+  tenureLabel: string;
+  endsOn: string | null;
+  /** The raw date, so the extension form can set a sensible minimum and default. */
+  endDateIso: string | null;
+  /** Drives v2's amber, bold end date (SCREENS.md:100). */
+  endingSoon: boolean;
+  /**
+   * The rate the CLIENT pays. Exact, not a band: this is the client's own record and it is
+   * the figure they are invoiced. `tests/leak/read-models.test.ts` asserts this is allowed.
+   * The band rule in docs/MASKING.md applies to masked SHORTLIST cards, pre-placement,
+   * where an exact figure is recoverable back to the vendor's cost.
+   */
+  rateLabel: string;
+  ratePaise: number;
+  experienceLabel: string;
+  baseCity: string;
+  workModes: string[];
+  noticePeriodLabel: string | null;
+  skills: string[];
+  /**
+   * The proctored result, present ONLY where this placement came through a shortlist sent
+   * to THIS client. Most placements have no such lineage — the seed creates engagements
+   * with `requirement_id = null` — so the panel must read well without it.
+   */
+  assessment: null | {
+    scoreOverall: number | null;
+    sections: Array<{ label: string; value: number | null }>;
+    attemptNo: number | null;
+    testedOn: string | null;
+  };
+  /** An extension already in flight, so the UI does not offer a duplicate. */
+  extension: null | { statusLabel: string; requestedUntil: string; settled: boolean };
+}
+
+/**
+ * What a client may be told about an extension's progress.
+ *
+ * `with_supplier` is the interesting one: the client is told their Talentvibes team is
+ * confirming, never that a supplier is being asked. `src/db/schema/operations.ts` records
+ * the same wording, and "withdrawn" maps to null so an undone request leaves no trace in
+ * the UI while the row survives for the audit trail.
+ */
+const EXTENSION_LABEL: Record<string, { label: string; settled: boolean }> = {
+  requested: { label: "Sent to your Talentvibes team", settled: false },
+  with_supplier: { label: "Your Talentvibes team is confirming", settled: false },
+  approved: { label: "Approved", settled: true },
+  declined: { label: "Not possible", settled: true },
+};
+
+export async function getClientEngagements(clientOrgId: string): Promise<ClientEngagement[]> {
+  const rows = await db
+    .select({
+      // Join key only, NEVER serialised: it identifies the bench_resources row.
+      resourceId: s.engagements.resourceId,
+      engagementId: s.engagements.id,
+      maskedId: s.benchResources.maskedId,
+      roleTitle: s.engagements.roleTitle,
+      startDate: s.engagements.startDate,
+      endDate: s.engagements.endDate,
+      status: s.engagements.status,
+      clientRatePaise: s.engagements.clientRatePaise,
+      baseCity: s.benchResources.baseCity,
+      experienceMonths: s.benchResources.experienceMonths,
+      workModes: s.benchResources.workModes,
+      noticePeriodDays: s.benchResources.noticePeriodDays,
+    })
+    .from(s.engagements)
+    .innerJoin(s.benchResources, eq(s.benchResources.id, s.engagements.resourceId))
+    .where(and(
+      eq(s.engagements.clientOrgId, clientOrgId),
+      inArray(s.engagements.status, ["onboarding", "active", "ending"]),
+    ))
+    .orderBy(desc(s.engagements.startDate));
+
+  if (!rows.length) return [];
+
+  const resourceIds = rows.map((r) => r.resourceId);
+  const engagementIds = rows.map((r) => r.engagementId);
+
+  /**
+   * Three reads fanned out rather than run in sequence. An earlier comment in this
+   * codebase claimed parallelising was counterproductive and cost 0.5s on /ops/matching
+   * once its reason had been fixed — latency here is round-trip count, not row count.
+   */
+  const [skillRows, snapshots, extensions] = await Promise.all([
+    db
+      .select({ resourceId: s.resourceSkills.resourceId, label: s.skills.label, isPrimary: s.resourceSkills.isPrimary })
+      .from(s.resourceSkills)
+      .innerJoin(s.skills, eq(s.skills.id, s.resourceSkills.skillId))
+      .where(inArray(s.resourceSkills.resourceId, resourceIds)),
+
+    /**
+     * The assessment snapshot reaches a client ONLY through a shortlist sent to THAT
+     * client, so BOTH ends are pinned: the engagement's `client_org_id` above, and the
+     * requirement's here. Without the second, a resource placed at two clients would match
+     * the other client's shortlist row and we would serve its snapshot.
+     *
+     * `shortlists` has no client column of its own — the path is
+     * shortlist_items -> shortlists -> requirements.client_org_id.
+     */
+    db
+      .select({
+        resourceId: s.shortlistItems.resourceId,
+        scoreOverall: s.shortlistItems.scoreOverall,
+        scoreCoding: s.shortlistItems.scoreCoding,
+        scoreDsa: s.shortlistItems.scoreDsa,
+        scoreSystemDesign: s.shortlistItems.scoreSystemDesign,
+        scoreCommunication: s.shortlistItems.scoreCommunication,
+        attemptNo: s.shortlistItems.assessmentAttemptNo,
+        testedOn: s.shortlistItems.assessmentTestedOn,
+      })
+      .from(s.shortlistItems)
+      .innerJoin(s.shortlists, eq(s.shortlists.id, s.shortlistItems.shortlistId))
+      .innerJoin(s.requirements, eq(s.requirements.id, s.shortlists.requirementId))
+      .where(and(
+        inArray(s.shortlistItems.resourceId, resourceIds),
+        eq(s.requirements.clientOrgId, clientOrgId),
+      ))
+      // Most recent shortlist wins when a person was sent more than once.
+      .orderBy(desc(s.shortlists.sentAt)),
+
+    // `ops_note` and `decided_by` are ops-only and are not selected.
+    db
+      .select({
+        engagementId: s.extensionRequests.engagementId,
+        status: s.extensionRequests.status,
+        requestedUntil: s.extensionRequests.requestedUntil,
+        createdAt: s.extensionRequests.createdAt,
+      })
+      .from(s.extensionRequests)
+      .where(inArray(s.extensionRequests.engagementId, engagementIds))
+      .orderBy(desc(s.extensionRequests.createdAt)),
+  ]);
+
+  const skillsBy = new Map<string, string[]>();
+  for (const r of skillRows) {
+    const list = skillsBy.get(r.resourceId) ?? [];
+    // Primary skill first; the rest keep the order the database returned.
+    if (r.isPrimary) list.unshift(r.label); else list.push(r.label);
+    skillsBy.set(r.resourceId, list);
+  }
+
+  const snapBy = new Map<string, typeof snapshots[number]>();
+  for (const sn of snapshots) if (!snapBy.has(sn.resourceId)) snapBy.set(sn.resourceId, sn);
+
+  const extBy = new Map<string, typeof extensions[number]>();
+  for (const e of extensions) if (!extBy.has(e.engagementId)) extBy.set(e.engagementId, e);
+
+  const now = new Date();
+
+  return rows.map((r) => {
+    const snap = snapBy.get(r.resourceId);
+    const ext = extBy.get(r.engagementId);
+    const extLabel = ext ? EXTENSION_LABEL[ext.status] : undefined;
+    const daysLeft = r.endDate
+      ? Math.round((new Date(r.endDate).getTime() - now.getTime()) / 86_400_000)
+      : null;
+
+    return {
+      maskedId: r.maskedId,
+      roleTitle: r.roleTitle,
+      status: r.status,
+      startedOn: formatFullDay(r.startDate),
+      tenureLabel: tenureSince(r.startDate, now),
+      endsOn: r.endDate ? formatFullDay(r.endDate) : null,
+      endDateIso: r.endDate,
+      // 45 days is a notice period plus a fortnight to decide — long enough that a
+      // client can still act on it, which is the point of flagging it at all.
+      endingSoon: daysLeft != null && daysLeft <= 45,
+      rateLabel: formatPaiseShort(r.clientRatePaise),
+      ratePaise: Number(r.clientRatePaise),
+      experienceLabel: formatExperience(r.experienceMonths),
+      baseCity: r.baseCity,
+      workModes: r.workModes,
+      noticePeriodLabel: r.noticePeriodDays ? `${r.noticePeriodDays}-day notice` : null,
+      skills: skillsBy.get(r.resourceId) ?? [],
+      assessment: snap
+        ? {
+            scoreOverall: snap.scoreOverall,
+            sections: [
+              { label: "Coding", value: snap.scoreCoding },
+              { label: "Data structures", value: snap.scoreDsa },
+              { label: "System design", value: snap.scoreSystemDesign },
+              { label: "Communication", value: snap.scoreCommunication },
+            ],
+            attemptNo: snap.attemptNo,
+            testedOn: snap.testedOn ? formatFullDay(snap.testedOn) : null,
+          }
+        : null,
+      extension: ext && extLabel
+        ? {
+            statusLabel: extLabel.label,
+            requestedUntil: formatFullDay(ext.requestedUntil),
+            settled: extLabel.settled,
+          }
+        : null,
+    };
+  });
+}
+
 /* ----------------------------------------------------------------- utils */
+
+/** "3 Mar 2026" — the year matters on a placement that has run for a while. */
+function formatFullDay(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-IN", {
+    day: "numeric", month: "short", year: "numeric",
+  });
+}
+
+/** "7 months so far" / "1 year 2 months so far" / "11 days so far". */
+function tenureSince(iso: string, now: Date): string {
+  const start = new Date(iso);
+  if (start.getTime() > now.getTime()) return "starts shortly";
+  const days = Math.floor((now.getTime() - start.getTime()) / 86_400_000);
+  if (days < 31) return `${days === 0 ? 1 : days} day${days === 1 ? "" : "s"} so far`;
+  const months = Math.max(1, Math.round(days / 30.44));
+  if (months < 12) return `${months} month${months === 1 ? "" : "s"} so far`;
+  const years = Math.floor(months / 12);
+  const rest = months % 12;
+  const y = `${years} year${years === 1 ? "" : "s"}`;
+  return rest ? `${y} ${rest} month${rest === 1 ? "" : "s"} so far` : `${y} so far`;
+}
 
 function relativeAgo(d: Date): string {
   const hours = Math.floor((Date.now() - d.getTime()) / 3_600_000);

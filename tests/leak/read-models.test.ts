@@ -17,7 +17,7 @@ import { describe, expect, it, beforeAll } from "vitest";
 import { eq } from "drizzle-orm";
 import { db } from "../../src/db/client";
 import * as s from "../../src/db/schema";
-import { getClientShortlist, getClientOverview, getClientRequirements, getClientInterviews, getClientBrokerThread } from "../../src/read-models/client";
+import { getClientShortlist, getClientOverview, getClientRequirements, getClientInterviews, getClientBrokerThread, getClientEngagements } from "../../src/read-models/client";
 import { getVendorRoster, getVendorOverview, getVendorEarnings, getVendorAssessments, getVendorImports } from "../../src/read-models/vendor";
 
 const VENDOR_NAMES = [
@@ -127,6 +127,8 @@ function expectNoSubstring(
 
 let acmeId = "";
 let nimbusId = "";
+/** A second client, so tenancy can be asserted rather than assumed. */
+let vantageId = "";
 let vendorRateStrings: string[] = [];
 
 beforeAll(async () => {
@@ -134,8 +136,11 @@ beforeAll(async () => {
     .where(eq(s.organizations.name, "Acme Finserv")).limit(1);
   const [nimbus] = await db.select({ id: s.organizations.id }).from(s.organizations)
     .where(eq(s.organizations.name, "Nimbus Softworks")).limit(1);
+  const [vantage] = await db.select({ id: s.organizations.id }).from(s.organizations)
+    .where(eq(s.organizations.name, "Vantage Insurance")).limit(1);
   acmeId = acme.id;
   nimbusId = nimbus.id;
+  vantageId = vantage.id;
 
   // Every exact vendor rate in the fixture set, in the formats the UI renders.
   const rates = await db.select({ v: s.benchResources.vendorRatePaise }).from(s.benchResources);
@@ -161,6 +166,60 @@ describe("client portal never leaks supplier or margin data", () => {
       { ignoreKeys: OWN_MONEY_KEYS });
   });
 
+  /**
+   * The placement panel is the richest client-facing payload in the product: it reaches
+   * `bench_resources` directly rather than through the shortlist snapshot, and that table
+   * carries full_name, vendor_org_id, vendor_rate_paise, the contact details, the
+   * PAN/phone/email hashes and last_confirmed_at. Naming columns is what keeps those out,
+   * so this asserts the result of that rather than trusting it.
+   */
+  it("people working, and the panel behind each row", async () => {
+    const view = await getClientEngagements(acmeId);
+    expect(view.length).toBeGreaterThan(0);
+    expectNoForbiddenKeys(view, CLIENT_FORBIDDEN_KEYS, "client engagements");
+    expectNoSubstring(view, VENDOR_NAMES, "client engagements");
+    expectNoSubstring(view, vendorRateStrings, "client engagements (exact vendor rate)",
+      { ignoreKeys: OWN_MONEY_KEYS });
+  });
+
+  it("never lets the raw extension status reach the client", async () => {
+    // `with_supplier` is a real value in the extension_status enum and the seed creates a
+    // row holding it. The client is told their Talentvibes team is confirming; the enum
+    // value itself would tell them a supplier is being asked, and "we are waiting on the
+    // supplier" plus a date is the beginning of a guess about which one.
+    const clients = await db.select({ id: s.organizations.id })
+      .from(s.organizations).where(eq(s.organizations.orgType, "client"));
+    const all = (await Promise.all(
+      clients.map((c) => getClientEngagements(c.id)),
+    )).flat();
+
+    const labels = all.map((e) => e.extension?.statusLabel).filter(Boolean) as string[];
+    // The seed creates exactly one extension request, attached to whichever active
+    // engagement the database returns first -- which client that is, is not fixed. So the
+    // sweep is over every client, and this guards the test against passing vacuously if
+    // the row ever stops being seeded.
+    expect(labels.length, "no extension request in the fixture set -- test is vacuous")
+      .toBeGreaterThan(0);
+
+    for (const l of labels) {
+      expect(l.toLowerCase(), "extension status shown to a client").not.toContain("supplier");
+      expect(l).not.toMatch(/with_supplier|requested$/);
+    }
+  });
+
+  it("scopes people working to the calling client", async () => {
+    // Both clients have placements in the fixture set, and they are different people. A
+    // missing tenancy predicate on the engagement -> shortlist_items -> shortlists ->
+    // requirements path would pull the other client's rows in.
+    const [mine, theirs] = await Promise.all([
+      getClientEngagements(acmeId), getClientEngagements(vantageId),
+    ]);
+    expect(mine.length).toBeGreaterThan(0);
+    expect(theirs.length).toBeGreaterThan(0);
+    const overlap = mine.filter((m) => theirs.some((t) => t.maskedId === m.maskedId));
+    expect(overlap.map((o) => o.maskedId), "same person on two clients' lists").toEqual([]);
+  });
+
   it("requirements list", async () => {
     const view = await getClientRequirements(acmeId);
     expectNoForbiddenKeys(view, CLIENT_FORBIDDEN_KEYS, "client requirements");
@@ -172,7 +231,7 @@ describe("client portal never leaks supplier or margin data", () => {
     expectNoForbiddenKeys(view, CLIENT_FORBIDDEN_KEYS, "client interviews");
     expectNoSubstring(view, VENDOR_NAMES, "client interviews");
     const waiting = view.find((i) => i.waitingLabel);
-    if (waiting) expect(waiting.waitingLabel).toBe("Broker is confirming supplier release");
+    if (waiting) expect(waiting.waitingLabel).toBe("Your Talentvibes team is confirming availability");
   });
 
   it("broker thread exposes no relay internals", async () => {

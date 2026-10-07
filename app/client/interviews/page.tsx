@@ -8,7 +8,7 @@ import { FeedbackCard } from "./FeedbackCard";
 /**
  * Client · Interviews & feedback.
  *
- * The line that matters: an interview in `awaiting_vendor` shows "Broker is confirming
+ * The line that matters: an interview in `awaiting_vendor` shows "Your Talentvibes team
  * supplier release" — never a supplier name. That copy is produced by the read model
  * and asserted by a leak test.
  */

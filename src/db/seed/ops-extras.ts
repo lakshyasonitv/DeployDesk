@@ -41,7 +41,7 @@ export async function seedInterviews(
     panelFor.push({ key: "TV-6620", names: [["S. Ahuja", "QA Lead"], ["D. Kulkarni", "Staff FE"]] });
   }
   // TV-5302 · awaiting_vendor — client proposed two slots, requested 4h ago.
-  // The client sees "broker is confirming supplier release", never a vendor name.
+  // The client sees "your Talentvibes team is confirming availability", never a vendor name.
   if (item("TV-5302")) {
     rows.push({
       requirementId: req2291.id, shortlistItemId: item("TV-5302")!.id, roundNo: 1,
