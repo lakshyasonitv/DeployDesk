@@ -264,8 +264,22 @@ export function ShortlistBoard({
                   {c.testedOn ? ` · tested ${formatTested(c.testedOn)}` : ""}
                 </div>
 
-                {/* 5. rate band + availability */}
-                <div style={s("display:flex;align-items:center;justify-content:space-between;gap:8px")}>
+                {/*
+                  5. rate band + availability
+
+                  `margin-top:auto` anchors this and the actions below it to the bottom of
+                  the card. The cards are grid items, so they all stretch to the tallest in
+                  their row, but the content inside stacks from the top -- so a candidate
+                  with fewer skill chips, or no tested date, ended its content early and sat
+                  its buttons higher than its neighbours'.
+
+                  The auto margin goes HERE rather than on the actions row so that the rate
+                  line is pinned too. Rate is the other thing read across cards rather than
+                  down one, and pinning only the buttons would have left the rates ragged
+                  while the buttons lined up -- a mixed alignment that reads worse than the
+                  original.
+                */}
+                <div style={s("display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto")}>
                   <div>
                     <div style={s("font-size:13px;font-weight:700")}>{c.rateBandLabel}</div>
                     <div style={s("font-size:10.5px;color:var(--t4)")}>per month</div>
