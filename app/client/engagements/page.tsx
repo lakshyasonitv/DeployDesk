@@ -35,7 +35,7 @@ export default async function ClientEngagementsPage() {
       <PageHeader
         title="People working"
         subtitle="Everyone currently working for you through Talentvibes. One contract and one invoice, with us — never with the supplier."
-        actions={<><Button>Download statement</Button><Button primary>Request an extension</Button></>}
+        actions={<><Button href="/api/export?kind=client-engagements" download>Download statement</Button><Button primary>Request an extension</Button></>}
       />
       <Scroll>
         <div style={s("display:grid;grid-template-columns:repeat(3,1fr);gap:12px")}>

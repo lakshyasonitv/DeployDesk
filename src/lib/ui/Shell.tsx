@@ -4,7 +4,7 @@ import {
   LayoutGrid, FileText, Users, Calendar, Briefcase,
   Upload, List, ClipboardCheck, Wallet,
   Columns3, Target, Database, BarChart2, AlertTriangle,
-  HelpCircle, MoreHorizontal, ChevronDown, Building2, Briefcase as BriefcaseIcon,
+  MoreHorizontal, ChevronDown, Building2, Briefcase as BriefcaseIcon,
 } from "lucide-react";
 import { s, sx, TOKENS, PORTAL_TAG, GROUP_LABEL, BRAND } from "./style";
 import type { WorkspaceTab } from "../auth/workspace";
@@ -12,6 +12,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { DeployDeskLogo } from "./DeployDeskLogo";
 import { ToastProvider } from "./Toast";
 import { Search, SEARCH_EXAMPLES } from "./Search";
+import { HowItWorks } from "./HowItWorks";
 
 /**
  * The global shell: sidebar + top bar + content column. Applies to all three portals.
@@ -363,12 +364,8 @@ export function Shell({
 
           <ThemeToggle />
 
-          <div
-            title="How Talentvibes works"
-            style={s("width:32px;height:30px;border:1px solid var(--border);border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--t3);flex:none")}
-          >
-            <HelpCircle size={15} strokeWidth={1.75} />
-          </div>
+          {/* The ? used to be a div that did nothing. It now opens the explainer. */}
+          <HowItWorks portal={portal} />
         </div>
 
         {/*
@@ -409,13 +406,29 @@ export function Scroll({ children }: { children: ReactNode }) {
 }
 
 export function Button({
-  children, href, primary, accent,
-}: { children: ReactNode; href?: string; primary?: boolean; accent?: string }) {
+  children, href, primary, accent, download,
+}: {
+  children: ReactNode;
+  href?: string;
+  primary?: boolean;
+  accent?: string;
+  /**
+   * Renders a plain `<a>` instead of next/link, for an href that is a ROUTE HANDLER
+   * rather than a page — a CSV download, for instance.
+   *
+   * next/link does a client-side RSC navigation, so it fetches the destination expecting a
+   * flight payload and the download never starts. This is the same trap that made the
+   * "Acting as" switcher unclickable; the rule is next/link for pages, `<a>` for route
+   * handlers.
+   */
+  download?: boolean;
+}) {
   const style = primary
     ? sx("padding:0 14px;height:38px;display:inline-flex;align-items:center;border-radius:10px;font-size:13px;font-weight:700;color:#fff;white-space:nowrap;box-shadow:var(--sh)", {
         background: accent ?? "var(--brand)",
       })
     : s("padding:0 14px;height:38px;display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:10px;font-size:13px;font-weight:600;background:var(--surface);color:var(--t1);white-space:nowrap");
+  if (href && download) return <a href={href} style={style}>{children}</a>;
   return href ? <Link href={href} style={style}>{children}</Link> : <div style={style}>{children}</div>;
 }
 

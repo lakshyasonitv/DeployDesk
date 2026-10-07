@@ -38,7 +38,7 @@ export default async function VendorEarningsPage() {
       <PageHeader
         title="Your earnings"
         subtitle="Your contracted rate per placement. Talentvibes contracts separately with the client."
-        actions={<><Button>Download statement</Button><Button primary accent="var(--teal)">Raise invoice</Button></>}
+        actions={<><Button href="/api/export?kind=vendor-earnings" download>Download statement</Button><Button primary accent="var(--teal)">Raise invoice</Button></>}
       />
       <Scroll>
         <div style={s("display:grid;grid-template-columns:repeat(4,1fr);gap:12px")}>

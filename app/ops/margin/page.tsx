@@ -32,7 +32,7 @@ export default async function MarginPage() {
       <PageHeader
         title="Margin"
         subtitle="Vendor rate, client rate and spread on every live placement · visible to Talentvibes only"
-        actions={<><Button>{new Date().toLocaleDateString("en-IN", { month: "long", year: "numeric" })}</Button><Button primary accent="var(--t1)">Export to finance</Button></>}
+        actions={<><Button>{new Date().toLocaleDateString("en-IN", { month: "long", year: "numeric" })}</Button><Button href="/api/export?kind=ops-margin" download primary accent="var(--t1)">Export to finance</Button></>}
       />
       <Scroll>
         <div style={s("display:grid;grid-template-columns:repeat(4,1fr);gap:12px")}>

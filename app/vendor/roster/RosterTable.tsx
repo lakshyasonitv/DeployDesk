@@ -83,6 +83,16 @@ export function RosterTable({
     ["unconfirmed", "Unconfirmed", counts.unconfirmed, "var(--danger-tint)", "var(--danger)"],
   ];
 
+  /**
+   * " on your bench" / " who are expiring" — a readable tail for the count sentence.
+   * The raw filter keys are `in_process` and `expiring`, which are not English.
+   */
+  const filterLabel = filter === "all" ? " on your bench"
+    : filter === "listed" ? " listed and available"
+    : filter === "in_process" ? " already with a client"
+    : filter === "expiring" ? " who need confirming this week"
+    : " not confirmed for over two weeks";
+
   return (
     <>
       <div style={s("padding:20px 26px 16px;background:var(--surface);border-bottom:1px solid var(--border);flex:none")}>
@@ -217,15 +227,27 @@ export function RosterTable({
           );
         })}
 
-        <div style={s("padding:14px 26px;display:flex;align-items:center;justify-content:space-between;gap:12px")}>
-          <div style={s("font-size:12px;color:var(--t4)")}>
-            Showing {Math.min(visible, shown.length)} of {shown.length}
-            {filter !== "all" ? ` ${filter.replace("_", " ")}` : ""}
+        {/*
+          "Load more" said nothing useful: not how many more, and not how many were left.
+          With 42 people on a bench it also meant clicking the same button four times.
+
+          It now names the number and finishes the job in one click — "Show all 42 people".
+          The count line beside it is a sentence rather than "12 of 42", because the
+          audience is senior staff who should not have to infer what a bare ratio means.
+        */}
+        <div style={s("padding:14px 26px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap")}>
+          <div style={s("font-size:12.5px;color:var(--t3)")}>
+            {visible >= shown.length
+              ? `Showing all ${shown.length} ${shown.length === 1 ? "person" : "people"}${filterLabel}`
+              : `Showing ${Math.min(visible, shown.length)} of ${shown.length} ${shown.length === 1 ? "person" : "people"}${filterLabel}`}
           </div>
           {visible < shown.length ? (
-            <button onClick={() => setVisible((v) => v + 12)}
-              style={s("padding:7px 13px;border:1px solid var(--border-2);border-radius:8px;font-size:12px;font-weight:700;background:var(--surface);cursor:pointer;font-family:inherit")}>
-              Load more
+            <button
+              type="button"
+              onClick={() => setVisible(shown.length)}
+              style={s("padding:8px 14px;border:1px solid var(--border-2);border-radius:9px;font-size:12.5px;font-weight:700;background:var(--surface);cursor:pointer;font-family:inherit;color:var(--t1)")}
+            >
+              Show all {shown.length} {shown.length === 1 ? "person" : "people"}
             </button>
           ) : null}
         </div>
