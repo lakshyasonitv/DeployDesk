@@ -261,3 +261,47 @@ then the matching function with self-dealing bypass tests, then UI. The 12 leak 
 - **Impact:** `/demo/act-as` writes the choice to a cookie and is a **demo affordance that
   must be deleted with the demo**, along with the switcher. The dual-role workspace tabs are
   a separate, production feature (ADR-012) — do not merge the two.
+
+
+## 2026-10-07 — `next/link` for pages, `<a>` for route handlers
+
+- **Decision:** anything whose href points at a Route Handler uses a plain `<a>`.
+- **Why:** `next/link` performs a client-side RSC navigation — it fetches the destination
+  expecting a flight payload. A route handler answers with a 307 and a `Set-Cookie`, so the
+  transition silently does nothing; this is why the "Acting as" organisation names were not
+  clickable. `next/link` also **prefetches by default**, so rendering the bar could have
+  fired the handler and set the cookie with no click at all.
+- **Rejected:** `prefetch={false}` with `next/link`. It stops the accidental prefetch but
+  not the failed navigation, so the control would still do nothing on click.
+- **Impact:** `/demo/act-as` is the only such link today. The dual-role workspace tabs keep
+  `next/link` because `/client` and `/vendor` are real pages.
+
+## 2026-10-07 — Re-check a "why this is slow" comment when its reason is fixed
+
+- **Decision:** a comment justifying a slow or serial shape is treated as a claim with an
+  expiry date, not a constraint. When the thing it blames is changed, the comment gets
+  re-tested.
+- **Why:** `/ops/matching` was the slowest page in the app at ~1.0s and stayed that way
+  because of *"OpsAside alone issues several queries, and running it alongside others
+  exhausted the connection pool."* That was true when written. Sprint 2 then reduced
+  `OpsAside` to a single count query and the pool went from 5 to `max: 10` — and the comment
+  outlived both. Fanning out the five reads took it to **0.489s**. The identical comment on
+  `/vendor/resources/new` cost the same way.
+- **Impact:** two pages ~2× faster for no behaviour change. Pairs with the standing lesson
+  that latency here is round-trip count, not row count.
+
+## 2026-10-07 — Dual-role orgs are on a flat declared fee, and the seed enforces it
+
+- **Decision:** any organisation holding both capabilities is set to
+  `fee_model = 'flat_declared_fee'`, applied by the seed and asserted by `db:verify`.
+- **Why:** this is the **commercial half** of the masking rule and it had never been
+  implemented — `organizations.fee_model` carried a comment describing it while every row,
+  the dual-role org included, sat on the column's `hidden_markup` default. A company on both
+  sides can compare what it is **paid as a supplier** against what it is **charged as a
+  client**; with a hidden markup those two statements reveal the spread. With the fee
+  declared there is nothing left to infer.
+- **Rejected:** relying on screen separation alone ("the two rate views never share a
+  screen"). That defends against reading the spread on one page, not against subtracting two
+  invoices.
+- **Impact:** the pairing is deliberate — screen separation AND a declared fee. The column
+  now uses its `fee_model` enum rather than plain `text`.

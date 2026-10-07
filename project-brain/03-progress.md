@@ -122,6 +122,35 @@ percent-encoded (`@` becomes `%40`). Ask the user for credentials; do not guess.
 
 ## Start here next time
 
+**Sprint 6 is effectively complete** (6a `f100d0a`, 6b `d6a7fad`). One small item remains
+from its brief: *one broker thread per workspace, never mixed* — `db:verify` asserts two
+linked threads exist, the UI does not separate them by side yet.
+
+**Sprint 7b — the shell's interactive parts** is the main open work. 7a left these as
+static markup, and the first one is a visible flaw: **the sidebar search box advertises ⌘K
+and does nothing**, against v2 rule 4 ("no dead buttons"). Wire or hide it before a demo.
+Then toasts with Undo (6s), the 322px portal-switcher menu, the Ask Talentvibes drawer
+(switching portal must close it), and the ops dark internal-view strip. After that 7c–7e:
+the 16 screens to `SCREENS.md`, plain-language copy inside page bodies, responsive from
+~900px.
+
+Three things to know before working in this code:
+
+- **`next/link` for pages, `<a>` for route handlers.** A Link to a route handler silently
+  does nothing on click and prefetches the handler on render. This caused the unclickable
+  demo switcher.
+- **Never gate access on `org_type`** — it is a lossy projection. Use `requiredCapability()`.
+- **Treat a "why this is slow" comment as expiring.** One on `/ops/matching` outlived both
+  of its reasons and kept the worst page in the app 2× slower than it needed to be.
+
+Two standing items: the **drizzle-orm 0.44.7 high advisory** (low exposure — no `sql.raw`
+or `sql.identifier` anywhere — but 0.45.x is breaking, so its own pass with the 45 tests as
+the net), and the stray `deploydesk` project on the `vaibhavalteryx-1351` Vercel account.
+
+---
+
+## Earlier resume notes
+
 **Sprint 6b — the ops console's remaining dual-role surfaces.** 6a is done, verified and
 committed (`f100d0a`): the capability-keyed guard, the "Hiring | Bench" switcher, the
 organisation-based demo control, the ops-only own-bench note, and acceptance tests 1/2/5/6.

@@ -5,8 +5,8 @@
 >
 > **The four gates** every sprint must pass before it counts as done:
 > 1. every route returns 200 — **cold and warm**, at least twice each
-> 2. `npm run db:verify` → **27/27** (21 originally; +4 dual-role, +2 dual-role shortlist)
-> 3. `npm run test:leak` → **42/42** (12 originally; +18 self-dealing, +12 dual-role UI)
+> 2. `npm run db:verify` → **28/28** (21 originally; +4 dual-role, +2 shortlist, +1 fee model)
+> 3. `npm run test:leak` → **45/45** (12 originally; +18 self-dealing, +15 dual-role UI)
 >
 > These two numbers grow as suites are added. **If a gate number here disagrees with what
 > the command prints, this line is the stale one** — check the newest journal entry, then
@@ -344,21 +344,40 @@ Gates: 20 routes ×2 plus 5 dual-role routes all 200, `db:verify` **27/27**, `te
 - [x] The demo control lists **organisations**, not portals. Three portal links cannot
       express one organisation on two sides. `/demo/act-as` sets it in a cookie; demo only.
 
-### SPRINT 6b — the remaining ops console surfaces · NOT STARTED
+### SPRINT 6b — the ops organisation directory · ✅ DONE (commit `d6a7fad`)
 
-- [ ] **Dual-role badge** wherever ops lists an organisation (talent pool, pipeline,
-      margin). `isDualRole(caps)` exists. **Ops-only by contract** — telling a client that
-      its supplier also hires narrows the counterparty to a handful of companies.
-- [ ] **Org profile controls** — capabilities, declared group, fee model, block list.
-      Read-only display is enough for the demo; any write needs an audit row (working
-      agreement 5).
-- [ ] **Margin grouped per org** — billed as client, paid as supplier, net position. The one
-      surface where a dual-role org's two sides legitimately appear together, because the
-      audience is the broker.
-- [ ] **Probing-flag indicator** — the views exist from migration 0002 and nothing reads them.
-- [ ] **One broker thread per workspace, never mixed** — `db:verify` asserts two linked
-      threads exist; the UI does not yet separate them by side.
-- [ ] Four gates stay green
+Gates: 21 routes ×2 all 200, `db:verify` **28/28**, `test:leak` **45/45**, build and
+typecheck clean. One screen, `/ops/organisations`, because these items are one subject.
+
+- [x] **Dual-role badge** — plus a callout naming the org, its bench, its open roles and its
+      fee model. **Ops-only by contract**; verified absent from five client/vendor pages
+      while acting as the dual-role org.
+- [x] **Org profile display** — capabilities, declared group **with its siblings**, fee
+      model, block list **in both directions** (a one-directional reading would leave one
+      side still seeing the other; a test pins both rows). Read-only: any write needs an
+      audited service per working agreement 5.
+- [x] **Margin grouped per org** — billed as client, paid as supplier, net position. For a
+      dual-role org those two figures **are** the spread, so this is the only screen in the
+      product where they may sit together.
+- [x] **Probing-flag indicator** — `v_requirement_probing` and `v_org_probing_signals` had
+      existed since migration 0002 with nothing reading them. **Read, not reimplemented**: a
+      second definition in TypeScript would drift from the SQL. Currently flags nobody on the
+      seeded data, which is honest — the view needs a shortlist to sit 5 days unanswered.
+- [ ] **One broker thread per workspace, never mixed** — still open, and the last item from
+      the brief. `db:verify` asserts two linked threads exist; the UI does not separate them
+      by side yet.
+
+**Two first-draft mistakes worth remembering:**
+1. The broker rendered "Hidden markup" — it holds the column default because every row
+   does, but it is not a party to the exchange and has no fee model. Now "—".
+2. `isProbingSuspect` also flagged `open >= 3 && placements === 0`. **That threshold is
+   nowhere in the brief; it was invented**, which working agreement 8 forbids doing
+   silently. It now tracks only the view's own count, with open roles and placements-ever
+   beside it so ops applies judgement. A test pins it.
+
+The ops nav gained a **sixth** item, past v2's five ops screens and deliberately —
+`SCREENS.md` has no home for capability/group/fee/block visibility, and ops is the internal
+console. `Skeleton.tsx` now derives its nav row count from `NAV` instead of hardcoding 5.
 
 ---
 
@@ -510,6 +529,14 @@ All four gates green: **19 routes 200** (including both dynamic routes), `db:ver
       `inArray` earlier). Still worth upgrading, but 0.45.x is a breaking change, so it
       needs its own task with the 30 leak tests and 25 seed checks as the safety net — not
       a mid-sprint `npm audit fix --force`.
+- [ ] **Nothing converts to Asia/Kolkata.** `CLAUDE.md` working agreement 3 says business
+      days, SLA clocks and the nightly freshness sweep run in IST, but `IST_TZ` in
+      `src/lib/derived.ts` is referenced nowhere — SLA state and freshness are computed in
+      UTC, a ~5.5h boundary shift. Found by the 2026-10-07 dead-code audit. Low impact on a
+      demo (thresholds are in days), real before launch.
+- [ ] **`rate_changes` is declared and never written.** No rate-change path exists yet, so
+      this is an unbuilt feature rather than a missing audit row — but working agreement 5
+      requires the audit row when that path is built.
 - [ ] CI: typecheck, lint, migration check, leak suite
 - [ ] Restricted application DB role, so the app never connects as the service role
 - [ ] Real Supabase Auth replacing `src/lib/auth/session.ts`, including the portal check
