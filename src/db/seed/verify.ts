@@ -279,12 +279,45 @@ async function main() {
       pair.map((p) => p.maskedId).join(" / "));
   } else check("DUP-0148 exists", false);
 
-  /* ---------------- brokering: two threads, linked, one relayed ---------------- */
+  /* ---------------- brokering: the relay pair, and the dual-role pair ---------------- */
+  /**
+   * Two different rules live here and the earlier version conflated them.
+   *
+   * It asserted "two broker threads" over the whole table and "linked both ways" over
+   * every row. Both held only while the relay pair was the only thing in the table; adding
+   * the dual-role organisation's own two threads broke them. The assertions were
+   * under-specified, not the new data — the same shape as the REQ-2291 shortlist checks.
+   *
+   * 1. A RELAY PAIR (ADR-008) is one client question and the redacted vendor question it
+   *    became. Those two are linked to each other, and `linked_thread_id` is ops-only.
+   * 2. A DUAL-ROLE ORG has one thread per side that are NOT linked — they are two
+   *    unrelated conversations that merely share a counterparty. Linking them would tell
+   *    ops they were one exchange, and mixing them would put messages about the roles the
+   *    org is filling into its bench workspace.
+   */
   const threads = await db
-    .select({ id: s.brokerThreads.id, side: s.brokerThreads.side, linked: s.brokerThreads.linkedThreadId })
-    .from(s.brokerThreads);
-  check("two broker threads, one per side", threads.length === 2);
-  check("the threads are linked both ways", threads.every((t) => t.linked !== null));
+    .select({
+      id: s.brokerThreads.id,
+      side: s.brokerThreads.side,
+      linked: s.brokerThreads.linkedThreadId,
+      orgName: s.organizations.name,
+    })
+    .from(s.brokerThreads)
+    .innerJoin(s.organizations, eq(s.organizations.id, s.brokerThreads.counterpartyOrgId));
+
+  const linkedPair = threads.filter((x) => x.linked !== null);
+  check("exactly one relay pair, linked both ways", linkedPair.length === 2,
+    linkedPair.map((x) => `${x.orgName}/${x.side}`).join(" <-> ") || "none");
+  check("the relay pair spans both sides",
+    new Set(linkedPair.map((x) => x.side)).size === 2,
+    linkedPair.map((x) => x.side).join(","));
+
+  const dualThreads = threads.filter((x) => x.orgName === "Cygnet Infotech Labs");
+  check("the dual-role org has one thread per side", dualThreads.length === 2,
+    dualThreads.map((x) => x.side).sort().join(",") || "none");
+  check("the dual-role org's two sides are NOT linked to each other",
+    dualThreads.every((x) => x.linked === null),
+    dualThreads.filter((x) => x.linked).map((x) => x.side).join(",") || "neither linked");
   const [{ n: relayed }] = await db
     .select({ n: sql<number>`count(*)::int` })
     .from(s.brokerMessages)

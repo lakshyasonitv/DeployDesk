@@ -426,7 +426,89 @@ export async function seedBrokerThreads(org: OrgSeed, res: ResourceSeed, demand:
     sentAt: hoursAgo(2),
   });
 
-  log(`  broker_threads: 2 (linked) · broker_messages: ${clientMsgs.length + 1} (1 relayed)`);
+  /* ------------------------- the dual-role org's TWO threads ------------- */
+
+  /**
+   * Cygnet Infotech Labs gets one thread per side, and this is the case the rule exists
+   * for.
+   *
+   * For every other organisation `counterparty_org_id` alone identifies the conversation:
+   * Acme is a client, Vertex is a vendor. For a dual-role organisation it does NOT — both
+   * threads below carry the SAME `counterparty_org_id`. Any query that filters only on the
+   * organisation returns both and mixes them, which would show Cygnet messages about its
+   * own bench candidates' rates inside its HIRING workspace, and messages about the roles
+   * it is trying to fill inside its BENCH workspace.
+   *
+   * So `side` is not decoration here, it is the discriminator, and every read path has to
+   * filter on it. `getClientBrokerThread` and `getVendorBrokerThread` both do, and
+   * tests/leak/dual-role-ui.test.ts asserts neither returns the other's messages.
+   *
+   * These two are deliberately NOT linked to each other. `linked_thread_id` means "this is
+   * the counterpart half of one relayed conversation" (ADR-008) — a client question and the
+   * vendor question it was redacted into. Cygnet's two threads are two unrelated
+   * conversations that happen to share a counterparty, and linking them would tell ops
+   * they were one exchange.
+   */
+  const cygnet = org.byName.get("Cygnet Infotech Labs")!;
+
+  /**
+   * Looked up from the database rather than from `demand.reqByCode`.
+   *
+   * REQ-2320 is created by src/db/seed/dual-role.ts, not by the demand module, so it is
+   * absent from that map. An earlier version fell back to `scope_type: 'general'` with a
+   * null `scope_requirement_id` while the label still read "REQ-2320 ·" — a row that named
+   * a requirement it was not actually scoped to. Small, but it is the kind of
+   * inconsistency that makes a later reader distrust the whole table.
+   */
+  const [cygReq] = await db
+    .select({ id: s.requirements.id })
+    .from(s.requirements)
+    .where(eq(s.requirements.code, "REQ-2320"))
+    .limit(1);
+  if (!cygReq) throw new Error("seedBrokerThreads: REQ-2320 missing; seed dual-role first");
+
+  const [cygHiring] = await db.insert(s.brokerThreads).values({
+    side: "client",
+    counterpartyOrgId: cygnet.id,
+    brokerUserId: org.priya.id,
+    scopeType: "requirement",
+    scopeRequirementId: cygReq.id,
+    scopeLabel: "REQ-2320 · Java Spring Boot Engineers",
+    status: "open",
+    lastMessageAt: hoursAgo(3),
+  }).returning();
+
+  const [cygBench] = await db.insert(s.brokerThreads).values({
+    side: "vendor",
+    counterpartyOrgId: cygnet.id,
+    brokerUserId: org.priya.id,
+    scopeType: "general",
+    scopeLabel: "Bench listings · availability",
+    status: "open",
+    lastMessageAt: hoursAgo(6),
+  }).returning();
+
+  const cygMsgs = await db.insert(s.brokerMessages).values([
+    {
+      threadId: cygHiring.id,
+      senderUserId: org.priya.id,
+      senderSide: "ops",
+      body: "Four profiles are with you for the Spring Boot roles. Bands already include the "
+        + "declared fee, so there is no markup to negotiate separately.",
+      sentAt: hoursAgo(3),
+    },
+    {
+      threadId: cygBench.id,
+      senderUserId: org.priya.id,
+      senderSide: "ops",
+      body: "Seventeen of your people are listed. Four need an availability confirmation this "
+        + "week or they drop out of matching.",
+      sentAt: hoursAgo(6),
+    },
+  ]).returning();
+
+  log(`  broker_threads: 4 · broker_messages: ${clientMsgs.length + 1 + cygMsgs.length} (1 relayed)`);
+  log(`    dual-role org has 2 threads, one per side, deliberately unlinked and never mixed`);
   return { clientThread, vendorThread };
 }
 

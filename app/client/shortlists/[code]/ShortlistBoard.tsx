@@ -26,7 +26,22 @@ function availabilityKind(label: string): keyof typeof AVAILABILITY_STYLE {
   return "notice";
 }
 
-export function ShortlistBoard({ view }: { view: ClientShortlistView }) {
+/**
+ * The client-side broker thread, already display-shaped by the read model.
+ *
+ * `getClientBrokerThread` does the formatting — it resolves "You" vs the broker's name and
+ * formats the time — because that decision depends on which side is reading, and that is a
+ * read-model concern, not a component one.
+ */
+export interface BrokerThreadView {
+  scopeLabel: string;
+  brokerName: string;
+  messages: Array<{ who: string; isMine: boolean; body: string; at: string }>;
+}
+
+export function ShortlistBoard({
+  view, thread,
+}: { view: ClientShortlistView; thread: BrokerThreadView | null }) {
   const [selected, setSelected] = useState<string[]>(
     view.candidates.filter((c) => c.decision === "selected").map((c) => c.maskedId),
   );
@@ -211,7 +226,7 @@ export function ShortlistBoard({ view }: { view: ClientShortlistView }) {
         ) : null}
       </div>
 
-      {askOpen ? <AskPanel context={askContext} brokerName={view.brokerName} onClose={() => setAskOpen(false)} /> : null}
+      {askOpen ? <AskPanel context={askContext} brokerName={view.brokerName} thread={thread} onClose={() => setAskOpen(false)} /> : null}
     </>
   );
 }
@@ -223,13 +238,25 @@ export function ShortlistBoard({ view }: { view: ClientShortlistView }) {
  * there is no shared thread and no path from here to the supplier (ADR-008).
  */
 function AskPanel({
-  context, brokerName, onClose,
-}: { context: string; brokerName: string; onClose: () => void }) {
+  context, brokerName, thread: initial, onClose,
+}: {
+  context: string;
+  brokerName: string;
+  thread: BrokerThreadView | null;
+  onClose: () => void;
+}) {
   const [draft, setDraft] = useState("");
-  const [thread, setThread] = useState<Array<{ who: string; body: string; mine: boolean; at: string }>>([
-    { who: brokerName, mine: false, at: "earlier",
-      body: "Shortlist is live — six masked profiles, all proctored in the last three weeks. Two of them clear your band and can start on the 15th." },
-  ]);
+  /**
+   * Seeded from the database, not from a literal.
+   *
+   * This used to open with one invented message ("Shortlist is live — six masked
+   * profiles…") while the real conversation sat unread in `broker_messages`. Sending still
+   * only appends locally — there is no write endpoint for a client message yet, and the
+   * panel says so rather than implying the broker received it.
+   */
+  const [thread, setThread] = useState<Array<{ who: string; body: string; mine: boolean; at: string }>>(
+    (initial?.messages ?? []).map((m) => ({ who: m.who, body: m.body, mine: m.isMine, at: m.at })),
+  );
 
   const send = () => {
     const body = draft.trim();
@@ -262,6 +289,12 @@ function AskPanel({
         </div>
 
         <div style={s("flex:1;overflow:auto;padding:15px 17px;display:flex;flex-direction:column;gap:10px")}>
+          {thread.length === 0 ? (
+            <div style={s("font-size:12.5px;color:var(--t4);line-height:1.6;padding:4px 0")}>
+              No messages yet. {brokerName} is your broker for this role — anything you ask
+              here reaches them and no one else.
+            </div>
+          ) : null}
           {thread.map((m, i) => (
             <div key={i} style={sx("display:flex;flex-direction:column;gap:3px", { alignItems: m.mine ? "flex-end" : "flex-start" })}>
               <div style={s("font-size:10px;color:var(--t4)")}>{m.who} · {m.at}</div>

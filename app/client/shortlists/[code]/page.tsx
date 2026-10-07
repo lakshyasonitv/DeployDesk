@@ -1,6 +1,6 @@
 import { Shell, EmptyState } from "@/src/lib/ui/Shell";
 import { getDemoSession, getShellNav } from "@/src/lib/auth/session";
-import { getClientShortlist } from "@/src/read-models/client";
+import { getClientShortlist, getClientBrokerThread } from "@/src/read-models/client";
 import { ShellAside } from "../../aside";
 import { ShortlistBoard } from "./ShortlistBoard";
 
@@ -22,8 +22,23 @@ export default async function ShortlistPage({
 
   // Tenancy is enforced inside the read model: it filters on client_org_id, so a
   // requirement belonging to another client simply does not exist from here.
-  const view = await getClientShortlist(session.orgId, code.toUpperCase());
-  const aside = await ShellAside(session.orgId);
+  /**
+   * The broker thread is fetched, not invented.
+   *
+   * The Ask panel used to seed itself with one hardcoded opening message written in the
+   * component, while real messages sat in `broker_messages` unread. For a dual-role
+   * organisation that matters more than cosmetics: "one thread per workspace, never mixed"
+   * cannot hold if the thread is a literal in the client bundle.
+   *
+   * `getClientBrokerThread` filters `side = 'client'`, which is the discriminator that
+   * keeps a dual-role org's hiring conversation separate from its bench one — both carry
+   * the same `counterparty_org_id`.
+   */
+  const [view, aside, thread] = await Promise.all([
+    getClientShortlist(session.orgId, code.toUpperCase()),
+    ShellAside(session.orgId),
+    getClientBrokerThread(session.orgId, code.toUpperCase()),
+  ]);
 
   if (!view) {
     return (
@@ -47,7 +62,7 @@ export default async function ShortlistPage({
       asideItems={aside.items}
       badges={aside.badges}
     >
-      <ShortlistBoard view={view} />
+      <ShortlistBoard view={view} thread={thread} />
     </Shell>
   );
 }

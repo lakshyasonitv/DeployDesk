@@ -30,8 +30,8 @@ import {
   availableSides, getOrgCapabilities, getMembershipRoles, workspaceTabs, isDualRole,
   requiredCapability,
 } from "../../src/lib/auth/workspace";
-import { getClientShortlist } from "../../src/read-models/client";
-import { getVendorRoster, getVendorOverview } from "../../src/read-models/vendor";
+import { getClientShortlist, getClientBrokerThread } from "../../src/read-models/client";
+import { getVendorRoster, getVendorOverview, getVendorBrokerThread } from "../../src/read-models/vendor";
 import { getOpsOrgDirectory } from "../../src/read-models/ops";
 
 interface Org { id: string; name: string }
@@ -340,5 +340,82 @@ describe("the ops org directory carries what only the broker may see", () => {
     for (const o of dir) {
       expect(o.isProbingSuspect).toBe(o.probingSuspectRequirements > 0);
     }
+  });
+});
+
+/* ====================================================================== */
+/*  One broker thread per workspace, never mixed                           */
+/* ====================================================================== */
+
+describe("a dual-role org's two broker threads never mix", () => {
+  /**
+   * This is the case the rule exists for, and it is the only case where it bites.
+   *
+   * For every other organisation `counterparty_org_id` alone identifies the conversation:
+   * Acme is a client, Vertex is a vendor. A dual-role organisation has TWO threads carrying
+   * the SAME counterparty id, so `side` is the discriminator — and a read path that filters
+   * only on the organisation would return both and mix them, putting messages about the
+   * roles Cygnet is trying to fill into its bench workspace.
+   */
+  it("gives each side its own thread, and they are different threads", async () => {
+    const [hiring, bench] = await Promise.all([
+      getClientBrokerThread(cygnet.id),
+      getVendorBrokerThread(cygnet.id),
+    ]);
+
+    expect(hiring).not.toBeNull();
+    expect(bench).not.toBeNull();
+
+    // Both must have content, or "no leakage" passes by both being empty.
+    expect(hiring!.messages.length).toBeGreaterThan(0);
+    expect(bench!.messages.length).toBeGreaterThan(0);
+
+    // Different conversations, not the same thread read twice.
+    expect(hiring!.scopeLabel).not.toBe(bench!.scopeLabel);
+  });
+
+  it("keeps each side's messages out of the other", async () => {
+    const [hiring, bench] = await Promise.all([
+      getClientBrokerThread(cygnet.id),
+      getVendorBrokerThread(cygnet.id),
+    ]);
+
+    const hiringBodies = hiring!.messages.map((m) => m.body);
+    const benchBodies = bench!.messages.map((m) => m.body);
+
+    for (const b of benchBodies) expect(hiringBodies).not.toContain(b);
+    for (const b of hiringBodies) expect(benchBodies).not.toContain(b);
+
+    // A vendor-side thread may only ever carry vendor and ops messages. A client's words
+    // reaching the bench workspace is the breach this guards.
+    for (const m of bench!.messages) {
+      expect(["vendor", "ops"]).toContain(m.senderSide);
+    }
+  });
+
+  it("never exposes the redaction note, which records what was removed", async () => {
+    const [hiring, bench] = await Promise.all([
+      getClientBrokerThread(cygnet.id),
+      getVendorBrokerThread(cygnet.id),
+    ]);
+    const payload = JSON.stringify({ hiring, bench });
+    expect(payload).not.toMatch(/redaction/i);
+    // Nor the linkage that tells ops two threads are halves of one relayed exchange.
+    expect(payload).not.toMatch(/linkedThread|linked_thread/i);
+  });
+
+  it("STILL WORKS for a single-sided org, so the filter is not refusing everything", async () => {
+    // The control. Acme hires only: it has a client thread and must have no vendor one.
+    const [acmeHiring, acmeBench] = await Promise.all([
+      getClientBrokerThread(acme.id),
+      getVendorBrokerThread(acme.id),
+    ]);
+    expect(acmeHiring).not.toBeNull();
+    expect(acmeHiring!.messages.length).toBeGreaterThan(0);
+    expect(acmeBench).toBeNull();
+
+    // And Nimbus supplies only: a bench thread is absent rather than borrowed from
+    // another organisation.
+    expect(await getVendorBrokerThread(nimbus.id)).toBeNull();
   });
 });

@@ -543,3 +543,86 @@ export async function getVendorSidebar(vendorOrgId: string) {
     } as Record<string, string | number | undefined>,
   };
 }
+
+
+/* ====================================================================== */
+/*  Broker thread — the vendor's own side, and only its own side           */
+/* ====================================================================== */
+
+export interface VendorBrokerMessage {
+  body: string;
+  senderSide: "vendor" | "ops";
+  sentAt: string;
+  senderName: string;
+}
+
+export interface VendorBrokerThread {
+  scopeLabel: string;
+  brokerName: string;
+  messages: VendorBrokerMessage[];
+}
+
+/**
+ * The vendor's conversation with its broker.
+ *
+ * `side = 'vendor'` is not a tidy-up, it is the discriminator that keeps a DUAL-ROLE
+ * organisation's two conversations apart. For every other organisation
+ * `counterparty_org_id` alone identifies the thread — but a company that both supplies and
+ * hires has two threads carrying the SAME counterparty id. Filtering on the organisation
+ * only would return both and mix them, putting messages about the roles it is trying to
+ * fill into its bench workspace.
+ *
+ * What this cannot return, structurally: there is no client column on `broker_threads`
+ * reachable from here, and `redaction_note` — the record of what ops stripped out of a
+ * relayed message — is never selected. A vendor reading the note would read the thing that
+ * was removed.
+ */
+export async function getVendorBrokerThread(
+  vendorOrgId: string,
+): Promise<VendorBrokerThread | null> {
+  const [thread] = await db
+    .select({
+      id: s.brokerThreads.id,
+      scopeLabel: s.brokerThreads.scopeLabel,
+      brokerName: s.users.fullName,
+    })
+    .from(s.brokerThreads)
+    .innerJoin(s.users, eq(s.users.id, s.brokerThreads.brokerUserId))
+    .where(and(
+      eq(s.brokerThreads.counterpartyOrgId, vendorOrgId),
+      // A vendor can only ever read its own side. See the note above.
+      eq(s.brokerThreads.side, "vendor"),
+    ))
+    .orderBy(desc(s.brokerThreads.lastMessageAt))
+    .limit(1);
+
+  if (!thread) return null;
+
+  const messages = await db
+    .select({
+      body: s.brokerMessages.body,
+      senderSide: s.brokerMessages.senderSide,
+      sentAt: s.brokerMessages.sentAt,
+      senderName: s.users.fullName,
+    })
+    .from(s.brokerMessages)
+    .innerJoin(s.users, eq(s.users.id, s.brokerMessages.senderUserId))
+    .where(eq(s.brokerMessages.threadId, thread.id))
+    .orderBy(asc(s.brokerMessages.sentAt));
+
+  return {
+    scopeLabel: thread.scopeLabel,
+    brokerName: thread.brokerName,
+    messages: messages
+      // A vendor-side thread should only ever carry vendor and ops messages. Filtering
+      // rather than trusting the data keeps a mis-seeded or mis-written row from leaking a
+      // client's words into the vendor's view.
+      .filter((m) => m.senderSide === "vendor" || m.senderSide === "ops")
+      .map((m) => ({
+        body: m.body,
+        senderSide: m.senderSide as "vendor" | "ops",
+        sentAt: m.sentAt.toISOString(),
+        senderName: m.senderName,
+      })),
+  };
+}
