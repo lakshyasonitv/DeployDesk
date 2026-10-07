@@ -58,30 +58,40 @@ export async function POST(req: Request) {
   const now = new Date();
   const ids = owned.map((r) => r.id);
 
-  await db.insert(s.availabilityConfirmations).values(
-    owned.map((r) => ({
-      resourceId: r.id, confirmedBy: session.userId, confirmedAt: now, method,
-    })),
-  );
+  /**
+   * The three writes are ONE TRANSACTION.
+   *
+   * Found by an audit still running as separate statements. A failure between the resource
+   * update and the audit insert would leave a profile marked fresh with no record of who
+   * confirmed it — and freshness is what decides whether that person can be matched at
+   * all, so a silent gap here changes who gets offered to clients.
+   */
+  await db.transaction(async (tx) => {
+    await tx.insert(s.availabilityConfirmations).values(
+      owned.map((r) => ({
+        resourceId: r.id, confirmedBy: session.userId, confirmedAt: now, method,
+      })),
+    );
 
-  await db.update(s.benchResources)
-    .set({ lastConfirmedAt: now, updatedAt: now })
-    .where(inArray(s.benchResources.id, ids));
+    await tx.update(s.benchResources)
+      .set({ lastConfirmedAt: now, updatedAt: now })
+      .where(inArray(s.benchResources.id, ids));
 
-  // Every state-changing action writes an audit row. No exceptions.
-  await db.insert(s.auditLog).values(
-    owned.map((r) => ({
-      actorId: session.userId,
-      actorOrgId: session.orgId,
-      action: "resource.availability_confirmed",
-      entityType: "bench_resource",
-      entityId: r.id,
-      before: { last_confirmed_at: r.lastConfirmedAt?.toISOString() ?? null },
-      after: { last_confirmed_at: now.toISOString() },
-      context: { method, source: "vendor_portal" },
-      occurredAt: now,
-    })),
-  );
+    // Every state-changing action writes an audit row. No exceptions.
+    await tx.insert(s.auditLog).values(
+      owned.map((r) => ({
+        actorId: session.userId,
+        actorOrgId: session.orgId,
+        action: "resource.availability_confirmed",
+        entityType: "bench_resource",
+        entityId: r.id,
+        before: { last_confirmed_at: r.lastConfirmedAt?.toISOString() ?? null },
+        after: { last_confirmed_at: now.toISOString() },
+        context: { method, source: "vendor_portal" },
+        occurredAt: now,
+      })),
+    );
+  });
 
   const f = freshnessFor(now, now);
   return NextResponse.json({

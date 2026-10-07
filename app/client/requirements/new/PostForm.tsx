@@ -20,7 +20,6 @@ const BANDS = [
   { key: "8+", label: "8y+" },
 ] as const;
 
-const SUGGESTED = ["GraphQL", "Next.js", "React Native", "Kafka", "AWS"];
 const LAKH = 100_000 * 100;
 
 interface Preview {
@@ -28,6 +27,21 @@ interface Preview {
   bars: Array<{ label: string; value: number | null; countLabel: string; pct: number }>;
   poolSize: number;
   note: string;
+}
+
+/**
+ * Quick-add chips come from the catalogue, never a literal list.
+ *
+ * There used to be a hardcoded `SUGGESTED` array here while the real 30-skill catalogue
+ * was already arriving as `availableSkills`. One of its entries — "Microservices" — is not
+ * in the catalogue at all, so clicking it showed a chip, let the form submit, and the API
+ * silently dropped it: the user believed they had tagged a skill that was never saved.
+ *
+ * Deriving the chips from `availableSkills` makes that impossible by construction. Nothing
+ * clickable can be a skill the API will refuse.
+ */
+function suggestionsFrom(available: string[], chosen: string[], limit = 6): string[] {
+  return available.filter((sk) => !chosen.includes(sk)).slice(0, limit);
 }
 
 export function PostForm({ availableSkills }: { availableSkills: string[] }) {
@@ -199,7 +213,7 @@ export function PostForm({ availableSkills }: { availableSkills: string[] }) {
               </datalist>
             </div>
             <div style={s("display:flex;flex-wrap:wrap;gap:5px;margin-top:8px")}>
-              {SUGGESTED.filter((sk) => !skills.includes(sk)).map((sk) => (
+              {suggestionsFrom(availableSkills, skills).map((sk) => (
                 <button key={sk} onClick={() => addSkill(sk)}
                   style={s("padding:3px 9px;border:1px solid var(--border-2);border-radius:6px;font-size:11px;background:var(--surface);cursor:pointer;color:var(--t3);font-family:inherit")}>
                   + {sk}
