@@ -40,19 +40,28 @@ const MIN_CHARS = 2;
 /**
  * Empty-state suggestions, per portal.
  *
- * These live here rather than in the search read model, and that is load-bearing: Shell is
- * imported by client components, so anything Shell imports is pulled into the BROWSER
- * bundle. Importing them from `src/read-models/search.ts` dragged the Postgres driver in
- * with them and the build failed on `Can't resolve 'fs'`. They are presentation copy, so
- * the UI layer is where they belong anyway.
+ * NOT exported, and NOT passed in as a prop. Both of those were bugs:
+ *
+ *  1. They started in `src/read-models/search.ts`. Shell imports Search, and Shell is
+ *     imported by client components, so that dragged the Postgres driver into the browser
+ *     bundle and the build failed on `Can't resolve 'fs'`.
+ *  2. Moving them here and exporting them was worse, because it crashed at RUNTIME.
+ *     This is a `"use client"` module, and **every export of a client module becomes a
+ *     client reference when a server component imports it** — so `SEARCH_EXAMPLES[portal]`
+ *     evaluated in Shell was `undefined`, arrived as `examples={undefined}`, and
+ *     `examples.map(...)` threw. That line only runs in the empty state, so the app
+ *     crashed on exactly the searches that found nothing.
+ *
+ * Keeping them private to this client component removes the boundary entirely.
  */
-export const SEARCH_EXAMPLES: Record<Portal, string[]> = {
+const SEARCH_EXAMPLES: Record<Portal, string[]> = {
   client: ["react", "bangalore", "REQ-2291"],
   vendor: ["java", "pune", "TV-4821"],
   ops: ["acme", "nimbus", "DUP-0148"],
 };
 
-export function Search({ portal, examples }: { portal: Portal; examples: string[] }) {
+export function Search({ portal }: { portal: Portal }) {
+  const examples = SEARCH_EXAMPLES[portal];
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<Hit[] | null>(null);
   const [loading, setLoading] = useState(false);

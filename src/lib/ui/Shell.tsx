@@ -11,7 +11,7 @@ import type { WorkspaceTab } from "../auth/workspace";
 import { ThemeToggle } from "./ThemeToggle";
 import { DeployDeskLogo } from "./DeployDeskLogo";
 import { ToastProvider } from "./Toast";
-import { Search, SEARCH_EXAMPLES } from "./Search";
+import { Search } from "./Search";
 import { HowItWorks } from "./HowItWorks";
 
 /**
@@ -186,7 +186,7 @@ export function Shell({
           to be taught. The product owner's words on ⌘K were "what does that even mean".
           There is now no shortcut and no modal: type, and results appear underneath.
         */}
-        <Search portal={portal} examples={SEARCH_EXAMPLES[portal]} />
+        <Search portal={portal} />
 
         <div style={s("padding:0 12px 6px;font-size:10.5px;font-weight:700;letter-spacing:.09em;color:var(--t4)")}>
           {GROUP_LABEL[portal]}
