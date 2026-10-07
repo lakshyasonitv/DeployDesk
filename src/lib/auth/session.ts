@@ -49,6 +49,16 @@ export interface DemoSession {
   orgName: string;
   userId: string;
   userName: string;
+  /**
+   * The raw `user_role` enum value — `broker`, `ops_admin`, `hiring_manager` and so on.
+   *
+   * **Never render this.** Six ops pages used to show `${orgName} · ${role}`, which put
+   * the literal database value in the top bar: "Talentvibes · broker", and it would have
+   * read "Talentvibes · ops_admin" for an admin. The top bar now shows the organisation
+   * alone, exactly as the client and vendor portals always did, so no one is labelled with
+   * a job title the product invented for them. Kept on the session because it is real data
+   * and an authorisation check is its proper consumer.
+   */
   role: string;
 }
 
@@ -251,7 +261,7 @@ export interface DemoIdentity {
   orgId: string;
   orgName: string;
   href: string;
-  /** "Supplies", "Hires", "Both sides" or "Broker" — what this org may do. */
+  /** "Supplies", "Hires", "Both sides" or "Full access" — what this org may do. */
   role: string;
   active: boolean;
 }
@@ -275,6 +285,15 @@ export async function getShellNav(session: DemoSession): Promise<{
    * production, where a user has exactly one organisation and no portal choice at all.
    */
   const identities = rows
+    /**
+     * Talentvibes last: it is the internal console, not a party to the exchange.
+     *
+     * Sorted on `isOps`, NOT on the display label. The sort used to compare
+     * `a.role === "Broker"`, so renaming that label would have silently stopped
+     * Talentvibes being listed last — no error, no failing test, just a wrong order.
+     */
+    .slice()
+    .sort((a, b) => Number(a.isOps) - Number(b.isOps))
     .map((r) => {
       const landing = r.isOps ? "/ops" : r.canHire && !r.canSupply ? "/client" : "/vendor";
       return {
@@ -282,14 +301,12 @@ export async function getShellNav(session: DemoSession): Promise<{
         orgName: r.orgName,
         href: `/demo/act-as?org=${r.orgId}&to=${landing}`,
         role: r.isOps
-          ? "Broker"
+          ? "Full access"
           : r.canSupply && r.canHire ? "Both sides"
           : r.canSupply ? "Supplies" : "Hires",
         active: r.orgId === session.orgId,
       };
-    })
-    // Broker last: it is the internal console, not a party to the exchange.
-    .sort((a, b) => Number(a.role === "Broker") - Number(b.role === "Broker"));
+    });
 
   return { identities, workspaces };
 }

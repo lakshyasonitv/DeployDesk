@@ -28,8 +28,8 @@ export default async function ClientRequirementsPage() {
       <Scroll>
         <div style={s("background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden")}>
           <div style={sx("display:grid;padding:9px 15px;background:var(--surface-2);border-bottom:1px solid var(--border)", { gridTemplateColumns: COLS, gap: "10px" })}>
-            {["REQ", "ROLE", "QTY", "BUDGET/MO", "STAGE", "POSTED", "ACTION"].map((h) => (
-              <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--t4)", { fontFamily: TOKENS.mono })}>{h}</div>
+            {["REQ", "ROLE", "HOW MANY", "BUDGET / MONTH", "STAGE", "POSTED", "ACTION"].map((h) => (
+              <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--t4);white-space:nowrap", { fontFamily: TOKENS.mono })}>{h}</div>
             ))}
           </div>
           {rows.map((r) => {
@@ -76,7 +76,7 @@ export default async function ClientRequirementsPage() {
               ))}
             </div>
             <div style={s("font-size:10.5px;color:var(--t4);margin-top:9px")}>
-              These notes are shared with your Talentvibes broker only. They are never passed to a
+              These notes are shared with your Talentvibes team only. They are never passed to a
               supplier.
             </div>
           </div>

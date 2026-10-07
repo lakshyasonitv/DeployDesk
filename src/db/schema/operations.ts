@@ -86,7 +86,7 @@ export const extensionStatus = pgEnum("extension_status", [
  *
  * `with_supplier` is a real state, not a nicety: Talentvibes has to confirm the person is
  * still released by their employer before promising the client anything, and during that
- * window the client is shown "your broker is confirming" and never the supplier's name.
+ * window the client is shown "your Talentvibes team is confirming" and never the supplier's name.
  *
  * There is deliberately NO rate column. An extension at a new rate is a renegotiation, and
  * the client rate and vendor rate are set independently by ops — a single `rate` field here

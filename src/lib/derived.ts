@@ -48,7 +48,7 @@ export function freshnessFor(lastConfirmedAt: Date | null, now: Date = new Date(
   const decayBarWidthPct = Math.max(6, (1 - Math.min(days, 28) / 28) * 100);
   const label =
     state === "confirmed" ? `Confirmed ${days}d`
-    : state === "expiring_soon" ? `Expiring ${14 - days}d`
+    : state === "expiring_soon" ? `Expiring in ${14 - days}d`
     : `Unconfirmed ${days}d`;
   return { state, days, decayBarWidthPct, label, eligibleForMatching: state !== "unconfirmed" };
 }

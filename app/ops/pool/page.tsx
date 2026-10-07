@@ -13,7 +13,7 @@ import { OpsAside } from "../aside";
  */
 export const metadata = { title: "Talent pool · DeployDesk" };
 
-const COLS = "158px 148px 1fr 58px 74px 108px 108px 96px 126px";
+const COLS = "158px 148px 1fr 74px 74px 108px 108px 96px 126px";
 
 const FRESHNESS_PILL = {
   confirmed: { bg: "var(--ok-tint)", fg: "var(--ok)" },
@@ -29,10 +29,10 @@ const FRESHNESS_PILL = {
 const CHIPS = [
   { label: "Skill", active: false },
   { label: "Experience", active: false },
-  { label: "Score", active: false },
-  { label: "Freshness", active: false },
+  { label: "Test score", active: false },
+  { label: "Last confirmed", active: false },
   { label: "City", active: false },
-  { label: "Supplier", active: false },
+  { label: "Employer", active: false },
   { label: "Vendor rate", active: false },
 ];
 
@@ -48,7 +48,7 @@ export default async function PoolPage() {
   const withScores = pool.results.filter((r) => r.score != null).length;
 
   return (
-    <Shell portal="ops" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: `${session.orgName} · ${session.role}` }} activeKey="pool" asideTitle="TODAY'S QUEUE" asideItems={aside.items} badges={aside.badges}>
+    <Shell portal="ops" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }} activeKey="pool" asideTitle="TODAY'S QUEUE" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Talent pool"
         subtitle={`${pool.poolTotal} profiles across the exchange · unmasked · ${withScores} of the ${pool.resultCount} shown have a proctored score`}
@@ -76,8 +76,8 @@ export default async function PoolPage() {
 
       <div style={s("flex:1;overflow:auto")}>
         <div style={sx("display:grid;padding:9px 26px;background:var(--surface-2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:2", { gridTemplateColumns: COLS, gap: "10px" })}>
-          {["NAME", "SUPPLIER", "SKILLS", "EXP", "SCORE", "VENDOR RATE", "CLIENT RATE", "CITY", "FRESHNESS"].map((h) => (
-            <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--t4)", { fontFamily: TOKENS.mono })}>{h}</div>
+          {["NAME", "EMPLOYER", "SKILLS", "EXPERIENCE", "TEST SCORE", "VENDOR RATE", "CLIENT RATE", "CITY", "LAST CONFIRMED"].map((h) => (
+            <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--t4);white-space:nowrap", { fontFamily: TOKENS.mono })}>{h}</div>
           ))}
         </div>
 
@@ -94,7 +94,7 @@ export default async function PoolPage() {
                 <div style={s("font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>{r.vendorName}</div>
                 <div style={s("display:flex;align-items:center;gap:5px;margin-top:2px")}>
                   <span style={sx("width:5px;height:5px;border-radius:50%", { background: rel >= 4 ? "var(--ok)" : rel >= 3.5 ? "var(--warn)" : "var(--danger)" })} />
-                  <span style={s("font-size:10px;color:var(--t4)")}>rel {r.vendorReliability}</span>
+                  <span style={s("font-size:10px;color:var(--t4)")}>reliability {r.vendorReliability}</span>
                 </div>
               </div>
               <div style={s("display:flex;flex-wrap:wrap;gap:3px;min-width:0")}>

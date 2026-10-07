@@ -70,7 +70,7 @@ const CONTENT: Record<Portal, { title: string; intro: string; sections: Section[
           + "suppliers the people came from, you deal with us.",
       },
       {
-        heading: "Your broker",
+        heading: "Your Talentvibes team",
         body: "A named person at Talentvibes owns your account. Anything you ask on a "
           + "shortlist goes to them and to nobody else — not to the supplier, and never "
           + "with your name attached.",

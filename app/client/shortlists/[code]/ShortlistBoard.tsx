@@ -296,7 +296,7 @@ export function ShortlistBoard({
                   </button>
                   <button
                     onClick={() => { setAskContext(`${c.maskedId} · ${view.roleTitle}`); setAskOpen(true); }}
-                    title="Ask your broker about this candidate"
+                    title="Ask your Talentvibes team about this candidate"
                     style={s("width:30px;padding:7px 0;border:1px solid var(--border-2);border-radius:7px;font-size:11.5px;font-weight:700;background:var(--surface);cursor:pointer;color:var(--brand);font-family:inherit")}
                   >
                     ?
@@ -314,7 +314,7 @@ export function ShortlistBoard({
               {initials(view.brokerName)}
             </div>
             <div style={s("flex:1;min-width:0")}>
-              <span style={s("font-size:12.5px;font-weight:700")}>{view.brokerName}, your broker:</span>
+              <span style={s("font-size:12.5px;font-weight:700")}>{view.brokerName}:</span>
               <span style={s("font-size:12.5px;color:var(--t2);line-height:1.55")}> “{view.brokerNote}”</span>
             </div>
             <button
@@ -392,7 +392,7 @@ function AskPanel({
         <div style={s("flex:1;overflow:auto;padding:15px 17px;display:flex;flex-direction:column;gap:10px")}>
           {thread.length === 0 ? (
             <div style={s("font-size:12.5px;color:var(--t4);line-height:1.6;padding:4px 0")}>
-              No messages yet. {brokerName} is your broker for this role — anything you ask
+              No messages yet. {brokerName} looks after this role for you — anything you ask
               here reaches them and no one else.
             </div>
           ) : null}
@@ -424,7 +424,7 @@ function AskPanel({
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") send(); }}
-              placeholder="Message your broker…"
+              placeholder="Message your Talentvibes team…"
               style={s("flex:1;padding:9px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:12.5px;font-family:inherit;outline:none")}
             />
             <button onClick={send}

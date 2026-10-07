@@ -38,7 +38,7 @@ export default async function ClientDashboard() {
     <Shell portal="client" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }} activeKey="overview" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title={`Good morning, ${overview.greetingName}`}
-        subtitle={`${overview.orgName} · ${overview.stats.openRequirements} open requirements · your broker ${overview.brokerName} responds in ~2h`}
+        subtitle={`${overview.orgName} · ${overview.stats.openRequirements} open requirements · your Talentvibes team replies in ~2h`}
         actions={<><Button>Ask Talentvibes</Button><Button primary href="/client/requirements/new">Post a requirement</Button></>}
       />
       <Scroll>
@@ -60,8 +60,8 @@ export default async function ClientDashboard() {
               <SectionLabel>OPEN REQUIREMENTS</SectionLabel>
             </div>
             <div style={sx("display:grid;padding:8px 15px;background:var(--surface-2);border-bottom:1px solid var(--border)", { gridTemplateColumns: TABLE_COLS, gap: "10px" })}>
-              {["REQ", "ROLE", "QTY", "BUDGET/MO", "STAGE", "ACTION"].map((h) => (
-                <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--t4)", { fontFamily: TOKENS.mono })}>{h}</div>
+              {["REQ", "ROLE", "HOW MANY", "BUDGET / MONTH", "STAGE", "ACTION"].map((h) => (
+                <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--t4);white-space:nowrap", { fontFamily: TOKENS.mono })}>{h}</div>
               ))}
             </div>
             {overview.openRequirements.map((r) => {
@@ -91,7 +91,7 @@ export default async function ClientDashboard() {
             })}
             {overview.openRequirements.length === 0 ? (
               <div style={s("padding:26px;text-align:center;color:var(--t4);font-size:12.5px")}>
-                No open requirements. Post one and your broker starts sourcing.
+                No open requirements. Post one and your Talentvibes team starts sourcing.
               </div>
             ) : null}
           </div>

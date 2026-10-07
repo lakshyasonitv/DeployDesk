@@ -154,7 +154,7 @@ export function PostForm({ availableSkills }: { availableSkills: string[] }) {
 
       toast({
         message: stage === "new"
-          ? `${out.code} is with your broker. First profiles usually arrive within ${out.slaHours ?? 36} hours.${ignored}`
+          ? `${out.code} is with your Talentvibes team. First profiles usually arrive within ${out.slaHours ?? 36} hours.${ignored}`
           : `${out.code} saved as a draft.${ignored}`,
         // Real undo: cancels the role and writes a second audit row. The endpoint refuses
         // once a broker has moved it past `new`, which the toast surfaces as an error.
@@ -303,16 +303,16 @@ export function PostForm({ availableSkills }: { availableSkills: string[] }) {
               })}
             </div>
           </Field>
-          <Field label="Note for your broker">
+          <Field label="Note for your Talentvibes team">
             <textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="Anything that would help us pick the right people. Only your broker sees this."
+              placeholder="Anything that would help us pick the right people. Only your Talentvibes team sees this."
               rows={3}
               style={s("width:100%;padding:9px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:12px;font-family:inherit;outline:none;resize:vertical;line-height:1.5")}
             />
             <div style={s("font-size:10.5px;color:var(--t4);margin-top:5px")}>
-              Shared with your broker only. Never passed to a supplier.
+              Shared with your Talentvibes team only. Never passed to a supplier.
             </div>
           </Field>
         </Group>

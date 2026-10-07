@@ -138,15 +138,15 @@ export function RosterTable({
             })}
           </div>
           <div style={sx("font-size:10.5px;color:var(--t4);flex:none", { fontFamily: TOKENS.mono })}>
-            Freshness recalculated nightly · 02:00 IST
+            Rechecked every night at 02:00 IST
           </div>
         </div>
       </div>
 
       <div style={s("flex:1;overflow:auto")}>
         <div style={sx("display:grid;padding:9px 26px;background:var(--surface-2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:2", { gridTemplateColumns: COLS, gap: "12px" })}>
-          {["RESOURCE", "SKILLS", "EXP", "YOUR RATE", "ASSESSMENT", "AVAILABILITY FRESHNESS", "CONFIRM"].map((h) => (
-            <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
+          {["NAME", "SKILLS", "EXPERIENCE", "YOUR RATE", "ASSESSMENT", "LAST CONFIRMED", "CONFIRM"].map((h) => (
+            <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--t4);white-space:nowrap", { fontFamily: TOKENS.mono })}>
               {h}
             </div>
           ))}

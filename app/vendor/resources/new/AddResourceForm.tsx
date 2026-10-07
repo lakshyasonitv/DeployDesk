@@ -171,7 +171,7 @@ export function AddResourceForm({
           <div style={s("font-size:11.5px;color:var(--teal);line-height:1.6")}>
             Clients will see this profile as <strong style={s("font-weight:700")}>TV-####</strong>{" "}
             only. The name and {vendorName} are never exposed — not on the shortlist card, not in a
-            broker message, not in an interview invitation.
+            message from Talentvibes, not in an interview invitation.
           </div>
         </div>
       </Group>

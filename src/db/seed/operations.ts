@@ -122,7 +122,7 @@ export async function seedOperations(org: OrgSeed) {
   /**
    * One request, left at `with_supplier`.
    *
-   * That state is the one worth demonstrating: the client sees "your broker is confirming"
+   * That state is the one worth demonstrating: the client sees "your Talentvibes team is confirming"
    * while ops checks the person is still released by their employer, and it is the window
    * in which the client must NOT be shown the supplier's name.
    */

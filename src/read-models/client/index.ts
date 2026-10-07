@@ -278,7 +278,7 @@ export async function getClientOverview(
   return {
     greetingName: viewerName.split(" ")[0],
     orgName: org?.name ?? "",
-    brokerName: accountOwner?.fullName ?? "your Talentvibes broker",
+    brokerName: accountOwner?.fullName ?? "Your Talentvibes team",
     stats: {
       openRequirements: reqs.length,
       positions: reqs.reduce((a, r) => a + r.quantity, 0),

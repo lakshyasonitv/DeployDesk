@@ -28,7 +28,7 @@ export default async function MarginPage() {
   );
 
   return (
-    <Shell portal="ops" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: `${session.orgName} · ${session.role}` }} activeKey="margin" asideTitle="TODAY'S QUEUE" asideItems={aside.items} badges={aside.badges}>
+    <Shell portal="ops" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }} activeKey="margin" asideTitle="TODAY'S QUEUE" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Margin"
         subtitle="Vendor rate, client rate and spread on every live placement · visible to Talentvibes only"
@@ -60,7 +60,7 @@ export default async function MarginPage() {
 
         <div style={s("margin-top:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden")}>
           <div style={sx("display:grid;padding:9px 15px;background:var(--surface-2);border-bottom:1px solid var(--border)", { gridTemplateColumns: COLS, gap: "10px" })}>
-            {["RESOURCE","CLIENT","ROLE","VENDOR RATE","CLIENT RATE","SPREAD","MARGIN"].map((h, i) => (
+            {["NAME","CLIENT","ROLE","VENDOR RATE","CLIENT RATE","SPREAD","MARGIN"].map((h, i) => (
               <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--t4)", { fontFamily: TOKENS.mono, textAlign: i >= 3 ? "right" : "left" })}>{h}</div>
             ))}
           </div>

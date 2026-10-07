@@ -56,7 +56,7 @@ export default async function MatchingPage({ params }: { params: Promise<{ code:
     }));
 
   return (
-    <Shell portal="ops" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: `${session.orgName} · ${session.role}` }} activeKey="matching" asideTitle="TODAY'S QUEUE"
+    <Shell portal="ops" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }} activeKey="matching" asideTitle="TODAY'S QUEUE"
       asideItems={aside.items} badges={aside.badges}>
       <Workspace
         requirement={workspace.requirement}

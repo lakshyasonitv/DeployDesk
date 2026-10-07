@@ -42,7 +42,7 @@ export default async function VendorDashboard() {
   const expiring = o.freshness.find((f) => f.label === "Expiring")?.n ?? 0;
 
   return (
-    <Shell portal="vendor" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }} activeKey="overview" asideTitle="FRESHNESS ALERTS" asideItems={aside.items} badges={aside.badges}>
+    <Shell portal="vendor" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }} activeKey="overview" asideTitle="NEEDS CONFIRMING" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title={`${o.orgName} · bench`}
         subtitle={`Supplier ID ${o.vendorCode} · reliability score ${o.reliability}/5 · ${o.placements} placements to date`}
@@ -92,8 +92,8 @@ export default async function VendorDashboard() {
               </div>
             </div>
             <div style={sx("display:grid;padding:8px 15px;background:var(--surface-2);border-bottom:1px solid var(--border)", { gridTemplateColumns: PIPE_COLS, gap: "10px" })}>
-              {["RESOURCE", "SKILLS", "YOUR RATE", "STAGE", "UPDATED"].map((h) => (
-                <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--t4)", { fontFamily: TOKENS.mono })}>{h}</div>
+              {["REFERENCE", "SKILLS", "YOUR RATE", "STAGE", "UPDATED"].map((h) => (
+                <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--t4);white-space:nowrap", { fontFamily: TOKENS.mono })}>{h}</div>
               ))}
             </div>
             {o.pipeline.map((p) => {
@@ -132,7 +132,7 @@ export default async function VendorDashboard() {
           <div style={s("display:flex;flex-direction:column;gap:14px")}>
             <div style={s("background:var(--surface);border:1px solid var(--warn-tint);border-radius:12px;padding:13px")}>
               <div style={s("display:flex;align-items:center;justify-content:space-between;margin-bottom:8px")}>
-                <SectionLabel>AVAILABILITY FRESHNESS</SectionLabel>
+                <SectionLabel>LAST CONFIRMED</SectionLabel>
                 <Pill bg="var(--warn-tint)" fg="var(--warn)">ACTION NEEDED</Pill>
               </div>
               <div style={s("font-size:11.5px;color:var(--t2);line-height:1.55")}>

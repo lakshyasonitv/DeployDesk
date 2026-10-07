@@ -95,7 +95,7 @@ export function FeedbackCard({
       if (!res.ok) {
         const body = await res.json().catch(() => null);
         throw new Error(body?.error === "already_relayed"
-          ? "Your broker has already passed this on, so it cannot be changed."
+          ? "Your Talentvibes team has already passed this on, so it cannot be changed."
           : "Could not save.");
       }
       const out = await res.json() as {
@@ -104,7 +104,7 @@ export function FeedbackCard({
 
       toast({
         message: kind === "submit"
-          ? `Feedback on ${maskedId} sent to your broker.`
+          ? `Feedback on ${maskedId} sent to your Talentvibes team.`
           : `Draft saved for ${maskedId}. It still shows as due.`,
         /**
          * Restores exactly what was there before, which the endpoint returns as
@@ -189,11 +189,11 @@ export function FeedbackCard({
         value={notes}
         onChange={(e) => setNotes(e.target.value)}
         rows={3}
-        placeholder="What stood out, and anything your broker should know."
+        placeholder="What stood out, and anything your Talentvibes team should know."
         style={s("width:100%;margin-top:12px;padding:9px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:12px;font-family:inherit;outline:none;resize:vertical;line-height:1.5")}
       />
       <div style={s("font-size:10.5px;color:var(--t4);margin-top:5px;line-height:1.5")}>
-        Goes to your broker as written. They send the supplier a shortened version — your
+        Goes to your Talentvibes team as written. They send the supplier a shortened version — your
         note is never passed on word for word.
       </div>
 
@@ -236,7 +236,7 @@ export function FeedbackCard({
             opacity: busy ? 0.6 : 1,
           })}
         >
-          {busy === "submit" ? "Sending…" : "Send to your broker"}
+          {busy === "submit" ? "Sending…" : "Send to your Talentvibes team"}
         </button>
         <button
           type="button"

@@ -42,7 +42,7 @@ export default async function OrganisationsPage() {
       portal="ops"
       identities={nav.identities}
       workspaces={nav.workspaces}
-      user={{ name: session.userName, org: `${session.orgName} · ${session.role}` }}
+      user={{ name: session.userName, org: session.orgName }}
       activeKey="organisations"
       asideTitle="TODAY'S QUEUE"
       asideItems={aside.items}

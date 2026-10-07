@@ -45,7 +45,7 @@ export default async function ShortlistPage({
       <Shell portal="client" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }} activeKey="shortlists" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
         <div style={{ padding: "26px" }}>
           <EmptyState>
-            No shortlist has been sent for {code.toUpperCase()} yet. Your broker will deliver
+            No shortlist has been sent for {code.toUpperCase()} yet. Your Talentvibes team will deliver
             masked profiles here.
           </EmptyState>
         </div>

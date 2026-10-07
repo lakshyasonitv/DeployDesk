@@ -25,7 +25,7 @@ export default async function RosterPage() {
     <Shell
       portal="vendor" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }}
       activeKey="roster"
-      asideTitle="FRESHNESS ALERTS"
+      asideTitle="NEEDS CONFIRMING"
       asideItems={aside.items}
       badges={aside.badges}
     >

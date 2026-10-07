@@ -122,7 +122,7 @@ export async function POST(req: Request) {
       bar("Available now", startSoon, onBench),
     ],
     poolSize: onBench,
-    note: "Counts only. Identities, suppliers and rates stay hidden until your broker sends a shortlist.",
+    note: "Counts only. Identities, suppliers and rates stay hidden until your Talentvibes team sends a shortlist.",
   });
 }
 

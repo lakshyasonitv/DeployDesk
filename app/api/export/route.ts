@@ -109,7 +109,7 @@ export async function GET(req: Request) {
     // `rateLabel` is what the client is charged. There is no supplier column and no vendor
     // rate to put in one — the read model has neither.
     const csv = toCsv(
-      ["Reference", "Role", "Since", "Status", "Your rate"],
+      ["Reference", "Role", "Working since", "Status", "Your monthly rate"],
       o.engagements.map((g) => [g.maskedId, g.roleTitle, g.sinceLabel, g.status, g.rateLabel]),
     );
     return csvResponse(`deploydesk-people-working-${today()}.csv`, csv);
@@ -131,7 +131,7 @@ export async function GET(req: Request) {
    * before deciding what it may include.
    */
   const csv = toCsv(
-    ["Reference", "Name", "Role", "Supplier", "Vendor rate", "Client rate", "Spread", "Margin %", "Status", "Below floor"],
+    ["Reference", "Name", "Role", "Employer", "Vendor rate", "Client rate", "Spread", "Margin %", "Status", "Below floor"],
     m.rows.map((r) => [
       r.maskedId, r.fullName, r.roleTitle, r.vendorName,
       r.vendorRateLabel, r.clientRateLabel, r.spreadLabel, r.pctLabel,

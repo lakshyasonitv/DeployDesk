@@ -46,8 +46,8 @@ export default async function ClientEngagementsPage() {
 
         <div style={s("margin-top:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden")}>
           <div style={sx("display:grid;padding:9px 15px;background:var(--surface-2);border-bottom:1px solid var(--border)", { gridTemplateColumns: COLS, gap: "10px" })}>
-            {["RESOURCE", "ROLE", "SINCE", "YOUR RATE/MO", "STATUS"].map((h) => (
-              <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--t4)", { fontFamily: TOKENS.mono })}>{h}</div>
+            {["REFERENCE", "ROLE", "WORKING SINCE", "YOUR MONTHLY RATE", "STATUS"].map((h) => (
+              <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--t4);white-space:nowrap", { fontFamily: TOKENS.mono })}>{h}</div>
             ))}
           </div>
           {overview.engagements.map((e) => {

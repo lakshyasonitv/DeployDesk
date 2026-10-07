@@ -36,7 +36,7 @@ export default async function VendorAssessmentsPage() {
   ]);
 
   return (
-    <Shell portal="vendor" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }} activeKey="assessments" asideTitle="FRESHNESS ALERTS" asideItems={aside.items} badges={aside.badges}>
+    <Shell portal="vendor" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }} activeKey="assessments" asideTitle="NEEDS CONFIRMING" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Skill tests"
         subtitle="Proctored by Talentvibes. Scores are visible to you and to clients — you cannot edit them."

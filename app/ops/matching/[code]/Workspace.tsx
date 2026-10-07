@@ -409,7 +409,7 @@ export function Workspace({
                         <Detail k="CITY" v={c.city} />
                         <Detail k="NOTICE" v={c.noticeLabel} />
                         <Detail k="PROCTORED" v={c.assessment.overall != null ? `${c.assessment.overall}${c.assessment.testedOn ? ` · ${c.assessment.testedOn}` : ""}` : c.assessment.status.replace("_", " ")} />
-                        <Detail k="FRESHNESS" v={c.freshnessLabel} />
+                        <Detail k="LAST CONFIRMED" v={c.freshnessLabel} />
                         <Detail k="VENDOR RELIABILITY" v={`${c.vendorReliability} / 5`} />
                         <Detail k="VENDOR RATE" v={c.vendorRateLabel} />
                         <Detail k="PROPOSED CLIENT RATE" v={c.proposedClientRateLabel} />

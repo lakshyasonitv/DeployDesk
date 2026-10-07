@@ -20,7 +20,7 @@ export default async function ShortlistsIndex() {
     <Shell portal="client" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }} activeKey="shortlists" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Candidate shortlists"
-        subtitle="Masked profiles sent to you by your broker. You see skills, scores and a rate range — names, photos and supplier companies stay hidden."
+        subtitle="Masked profiles sent to you by your Talentvibes team. You see skills, scores and a rate range — names, photos and supplier companies stay hidden."
         actions={<Button>Ask Talentvibes</Button>}
       />
       <Scroll>
@@ -61,7 +61,7 @@ export default async function ShortlistsIndex() {
 
         {overview.awaitingReview.length === 0 ? (
           <div style={s("background:var(--surface);border:1px dashed var(--border-2);border-radius:12px;padding:34px;text-align:center;color:var(--t4);font-size:12.5px")}>
-            No shortlists waiting. Your broker delivers masked profiles here, typically within 36
+            No shortlists waiting. Your Talentvibes team delivers masked profiles here, typically within 36
             hours of posting a requirement.
           </div>
         ) : null}

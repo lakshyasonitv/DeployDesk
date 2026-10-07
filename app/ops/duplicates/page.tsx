@@ -40,7 +40,7 @@ export default async function DuplicatesPage() {
   const secondary = flags.filter((f) => !f.blocks);
 
   return (
-    <Shell portal="ops" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: `${session.orgName} · ${session.role}` }} activeKey="duplicates" asideTitle="TODAY'S QUEUE" asideItems={aside.items} badges={aside.badges}>
+    <Shell portal="ops" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }} activeKey="duplicates" asideTitle="TODAY'S QUEUE" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Duplicate checks"
         subtitle="Same person submitted by two suppliers · resolve before a shortlist goes out"
