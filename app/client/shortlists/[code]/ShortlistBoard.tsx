@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/src/lib/ui/Toast";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
 import { Pill, ScoreBars } from "@/src/lib/ui/Shell";
 import type { ClientShortlistView } from "@/src/read-models/client";
@@ -53,12 +55,106 @@ export function ShortlistBoard({
     `${view.requirementCode} · ${view.roleTitle}`,
   );
 
-  const toggle = (id: string) =>
-    setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-  const pass = (id: string) => {
-    setPassed((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-    setSelected((prev) => prev.filter((x) => x !== id));
-  };
+  const router = useRouter();
+  const toast = useToast();
+  const [busy, setBusy] = useState(false);
+
+  /**
+   * Every decision now persists.
+   *
+   * These used to be local state only, so a refresh threw away whatever the client had
+   * chosen and the broker never saw any of it — on the one screen the whole brokered flow
+   * turns on. The optimistic update is kept so the card responds instantly, and is rolled
+   * back if the write fails rather than leaving the screen disagreeing with the database.
+   */
+  async function decide(id: string, decision: "pending" | "selected" | "passed") {
+    const prevSelected = selected;
+    const prevPassed = passed;
+
+    // optimistic
+    if (decision === "selected") {
+      setSelected((p) => (p.includes(id) ? p : [...p, id]));
+      setPassed((p) => p.filter((x) => x !== id));
+    } else if (decision === "passed") {
+      setPassed((p) => (p.includes(id) ? p : [...p, id]));
+      setSelected((p) => p.filter((x) => x !== id));
+    } else {
+      setSelected((p) => p.filter((x) => x !== id));
+      setPassed((p) => p.filter((x) => x !== id));
+    }
+
+    try {
+      const res = await fetch("/api/client/shortlists/decide", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          action: "decide",
+          requirementCode: view.requirementCode,
+          maskedId: id,
+          decision,
+        }),
+      });
+      if (!res.ok) throw new Error("save failed");
+      router.refresh();
+    } catch {
+      setSelected(prevSelected);
+      setPassed(prevPassed);
+      toast({ tone: "error", message: `Could not save your decision on ${id}.` });
+    }
+  }
+
+  const toggle = (id: string) => decide(id, selected.includes(id) ? "pending" : "selected");
+  const pass = (id: string) => decide(id, passed.includes(id) ? "pending" : "passed");
+
+  /** Asks Talentvibes to arrange round 1 for everyone currently selected. */
+  async function requestInterviews() {
+    if (!selected.length || busy) return;
+    setBusy(true);
+    const asked = [...selected];
+    try {
+      const res = await fetch("/api/client/shortlists/decide", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          action: "request_interviews",
+          requirementCode: view.requirementCode,
+          maskedIds: asked,
+        }),
+      });
+      if (!res.ok) throw new Error("request failed");
+      const out = await res.json() as { requested: string[]; alreadyRequested: string[] };
+
+      if (!out.requested.length) {
+        toast({ message: "Those interviews were already requested." });
+        return;
+      }
+
+      const n = out.requested.length;
+      toast({
+        message: `Talentvibes will arrange ${n} ${n === 1 ? "interview" : "interviews"} and send you the invitation.`,
+        // Withdraws only the rounds this call created, and only while they are still
+        // proposed — a round ops has confirmed is not the client's to erase.
+        undo: async () => {
+          const r = await fetch("/api/client/shortlists/decide", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              action: "withdraw_interviews",
+              requirementCode: view.requirementCode,
+              maskedIds: out.requested,
+            }),
+          });
+          if (!r.ok) throw new Error("withdraw failed");
+          router.refresh();
+        },
+      });
+      router.refresh();
+    } catch {
+      toast({ tone: "error", message: "Could not request those interviews." });
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
     <>
@@ -86,11 +182,16 @@ export function ShortlistBoard({
               Ask Talentvibes
             </button>
             <button
-              style={sx("padding:8px 13px;border:0;border-radius:8px;font-size:12.5px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit", {
+              type="button"
+              onClick={requestInterviews}
+              disabled={!selected.length || busy}
+              style={sx("padding:8px 13px;border:0;border-radius:8px;font-size:12.5px;font-weight:700;color:#fff;font-family:inherit", {
                 background: selected.length ? "var(--brand)" : "var(--brand-tint-2)",
+                cursor: selected.length && !busy ? "pointer" : "default",
+                opacity: busy ? 0.6 : 1,
               })}
             >
-              Request interviews · {selected.length}
+              {busy ? "Asking\u2026" : `Request interviews \u00b7 ${selected.length}`}
             </button>
           </div>
         </div>
