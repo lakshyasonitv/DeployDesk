@@ -1015,3 +1015,60 @@ client). Three questions were settled before any schema was written.
 then dual-role in three stages: migrations and RLS files (SQL approved before it runs),
 then the matching function with self-dealing bypass tests, then UI. The 12 leak tests and
 21 seed checks must stay green after each stage.
+
+## 2026-10-08 — One definition of the margin, and no figure on the Margin page that is not computed
+
+**The owner's question was "please make sure that the margins are the actual number not just
+random demo data."** They are — and the audit that confirmed it found four things that were
+not.
+
+**The margins themselves are real.** `marginPct = (client - vendor) / client * 100` over the
+stored paise on each engagement. Verified against an independent SQL sum: suppliers
+₹28,74,000, clients ₹37,37,762, we keep ₹8,63,762, and **zero rows** where the displayed
+margin or spread disagrees with that row's own rates.
+
+**Decision 1 — one definition of the target and floor.** `rate-band.ts` declared
+`MARGIN_TARGET_PCT = 22` / `MARGIN_FLOOR_PCT = 18` while `matching/score.ts` separately
+declared `TARGET_MARGIN = 0.22` / `MARGIN_FLOOR = 0.18` — the same rule twice, in two units,
+the second pair added earlier the same day. Tuning one would have left the scorer pricing at
+the old target while the Margin page coloured rows against the new one. `score.ts` now
+derives its fractions from the percent definition, which is also what makes a configurable
+margin possible at all.
+
+`algoScore` had the same fault and worse: it spelled the six ranking weights inline as
+`0.30 + 0.22 + 0.16 ...`, a THIRD copy alongside `MATCHING_COMPONENTS` and the seed's. It now
+reads the declaration. The 25 scorer tests, including the fixture's worked example, pass
+unchanged — which is what makes it a refactor rather than a change.
+
+**Decision 2 — the seed no longer prices on a number nobody agreed.**
+`src/db/seed/dual-role.ts` divided by `(1 - 0.24)`: a **24%** target, where the whole product
+uses 22%. The dual-role matches were priced on one basis and judged on another. Same class as
+the talent pool's client rate, which used to be invented by dividing the vendor rate by a
+hardcoded 24%.
+
+**Decision 3 — nothing on the Margin page that is not computed.** The `+12%` on the
+gross-spread card came from the v2 mockup and read +12% every day forever, in green, beside a
+real figure. There is no previous-period data to compare against — `rate_changes` is never
+written, so historical rates are lost — so it is **removed rather than approximated**.
+
+**Decision 4 — the money counts live placements only.** `getOpsMargin()` had no status
+filter, so `ended` and `terminated` engagements fed gross spread and run-rate while
+`livePlacements` counted correctly. The whole page now filters to `onboarding`, `active`,
+`ending`, so the footer totals are the sum of the rows a reader can see: **totals that
+disagree with the visible rows are worse than either number alone.**
+
+**Decision 5 — a presentation string is not an input.** The footer totals were computed by
+parsing the labels back out: `Number(label.replace(...)) * 100`. Right for "₹1,38,000" and
+catastrophically wrong the day the formatter abbreviated — "₹1.38L" would have read as 138
+rupees. The read model now returns raw paise alongside the labels, and the page sorts and
+totals on numbers.
+
+**And no month scoping, rather than a fake one.** v2 shows `[August 2026 ▾]`; this page had a
+button rendering the current month with no handler, next to a stat labelled "· MONTH", over
+data that was never period-scoped. A margin desk answers "what are we earning right now",
+which is what these monthly rates are, so the button and the implied filter are gone and the
+labels say what the figures are.
+
+**Still to come, from the same conversation:** the proposed client rate is computed and
+nobody can change it, which `docs/MATCHING.md` already says should be a human decision. That
+needs an endpoint plus a migration for a configurable target — recorded in `04-tasks.md`.

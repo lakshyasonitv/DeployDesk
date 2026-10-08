@@ -18,6 +18,8 @@
  * nothing is inferred from embeddings.
  */
 
+import { MARGIN_FLOOR_PCT, MARGIN_TARGET_PCT } from "../money/rate-band";
+
 /**
  * THE weights. One definition.
  *
@@ -57,9 +59,20 @@ export interface Components {
  * beside the total, and a broker who adds up the bars has to get the number shown.
  */
 export function algoScore(c: Components): number {
+  /**
+   * Read from MATCHING_COMPONENTS, not written out again.
+   *
+   * This used to spell the six weights inline as `0.30 + 0.22 + 0.16 ...`, which made it a
+   * THIRD copy of them alongside the declaration above and the seed's. Tuning a weight would
+   * have changed the bars on screen and left the total computed on the old numbers -- the
+   * exact incoherence ADR-011 exists to prevent, since a broker adding up the bars has to
+   * get the number shown.
+   */
   return Math.round(
-    c.scoreSkill * 0.30 + c.scoreTest * 0.22 + c.scoreExpFit * 0.16
-    + c.scoreRate * 0.14 + c.scoreFreshness * 0.10 + c.scoreVendor * 0.08,
+    MATCHING_COMPONENTS.reduce(
+      (acc, comp) => acc + c[comp.key as keyof Components] * (comp.weightPct / 100),
+      0,
+    ),
   );
 }
 
@@ -238,8 +251,20 @@ export function scoreVendor(reliabilityScore: number | null, placementsCount = 0
 /*  The proposed client rate                                              */
 /* ===================================================================== */
 
-export const TARGET_MARGIN = 0.22;
-export const MARGIN_FLOOR = 0.18;
+/**
+ * The target and floor, as FRACTIONS, derived from the single percent definition in
+ * `../money/rate-band.ts`.
+ *
+ * These were declared here as `0.22` and `0.18` while `rate-band.ts` separately declared
+ * `MARGIN_TARGET_PCT = 22` and `MARGIN_FLOOR_PCT = 18` — two definitions of the same
+ * business rule, in two units, which is exactly the mistake the ranking weights had before
+ * they were unified. Tuning one would silently leave the other alone: the scorer would price
+ * at the old target while the Margin page coloured rows against the new one.
+ *
+ * Derived rather than re-declared, so there is one number to change.
+ */
+export const TARGET_MARGIN = MARGIN_TARGET_PCT / 100;
+export const MARGIN_FLOOR = MARGIN_FLOOR_PCT / 100;
 
 /**
  * A starting client rate, so margin and the rate component have something to work from.

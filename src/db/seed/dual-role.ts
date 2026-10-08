@@ -1,6 +1,6 @@
 import { eq, inArray, sql } from "drizzle-orm";
 import { db, log, schema as s } from "./ctx";
-import { deriveRateBand } from "../../lib/money/rate-band";
+import { deriveRateBand, MARGIN_TARGET_PCT } from "../../lib/money/rate-band";
 import type { OrgSeed } from "./orgs";
 
 /**
@@ -281,7 +281,18 @@ export async function seedDualRoleRequirement(org: OrgSeed) {
           ? "Strongest Spring Boot depth in the eligible pool"
           : "Solid platform background, available this quarter",
         algoRank: i + 1,
-        proposedClientRatePaise: Math.round(Number(r.vendor_rate_paise) / (1 - 0.24)),
+        /**
+         * Marked up to the AGREED target, not a number typed here.
+         *
+         * This divided by `(1 - 0.24)` — a 24% target, where every other part of the
+         * product uses 22% (`MARGIN_TARGET_PCT`). So the dual-role seeded matches were
+         * priced on a basis nobody had agreed, and the Margin page coloured them against a
+         * different one. The same class of defect as the talent pool's client rate, which
+         * used to be invented by dividing the vendor rate by a hardcoded 24%.
+         */
+        proposedClientRatePaise: Math.round(
+          Number(r.vendor_rate_paise) / (1 - MARGIN_TARGET_PCT / 100),
+        ),
         eligibility: "eligible" as const,
         computedAt: new Date(),
       })),

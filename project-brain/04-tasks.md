@@ -35,6 +35,15 @@
       Both audits so far found the same shape of defect — a control that *looked* like it
       worked. **Check persistence by reloading, not by watching the screen update.**
 
+- [ ] **Talentvibes controls the proposed client rate.** It is computed
+      (`vendor / (1 - target)`, rounded, clamped) and **nobody can change it** — the matching
+      desk renders it as a read-only `Detail`. `docs/MATCHING.md` already says the
+      margin-constrained case should "surface it to ops ... and let a human decide", and
+      there is no way to decide. Agreed shape: editable per candidate before send, live
+      margin as you type, **a reason required below the 18% floor** recorded with who set it,
+      plus a **Talentvibes-only setting** for the target margin itself. Needs migration 0007
+      (settings + two columns on `matches`), so the SQL goes to the owner first.
+
 ## NEXT
 
 - [ ] **The 7 remaining inert controls** — the list with the reason for each is

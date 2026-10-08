@@ -754,6 +754,22 @@ export async function getOpsTalentPool(opts: PoolFilters & { limit?: number } = 
 /*  Margin                                                                 */
 /* ====================================================================== */
 
+/**
+ * The margin desk.
+ *
+ * **Live placements only** — `onboarding`, `active`, `ending`. It had no status filter at
+ * all, so `ended` and `terminated` engagements still contributed to gross spread and
+ * run-rate while `livePlacements` counted correctly: the headline money included work that
+ * had finished. Latent while the fixtures had no ended rows, and wrong the first time one
+ * ended.
+ *
+ * Filtering the WHOLE page rather than just the stats, so the footer totals are the sum of
+ * the rows a reader can see. Totals that disagree with the visible rows are worse than
+ * either number alone.
+ *
+ * There is no period scoping and the page no longer implies one. A margin desk answers
+ * "what are we earning right now", which is what these monthly rates are.
+ */
 export async function getOpsMargin() {
   const rows = await db
     .select({
@@ -775,6 +791,7 @@ export async function getOpsMargin() {
     .innerJoin(sql`organizations as vendor_org`, sql`vendor_org.id = ${s.engagements.vendorOrgId}`)
     .innerJoin(sql`organizations as client_org`, sql`client_org.id = ${s.engagements.clientOrgId}`)
     .leftJoin(s.users, eq(s.users.id, s.engagements.marginApprovedBy))
+    .where(inArray(s.engagements.status, ["onboarding", "active", "ending"]))
     .orderBy(desc(s.engagements.startDate));
 
   const enriched = rows.map((r) => {
@@ -789,6 +806,17 @@ export async function getOpsMargin() {
       vendorRateLabel: formatPaiseExact(r.vendorRatePaise),
       clientRateLabel: formatPaiseExact(r.clientRatePaise),
       spreadLabel: formatPaiseExact(spread),
+      /**
+       * The raw paise as well as the labels, so the page can sort and total on NUMBERS.
+       *
+       * It used to do neither: the footer parsed the labels back out with
+       * `Number(label.replace(/[^\d]/g, "")) * 100`, which is right for "₹1,38,000" and
+       * silently reads 138 rupees the day the formatter abbreviates to "₹1.38L". A
+       * presentation string is not an input.
+       */
+      vendorRatePaise: r.vendorRatePaise,
+      clientRatePaise: r.clientRatePaise,
+      spreadPaise: spread,
       pctLabel: `${pct.toFixed(1)}%`,
       pct,
       band: marginBand(pct),
@@ -800,8 +828,9 @@ export async function getOpsMargin() {
     };
   });
 
-  const totalSpread = rows.reduce((a, r) => a + (r.clientRatePaise - r.vendorRatePaise), 0);
+  const suppliersTotal = rows.reduce((a, r) => a + r.vendorRatePaise, 0);
   const runRate = rows.reduce((a, r) => a + r.clientRatePaise, 0);
+  const totalSpread = runRate - suppliersTotal;
   const avgMargin = enriched.length
     ? enriched.reduce((a, r) => a + r.pct, 0) / enriched.length
     : 0;
@@ -811,8 +840,16 @@ export async function getOpsMargin() {
       grossSpreadLabel: formatPaiseShort(totalSpread),
       runRateLabel: formatPaiseShort(runRate),
       averageMarginLabel: `${avgMargin.toFixed(1)}%`,
-      livePlacements: rows.filter((r) => r.status === "active" || r.status === "onboarding").length,
+      livePlacements: rows.length,
       belowFloorCount: enriched.filter((r) => isBelowFloor(r.pct)).length,
+      /**
+       * The three footer totals v2 asks for (SCREENS.md O4), so the page can be reconciled
+       * against the CSV handed to finance. `weKeep` is the difference of the other two by
+       * construction, never a separately summed figure that could disagree with them.
+       */
+      suppliersTotalLabel: formatPaiseExact(suppliersTotal),
+      clientsTotalLabel: formatPaiseExact(runRate),
+      weKeepLabel: formatPaiseExact(totalSpread),
     },
     rows: enriched,
     guardrail: {
