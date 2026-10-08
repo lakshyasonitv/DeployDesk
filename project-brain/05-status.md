@@ -81,6 +81,21 @@ real "N profiles match" preview and then an empty desk. **Known gap:** no skill-
 table, so a near-miss candidate (React Native for a React role) is excluded rather than
 ranked lower.
 
+**The matching desk saves what you arrange** — 2026-10-08. `manual_rank` and `included` were
+written only by the send endpoint, so dragging, the arrows and the include toggles were local
+state: the screen for arranging an order did not save it, and "Reset to algorithm" toasted a
+reset while writing nothing. `POST`/`DELETE /api/ops/matching/rank` now persists per drag
+with a real Undo, `algo_rank` is never touched, and a re-run reports how many candidates are
+new under a hand-arranged list.
+
+**Role pipeline audited** — 2026-10-08. Nine controls verified working. Two fixed: the SLA
+clock now restarts on stage entry (due dates referred to a stage the role had left), and a
+header link hardcoded to `REQ-2291` was removed.
+
+**`db:verify` is 30/30** — the SLA checks are judged as of seed time rather than now, and the
+requirement check names fixture codes instead of counting rows. Nothing was loosened; the
+code check is stricter than the count was.
+
 ## 3. Visible but inert — 10 controls that do nothing
 
 Each needs a decision, not just wiring. Grouped by what they actually need.
