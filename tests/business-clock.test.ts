@@ -20,7 +20,7 @@ import { describe, expect, it } from "vitest";
 import {
   addBusinessHours, businessHoursBetween, istCalendarDaysBetween, istDay,
 } from "../src/lib/business-clock";
-import { freshnessFor, slaFor } from "../src/lib/derived";
+import { freshnessFor, slaFor, istFormat } from "../src/lib/derived";
 
 /** An IST wall-clock time as a real instant. */
 const ist = (s: string) => new Date(`${s}+05:30`);
@@ -191,5 +191,39 @@ describe("holidays are pluggable and empty, deliberately", () => {
   it("defaults to no holidays, so behaviour is predictable until the table exists", () => {
     expect(asIst(addBusinessHours(ist("2026-10-09T17:00"), 4)))
       .toBe("2026-10-10 11:00");   // Saturday is a working day
+  });
+});
+
+/**
+ * Display, which was the one edge nobody converted.
+ *
+ * `IST_TZ` was declared in src/lib/derived.ts and used for documentation only. Sixteen
+ * formatters passed `"en-IN"` with no `timeZone`, so they rendered in the PROCESS's zone —
+ * UTC on Vercel. The locale was right and the clock was wrong: an interview scheduled for
+ * 11:00 IST appeared as "05:30" on the deployed site.
+ *
+ * These assertions are absolute, not relative to the machine running them. That is the
+ * point — the whole bug was output that changed with the server's timezone.
+ */
+describe("istFormat renders in IST whatever zone the process is in", () => {
+  it("shows an 11:00 IST round as 11:00, not as its UTC instant", () => {
+    // 05:30Z IS 11:00 IST. Before the fix this rendered "05:30" under TZ=UTC.
+    expect(istFormat("2026-10-12T05:30:00Z", {
+      hour: "2-digit", minute: "2-digit", hour12: false,
+    })).toBe("11:00");
+  });
+
+  it("does not roll a late-evening IST time back a day", () => {
+    // 20:00 IST on the 12th is 14:30Z on the 12th; but 00:30 IST on the 13th is 19:00Z on
+    // the 12th, and a UTC formatter would call that the 12th.
+    expect(istFormat("2026-10-12T19:00:00Z", {
+      day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: false,
+    })).toBe("13 Oct, 00:30");
+  });
+
+  it("keeps a date-only column on its own date", () => {
+    // `date` columns parse as UTC midnight. 05:30 IST on the 31st is still the 31st — and
+    // pinning IST means a server zone behind UTC cannot show the 30th.
+    expect(istFormat("2026-10-31", { day: "numeric", month: "short" })).toBe("31 Oct");
   });
 });

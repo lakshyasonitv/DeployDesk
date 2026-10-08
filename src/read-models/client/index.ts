@@ -14,7 +14,7 @@ import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../db/client";
 import * as s from "../../db/schema";
 import { formatPaiseShort } from "../../lib/money/paise";
-import { formatExperience } from "../../lib/derived";
+import { formatExperience, istFormat } from "../../lib/derived";
 
 /* ------------------------------------------------------------------ types */
 
@@ -735,9 +735,7 @@ export async function getClientEngagements(clientOrgId: string): Promise<ClientE
 
 /** "3 Mar 2026" — the year matters on a placement that has run for a while. */
 function formatFullDay(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-IN", {
-    day: "numeric", month: "short", year: "numeric",
-  });
+  return istFormat(iso, { day: "numeric", month: "short", year: "numeric" });
 }
 
 /** "7 months so far" / "1 year 2 months so far" / "11 days so far". */
@@ -762,12 +760,11 @@ function relativeAgo(d: Date): string {
 }
 
 function formatDay(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+  return istFormat(iso, { day: "numeric", month: "short" });
 }
 
 function formatTime(d: Date): string {
-  return d.toLocaleString("en-IN", {
+  return istFormat(d, {
     day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: false,
   });
 }

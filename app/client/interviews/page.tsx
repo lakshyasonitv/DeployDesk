@@ -4,6 +4,7 @@ import { getClientInterviews, getClientFeedbackDue } from "@/src/read-models/cli
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
 import { ShellAside } from "../aside";
 import { FeedbackCard } from "./FeedbackCard";
+import { istFormat } from "@/src/lib/derived";
 
 /**
  * Client · Interviews & feedback.
@@ -41,13 +42,13 @@ export default async function ClientInterviewsPage() {
                 <div key={`${iv.maskedId}-${iv.roundLabel}`} style={s("background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px;display:flex;gap:13px;align-items:flex-start")}>
                   <div style={s("width:52px;flex:none;text-align:center;background:var(--surface-2);border-radius:9px;padding:8px 0")}>
                     <div style={sx("font-size:8.5px;font-weight:700;letter-spacing:.1em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
-                      {d.toLocaleDateString("en-IN", { month: "short" }).toUpperCase()}
+                      {istFormat(d, { month: "short" }).toUpperCase()}
                     </div>
                     <div style={s("font-size:19px;font-weight:800;line-height:1.1")}>
-                      {d.toLocaleDateString("en-IN", { day: "2-digit" })}
+                      {istFormat(d, { day: "2-digit" })}
                     </div>
                     <div style={sx("font-size:9.5px;color:var(--t3)", { fontFamily: TOKENS.mono })}>
-                      {d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: false })}
+                      {istFormat(d, { hour: "2-digit", minute: "2-digit", hour12: false })}
                     </div>
                   </div>
                   <div style={s("flex:1;min-width:0")}>

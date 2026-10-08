@@ -4,6 +4,7 @@ import { getDemoSession, getShellNav } from "@/src/lib/auth/session";
 import { getClientOverview } from "@/src/read-models/client";
 import { s, sx, TOKENS, stageMeta } from "@/src/lib/ui/style";
 import { ShellAside } from "./aside";
+import { istFormat } from "@/src/lib/derived";
 
 /**
  * Client · Dashboard. The hiring manager's morning view.
@@ -161,5 +162,5 @@ export default async function ClientDashboard() {
 }
 
 function fmtDay(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+  return istFormat(iso, { day: "numeric", month: "short" });
 }

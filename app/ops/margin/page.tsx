@@ -3,6 +3,7 @@ import { getDemoSession, getShellNav } from "@/src/lib/auth/session";
 import { getOpsMargin } from "@/src/read-models/ops";
 import { s, sx, TOKENS, MARGIN_COLOR } from "@/src/lib/ui/style";
 import { OpsAside } from "../aside";
+import { istFormat } from "@/src/lib/derived";
 
 /**
  * Ops · Margin. The only screen in the product that shows a spread.
@@ -32,7 +33,7 @@ export default async function MarginPage() {
       <PageHeader
         title="Margin"
         subtitle="Vendor rate, client rate and spread on every live placement · visible to Talentvibes only"
-        actions={<><Button>{new Date().toLocaleDateString("en-IN", { month: "long", year: "numeric" })}</Button><Button href="/api/export?kind=ops-margin" download primary accent="var(--t1)">Export to finance</Button></>}
+        actions={<><Button>{istFormat(new Date(), { month: "long", year: "numeric" })}</Button><Button href="/api/export?kind=ops-margin" download primary accent="var(--t1)">Export to finance</Button></>}
       />
       <Scroll>
         <div style={s("display:grid;grid-template-columns:repeat(4,1fr);gap:12px")}>

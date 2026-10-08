@@ -3,6 +3,7 @@ import { getDemoSession, getShellNav } from "@/src/lib/auth/session";
 import { getVendorAssessments } from "@/src/read-models/vendor";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
 import { VendorAside } from "../aside";
+import { istFormat } from "@/src/lib/derived";
 
 /**
  * Vendor · Assessments.
@@ -137,5 +138,5 @@ export default async function VendorAssessmentsPage() {
 }
 
 function fmt(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-IN", { day: "2-digit", month: "short" }).toUpperCase();
+  return istFormat(iso, { day: "2-digit", month: "short" }).toUpperCase();
 }

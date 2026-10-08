@@ -14,6 +14,28 @@ import { businessHoursBetween, istCalendarDaysBetween } from "./business-clock";
  */
 export const IST_TZ = "Asia/Kolkata";
 
+/**
+ * Format a timestamp for display, in IST.
+ *
+ * **Use this for every date a person reads.** Sixteen call sites used to pass `"en-IN"`
+ * with no `timeZone`, which formats in whatever zone the process is running in. That is
+ * UTC on Vercel, so an interview scheduled for 11:00 IST rendered as "05:30" — the locale
+ * was right and the clock was wrong, which is the hardest kind of wrong to notice.
+ *
+ * Working agreement 3 says to convert at the edges. Display is an edge.
+ *
+ * A `date` column (no time) is also safe here: `new Date("2026-10-31")` is UTC midnight,
+ * and 05:30 IST on the 31st is still the 31st. Formatting the same value in a zone BEHIND
+ * UTC would have shown the 30th, so pinning IST fixes the date-only cases too rather than
+ * just leaving them accidentally correct.
+ */
+export function istFormat(
+  value: string | Date,
+  opts: Intl.DateTimeFormatOptions,
+): string {
+  return new Date(value).toLocaleString("en-IN", { timeZone: IST_TZ, ...opts });
+}
+
 /* ---------- freshness (vendor + ops only — NEVER client, see docs/MASKING.md) ---------- */
 
 export type FreshnessState = "confirmed" | "expiring_soon" | "unconfirmed";

@@ -2,7 +2,7 @@ import { and, eq, ilike, or, sql } from "drizzle-orm";
 import { db } from "../db/client";
 import * as s from "../db/schema";
 import { formatPaiseShort } from "../lib/money/paise";
-import { formatExperience } from "../lib/derived";
+import { formatExperience, istFormat } from "../lib/derived";
 
 /**
  * Search — one visible box per portal.
@@ -252,7 +252,7 @@ export async function searchVendor(vendorOrgId: string, query: string): Promise<
     })),
     ...invoices.map((i) => ({
       group: "Your earnings",
-      title: new Date(i.periodMonth).toLocaleDateString("en-IN", { month: "long", year: "numeric" }),
+      title: istFormat(i.periodMonth, { month: "long", year: "numeric" }),
       sub: `${formatPaiseShort(i.total)} · ${i.status}`,
       href: "/vendor/earnings",
     })),

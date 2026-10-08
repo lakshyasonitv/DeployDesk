@@ -5,6 +5,7 @@ import { db } from "@/src/db/client";
 import * as s from "@/src/db/schema";
 import { getDemoSession } from "@/src/lib/auth/session";
 import { deriveRateBand } from "@/src/lib/money/rate-band";
+import { istFormat } from "@/src/lib/derived";
 
 /**
  * POST /api/ops/shortlists/send — the critical transaction.
@@ -159,7 +160,7 @@ export async function POST(req: Request) {
         const band = deriveRateBand(c.proposedClientRatePaise!);
         const a = assessBy.get(c.resourceId);
         const availability = c.availableFrom
-          ? { label: `From ${new Date(c.availableFrom).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}`, kind: "dated" as const }
+          ? { label: `From ${istFormat(c.availableFrom, { day: "numeric", month: "short" })}`, kind: "dated" as const }
           : c.noticePeriodDays === 0
             ? { label: "Available now", kind: "immediate" as const }
             : { label: `${c.noticePeriodDays ?? 30}-day notice`, kind: "notice" as const };

@@ -3,6 +3,7 @@ import { getDemoSession, getShellNav } from "@/src/lib/auth/session";
 import { getVendorEarnings } from "@/src/read-models/vendor";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
 import { VendorAside } from "../aside";
+import { istFormat } from "@/src/lib/derived";
 
 /**
  * Vendor · Earnings — own rate only.
@@ -105,5 +106,5 @@ export default async function VendorEarningsPage() {
 }
 
 function fmt(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+  return istFormat(iso, { day: "numeric", month: "short" });
 }

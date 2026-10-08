@@ -14,8 +14,7 @@ import * as s from "../../db/schema";
 import { formatPaiseExact, formatPaiseShort } from "../../lib/money/paise";
 import { marginBand, marginPct, isBelowFloor, MARGIN_FLOOR_PCT, MARGIN_TARGET_PCT } from "../../lib/money/rate-band";
 import {
-  SLA_WINDOW_HOURS, ageLabel, formatExperience, freshnessFor, slaFor, type SlaState,
-} from "../../lib/derived";
+  SLA_WINDOW_HOURS, ageLabel, formatExperience, freshnessFor, slaFor, type SlaState, istFormat } from "../../lib/derived";
 
 /* ====================================================================== */
 /*  Pipeline                                                               */
@@ -184,7 +183,7 @@ export async function getOpsPipeline(opts: {
       if (fb && !fb.outcome && fb.dueAt) {
         label = "Feedback due"; state = fb.dueAt.getTime() < Date.now() ? "late" : "warn";
       } else if (nx?.scheduledAt) {
-        label = `R${nx.roundNo} on ${nx.scheduledAt.toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}`;
+        label = `R${nx.roundNo} on ${istFormat(nx.scheduledAt, { day: "2-digit", month: "short" })}`;
         state = "ok";
       }
     } else if (paused) {
@@ -407,7 +406,7 @@ export async function getOpsMatchingWorkspace(requirementCode: string) {
       experienceLabel: formatExperience(r.experienceMonths),
       city: r.baseCity,
       noticeLabel: r.availableFrom
-        ? `From ${new Date(r.availableFrom).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}`
+        ? `From ${istFormat(r.availableFrom, { day: "numeric", month: "short" })}`
         : r.noticePeriodDays === 0 ? "Immediate"
         : r.noticePeriodDays ? `${r.noticePeriodDays} days` : "Unknown",
       vendorRateLabel: formatPaiseExact(r.vendorRatePaise),
@@ -719,7 +718,7 @@ export async function getOpsDuplicates() {
         { k: "Phone hash", v: r.phoneHash ? `…${r.phoneHash.slice(-4)}` : "—", severity: "high" },
         { k: "Experience", v: `${(r.experienceMonths / 12).toFixed(1)} years`, severity: "none" },
         { k: "Proctored score", v: a?.status === "scored" && a.overallScore != null
-            ? `${a.overallScore} · ${a.completedAt?.toLocaleDateString("en-IN", { day: "2-digit", month: "short" }) ?? ""}`
+            ? `${a.overallScore} · ${a.completedAt ? istFormat(a.completedAt, { day: "2-digit", month: "short" }) : ""}`
             : a?.status === "not_started" ? "Not started" : (a?.status ?? "—"), severity: "none" },
         { k: "Vendor rate", v: formatPaiseExact(r.vendorRatePaise), severity: "none" },
         { k: "Freshness", v: f.label, severity: f.state === "confirmed" ? "none" : "medium" },

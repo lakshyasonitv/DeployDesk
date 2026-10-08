@@ -6,6 +6,7 @@ import { useToast } from "@/src/lib/ui/Toast";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
 import { Pill, ScoreBars } from "@/src/lib/ui/Shell";
 import type { ClientShortlistView } from "@/src/read-models/client";
+import { istFormat } from "@/src/lib/derived";
 
 /**
  * The masked shortlist board. Receives PLAIN JSON from the server component — the
@@ -461,10 +462,10 @@ function AskPanel({
 /* ----------------------------------------------------------------- utils */
 
 function formatDelivered(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+  return istFormat(iso, { day: "numeric", month: "short" });
 }
 function formatTested(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
+  return istFormat(iso, { day: "2-digit", month: "short" });
 }
 function initials(name: string): string {
   return name.split(/\s+/).map((p) => p[0]).slice(0, 2).join("");

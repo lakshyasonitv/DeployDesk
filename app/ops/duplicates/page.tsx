@@ -4,6 +4,7 @@ import { getOpsDuplicates } from "@/src/read-models/ops";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
 import { OpsAside } from "../aside";
 import { ResolveActions } from "./ResolveActions";
+import { istFormat } from "@/src/lib/derived";
 
 /**
  * Ops · Duplicate candidates. Ops-only, always.
@@ -27,7 +28,7 @@ const SEVERITY = {
 const sev = (k: string) => SEVERITY[k as keyof typeof SEVERITY] ?? SEVERITY.low;
 
 const stamp = (iso: string) =>
-  new Date(iso).toLocaleString("en-IN", {
+  istFormat(iso, {
     day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", hour12: false,
   });
 
