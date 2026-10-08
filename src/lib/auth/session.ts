@@ -266,6 +266,20 @@ export interface DemoIdentity {
   active: boolean;
 }
 
+/**
+ * Which portal an organisation lands on.
+ *
+ * One definition, used by the switcher below AND by `/`, which is a router rather than a
+ * page. A supply-only org lands on the vendor side, a hire-only org on the client side, and
+ * a DUAL-ROLE org on the vendor side with the workspace tabs offering the other — arbitrary
+ * but consistent, and the tabs make the choice visible either way.
+ */
+export function landingFor(
+  org: { isOps: boolean; canHire: boolean; canSupply: boolean },
+): string {
+  return org.isOps ? "/ops" : org.canHire && !org.canSupply ? "/client" : "/vendor";
+}
+
 export async function getShellNav(session: DemoSession): Promise<{
   identities: DemoIdentity[];
   workspaces: WorkspaceTab[];
@@ -295,7 +309,7 @@ export async function getShellNav(session: DemoSession): Promise<{
     .slice()
     .sort((a, b) => Number(a.isOps) - Number(b.isOps))
     .map((r) => {
-      const landing = r.isOps ? "/ops" : r.canHire && !r.canSupply ? "/client" : "/vendor";
+      const landing = landingFor(r);
       return {
         orgId: r.orgId,
         orgName: r.orgName,
@@ -311,43 +325,5 @@ export async function getShellNav(session: DemoSession): Promise<{
   return { identities, workspaces };
 }
 
-/**
- * The demo portal switcher's labels, resolved from the database.
- *
- * These used to be a hardcoded list ("Client · Acme Finserv") in Shell.tsx, which meant
- * renaming an organisation left the switcher showing the old name. In production the
- * switcher does not exist at all — a user belongs to one organisation and auth decides
- * which shell they get. The DUAL-ROLE workspace switcher is a different thing and IS a
- * production feature (ADR-012): it stays inside one organisation and changes which side
- * you are looking at. Do not merge the two.
- */
-export async function getPortalSwitcherOptions(): Promise<
-  Array<{ portal: Portal; href: string; label: string }>
-> {
-  // ONE query for all three, not one per portal. A loop of three here would have added
-  // three round trips to every page in the app, which is the opposite of the point.
-  const emails = (["client", "vendor", "ops"] as Portal[]).map((p) => DEMO_TENANT[p].email);
-  const rows = await db
-    .select({ email: s.users.email, orgName: s.organizations.name })
-    .from(s.users)
-    .innerJoin(s.organizations, eq(s.organizations.id, s.users.orgId))
-    .where(inArray(s.users.email, emails));
-
-  const byEmail = new Map(rows.map((r) => [r.email, r.orgName]));
-
-  return (["client", "vendor", "ops"] as Portal[])
-    .map((portal) => {
-      const orgName = byEmail.get(DEMO_TENANT[portal].email);
-      if (!orgName) return null;
-      return {
-        portal,
-        href: `/${portal}`,
-        label: portal === "ops" ? `${orgName} Ops` : `${title(portal)} · ${orgName}`,
-      };
-    })
-    .filter((x): x is { portal: Portal; href: string; label: string } => x !== null);
-}
-
-const title = (p: string) => p.charAt(0).toUpperCase() + p.slice(1);
 
 export { ACTING_COOKIE };

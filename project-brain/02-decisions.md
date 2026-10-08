@@ -574,3 +574,39 @@ a duplicate resolution. A saved view is none of them and no dispute turns on whi
 broker bookmarked; writing one anyway would dilute a log whose value is that every line in it
 matters. `filters` is `jsonb`, so it is Zod-validated rather than trusted — without a schema
 the endpoint would store any object posted to it and the pool would read it back as filters.
+
+## 2026-10-08 — `/` is a router, and the smoke page is gone
+
+**Decision.** `app/page.tsx` redirects. It honours the acting-organisation cookie via
+`landingFor()` and defaults to `/client`.
+
+**Why.** The owner's reason was that the organisation switcher in the top bar already does
+the portal-choosing the page's three links were for. Two more reasons agree with it:
+
+- **It had done its job.** Its own comment said *"it will be replaced by the portal router"*.
+  It existed to prove the pipe end to end — Vercel build, env vars, the Supavisor transaction
+  pooler from a serverless function, and one real read through a portal read model with
+  ADR-004 bands — before any screen existed to sit on top of it. `npm test` and `db:verify`
+  cover all of that now, on every change rather than on every visit.
+- **It published more than it needed to.** It was the first thing anyone opened, and it
+  described the product to itself — "three portals, one database, masking enforced on the
+  server" is an architecture note, not a landing page — above a row of table counts that gave
+  the exact size of the exchange to anyone with the URL.
+
+**`getPortalSwitcherOptions()` was deleted with it**, along with its `title()` helper. The
+page was its only caller, and the same reasoning that deleted the `ROLE_LABEL` map applies:
+dead code with real-looking semantics is worse than no code, because the next person assumes
+it is used.
+
+**`landingFor()` was extracted rather than duplicated.** The rule — supply-only to the vendor
+side, hire-only to the client side, dual-role to the vendor side with tabs offering the other,
+broker to ops — now has one definition shared by the switcher's hrefs and by `/`. The
+switcher's hrefs had never been asserted, so there are now four tests on it: a change to
+where the root URL sends people would otherwise have broken nothing visible.
+
+**Verified at runtime, not just compiled.** `next start` plus a request: `GET /` returns
+`307 → /client`.
+
+**`ACCENT_GRADIENT` in `style.ts` is now unused and deliberately kept.** It is a design token
+from the v2 handoff, not logic — an unused palette entry is a palette, whereas an unused
+function implies a caller.

@@ -5,7 +5,7 @@
 > it: the commands are at the bottom.
 >
 > Gates at the time of writing, commit `cbf6df1`:
-> **20 pages + 12 API routes · 39 base tables · `db:verify` 30/30 · `npm test` 105/105 ·
+> **20 pages + 14 API routes · 39 base tables · `db:verify` 30/30 · `npm test` 135/135 ·
 > build + typecheck clean**
 >
 > `npm test` is the gate, not `npm run test:leak` — the latter only runs `tests/leak` and

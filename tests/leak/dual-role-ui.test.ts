@@ -33,6 +33,7 @@ import {
 import { getClientShortlist, getClientBrokerThread } from "../../src/read-models/client";
 import { getVendorRoster, getVendorOverview, getVendorBrokerThread } from "../../src/read-models/vendor";
 import { getOpsOrgDirectory } from "../../src/read-models/ops";
+import { landingFor } from "../../src/lib/auth/session";
 
 interface Org { id: string; name: string }
 interface User { id: string; fullName: string }
@@ -417,5 +418,37 @@ describe("a dual-role org's two broker threads never mix", () => {
     // And Nimbus supplies only: a bench thread is absent rather than borrowed from
     // another organisation.
     expect(await getVendorBrokerThread(nimbus.id)).toBeNull();
+  });
+});
+
+/**
+ * Which portal an organisation lands on.
+ *
+ * Pure, and it now has two consumers: the organisation switcher's hrefs, and `/`, which is
+ * a router rather than a page since the smoke screen was removed. Pinned here because the
+ * switcher's hrefs were never asserted, so a change to this rule would have moved where
+ * the root URL sends people with nothing failing.
+ */
+describe("landingFor", () => {
+  const org = (canSupply: boolean, canHire: boolean, isOps = false) =>
+    ({ canSupply, canHire, isOps });
+
+  it("sends a hire-only organisation to the client portal", () => {
+    expect(landingFor(org(false, true))).toBe("/client");
+  });
+
+  it("sends a supply-only organisation to the vendor portal", () => {
+    expect(landingFor(org(true, false))).toBe("/vendor");
+  });
+
+  it("sends a DUAL-ROLE organisation to the vendor portal, where the tabs offer the other", () => {
+    // Arbitrary but consistent: a dual-role org has to start somewhere, and the workspace
+    // tabs make the other side one click away and visible.
+    expect(landingFor(org(true, true))).toBe("/vendor");
+  });
+
+  it("sends the broker to the ops console regardless of capabilities", () => {
+    expect(landingFor(org(false, false, true))).toBe("/ops");
+    expect(landingFor(org(true, true, true))).toBe("/ops");
   });
 });
