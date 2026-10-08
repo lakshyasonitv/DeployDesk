@@ -15,6 +15,7 @@ import * as s from "../schema";
 import { formatPaiseExact, formatPaiseShort } from "../../lib/money/paise";
 import { marginPct, isBelowFloor, MARGIN_FLOOR_PCT } from "../../lib/money/rate-band";
 import { freshnessFor, slaFor, SLA_WINDOW_HOURS } from "../../lib/derived";
+import { REQS } from "./fixtures";
 
 const url = process.env.DIRECT_URL || process.env.DATABASE_URL;
 if (!url) throw new Error("DIRECT_URL must be set");
@@ -35,11 +36,29 @@ async function main() {
   const [{ n: orgCount }] = await db.select({ n: sql<number>`count(*)::int` }).from(s.organizations);
   check("organizations = 20 (1 TV + 14 vendors + 5 clients)", orgCount === 20, `got ${orgCount}`);
 
-  // 24 transcribed from the design fixtures, plus REQ-2320 — the dual-role requirement
-  // posted BY Cygnet Infotech Labs, which exists so the self-dealing rule has something
-  // real to refuse. Both counts are asserted separately so a change to either is visible.
-  const [{ n: reqCount }] = await db.select({ n: sql<number>`count(*)::int` }).from(s.requirements);
-  check("requirements = 25 (24 fixtures + 1 dual-role scenario)", reqCount === 25, `got ${reqCount}`);
+  /**
+   * Every fixture requirement is PRESENT — asserted by code, not by counting rows.
+   *
+   * This was `count(*) === 25` and it failed the first time a real requirement was posted
+   * through the product ("got 26"), which is not a defect: the owner used the app. A check
+   * that breaks the moment somebody uses the thing it is checking gets ignored, and an
+   * ignored check in a verifier is worse than no check.
+   *
+   * Naming the codes is also STRICTER than the count was. `count === 25` passed if a
+   * fixture went missing and something else took its place; this cannot. The 24 come from
+   * the design fixtures, plus REQ-2320 — the dual-role requirement posted BY Cygnet
+   * Infotech Labs, which exists so the self-dealing rule has something real to refuse.
+   */
+  const expectedReqCodes = [...REQS.map((r) => r.id as string), "REQ-2320"];
+  const presentReqCodes = new Set(
+    (await db.select({ code: s.requirements.code }).from(s.requirements)).map((r) => r.code),
+  );
+  const missingReqs = expectedReqCodes.filter((c) => !presentReqCodes.has(c));
+  check(
+    `all ${expectedReqCodes.length} fixture requirements present (24 fixtures + 1 dual-role scenario)`,
+    missingReqs.length === 0,
+    missingReqs.length ? `missing ${missingReqs.join(",")}` : `${presentReqCodes.size} total in table`,
+  );
 
   const [{ n: dualReq }] = await db
     .select({ n: sql<number>`count(*)::int` })
@@ -178,31 +197,61 @@ async function main() {
     .select({
       code: s.requirements.code, stage: s.requirements.stage,
       slaDueAt: s.requirements.slaDueAt, slaWindowHours: s.requirements.slaWindowHours,
+      createdAt: s.requirements.createdAt,
     })
     .from(s.requirements);
+
+  /**
+   * The SLA checks are judged AS OF SEED TIME, not as of now.
+   *
+   * `sla_due_at` is an absolute timestamp written when the seed ran, so every seeded
+   * deadline marches toward `late` as the day goes on. These two assertions used to fail a
+   * few days after any reseed — 28/2, four separate times — and the fix on offer was always
+   * "run `npm run db:seed` again". That works, and then it drifts again.
+   *
+   * The frame of reference was the bug, not the assertion. **A fixture describes a moment**,
+   * and this file's job is to check that the fixture still describes the moment it was
+   * written for. So the clock is anchored to the oldest requirement's `created_at`, which is
+   * when the seed ran, and the assertion stays exactly as strict: one breach, and it is
+   * REQ-2295.
+   *
+   * `min(created_at)` rather than a stored marker: the seed is the oldest thing in this
+   * table, so a requirement posted afterwards by a person or a test cannot move the anchor.
+   * No new column and no migration.
+   *
+   * What this deliberately does NOT do is tell you whether the LIVE board looks healthy
+   * right now — a seeded role really is overdue today, and the ops pipeline is right to show
+   * it. That is a property of ageing demo data, not a defect, and `tests/leak/write-paths`
+   * covers the live behaviour: moving a stage now re-dates the role.
+   */
+  const seededAt = reqs.reduce<Date | null>(
+    (oldest, r) => (r.createdAt && (!oldest || r.createdAt < oldest) ? r.createdAt : oldest),
+    null,
+  ) ?? new Date();
+
   const states = reqs.map((r) => {
     const paused = r.stage === "shortlisted";
     const windowHours =
       r.slaWindowHours ?? SLA_WINDOW_HOURS[r.stage as keyof typeof SLA_WINDOW_HOURS] ?? 36;
-    return { code: r.code, state: slaFor(r.slaDueAt, windowHours, { paused }).state };
+    return {
+      code: r.code,
+      state: slaFor(r.slaDueAt, windowHours, { paused, now: seededAt }).state,
+    };
   });
   const late = states.filter((x) => x.state === "late");
   const idle = states.filter((x) => x.state === "idle");
 
   /**
-   * These two decay with wall-clock time and say so when they fail.
+   * These no longer decay — they are judged as of `seededAt` above.
    *
-   * `sla_due_at` is an absolute timestamp written at seed time, so every seeded deadline
-   * marches toward `late` as the day goes on. `requirements.sla_window_hours` (migration
-   * 0002) widened the windows enough to stop this happening within the hour, but it
-   * cannot stop it happening eventually — the fixture describes a moment, and the clock
-   * moves. The fix is always `npm run db:seed` (~4s), never loosening the assertion.
-   *
-   * This has twice been mistaken for a code regression, so the hint is in the failure
-   * message rather than only in the project brain.
+   * If one of them fails now it is a REAL regression in the SLA derivation or in the
+   * fixtures, not the clock moving, so the hint no longer suggests reseeding. It was
+   * mistaken for a code regression twice while it was decaying; the opposite mistake —
+   * dismissing a genuine failure as "just the seed ageing" — is the one to avoid now.
    */
   const staleHint = (got: string) =>
-    `${got} — if there is more than one, the seed has simply aged; run \`npm run db:seed\``;
+    `${got} — judged as of seed time (${seededAt.toISOString()}), so this is a real `
+    + `regression rather than the seed ageing`;
 
   check("exactly one SLA breach", late.length === 1,
     staleHint(late.map((l) => l.code).join(",") || "none"));

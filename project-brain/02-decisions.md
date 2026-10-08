@@ -809,3 +809,65 @@ already links to its own matching desk. A header button has no role attached, so
 guess — and the two candidate guesses ("most urgent", "first in view") are both surprising.
 Third time this pattern has come up: the extension request on "People working" and the slot
 controls on interviews went the same way. **The action belongs on the thing it acts on.**
+
+## 2026-10-08 — db:verify judges the fixture against the moment it describes
+
+**Decision.** The SLA checks in `src/db/seed/verify.ts` are evaluated as of **seed time**, and
+the requirement check names fixture **codes** instead of counting rows. 30/30, with no reseed
+and nothing loosened.
+
+**The frame of reference was the bug, not the assertion.** `sla_due_at` is an absolute
+timestamp written when the seed ran, so every seeded deadline marched toward `late`. Those two
+checks failed a few days after any reseed — 28/2, four separate times — and the file's own
+comment said *"the fix is always `npm run db:seed`, never loosening the assertion."* That was
+right about not loosening and wrong about the fix: reseeding makes it green today and it
+drifts again.
+
+A fixture **describes a moment**. This file's job is to check it still describes the moment it
+was written for, so the clock is anchored to the oldest requirement's `created_at` — which is
+when the seed ran. The assertion stays exactly as strict: one breach, and it is REQ-2295.
+
+`min(created_at)` rather than a stored marker: the seed is the oldest thing in that table, so
+a requirement posted afterwards by a person or a test cannot move the anchor. No column, no
+migration.
+
+**What it deliberately does not do** is tell you whether the live board looks healthy now. A
+seeded role really is overdue today and the pipeline is right to show it; that is ageing demo
+data, not a defect, and `tests/leak/write-paths` covers the live behaviour.
+
+**The count check was replaced because a person used the product.**
+`count(*) === 25` failed with "got 26" the first time a requirement was posted through the UI.
+A check that breaks when somebody uses the thing it checks gets ignored, and an ignored check
+in a verifier is worse than none. Naming the 24 fixture codes plus REQ-2320 is also
+**stricter**: the count passed if a fixture went missing and something else took its place.
+
+---
+
+## 2026-10-08 — panel_availability: a weekly routine per client org, advisory not a gate
+
+**Decision.** Migration **0006** adds one table: weekly interview windows per client
+organisation, in IST. Written as a file; the owner runs it.
+
+**Why it was needed.** "Set panel availability" is in v2 (`SCREENS.md:83`), never worked, and
+was removed from the interviews header rather than left inert — every row in
+`interview_slots` hangs off one round (`interview_id` is `not null`), so there was nowhere to
+record "Tuesdays suit us" independent of a specific interview.
+
+**Advisory, not a gate.** A slot proposed outside these windows is flagged and still sent.
+People legitimately make exceptions, and a hard block on your own stated preference is
+infuriating. The 09:00–19:00 IST business-hours check in `/api/client/interviews/slots` stays
+a gate, because that one is about whether an interview can be held at all.
+
+**Rejected: per panel member.** More precise, but somebody has to maintain it, and an empty
+row reads as "never available" rather than "unknown" — worse than no data.
+
+**Rejected: blackout dates only.** Less to fill in, and people name exceptions more readily
+than routines, but it cannot express a routine and a routine is the common case.
+
+**Rejected: both tables.** Most faithful to real scheduling, two things to go stale. Start
+with one.
+
+**Weekday is 0=Sunday..6=Saturday**, matching Postgres `dow` and JS `getUTCDay()` so neither
+side translates. Sunday is storable although `docs/DOMAIN.md` makes it non-working: the
+business-hours gate already refuses a Sunday slot, and silently dropping a row somebody
+entered is worse than letting the gate explain itself.

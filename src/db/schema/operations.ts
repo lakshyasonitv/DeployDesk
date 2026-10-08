@@ -1,5 +1,6 @@
 import {
-  pgTable, pgEnum, uuid, text, integer, date, timestamp, jsonb, index, primaryKey, check, unique,
+  pgTable, pgEnum, uuid, text, integer, smallint, time, date, timestamp, jsonb, index,
+  primaryKey, check, unique,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { organizations, users } from "./tenancy";
@@ -107,6 +108,47 @@ export const extensionRequests = pgTable("extension_requests", {
   createdAt: ts(),
   updatedAt: ts(),
 }, (t) => [index("extension_requests_engagement_idx").on(t.engagementId, t.status)]);
+
+/* ====================================================================== */
+/*  panel_availability                                                     */
+/* ====================================================================== */
+
+/**
+ * A client's weekly interview windows, in IST. Migration 0006.
+ *
+ * Unblocks "Set panel availability" (v2 `SCREENS.md:83`), which never worked and was
+ * removed from the interviews header rather than left inert: every row in
+ * `interview_slots` hangs off one round (`interview_id` is `not null`), so there was
+ * nowhere to record "Tuesdays suit us" independent of a specific interview.
+ *
+ * **Advisory, not a gate.** A slot proposed outside these windows is flagged to the client
+ * and still sent — people legitimately make exceptions, and a hard block on your own stated
+ * preference is infuriating. The 09:00-19:00 IST business-hours check in
+ * `/api/client/interviews/slots` stays a gate, because that one is about whether an
+ * interview can be held at all.
+ *
+ * Per ORG rather than per panellist on purpose. `interview_panelists` already names who is
+ * on a round; a per-person calendar is something somebody has to maintain, and it would read
+ * as "never available" rather than "unknown" for anyone who never filled it in.
+ */
+export const panelAvailability = pgTable("panel_availability", {
+  id: uuid().primaryKey().defaultRandom(),
+  orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  /** 0 = Sunday .. 6 = Saturday, matching Postgres `dow` and JS `getUTCDay()`. */
+  weekday: smallint().notNull(),
+  /** IST wall-clock. A fixed +05:30 product has no use for a per-row offset. */
+  fromTime: time("from_time").notNull(),
+  toTime: time("to_time").notNull(),
+  createdAt: ts(),
+  updatedAt: ts(),
+}, (t) => [
+  index("panel_availability_org_idx").on(t.orgId, t.weekday, t.fromTime),
+  // Two different windows on one weekday are allowed: "Tue 10:00-12:00 and 15:00-17:00"
+  // is a real pattern. The same window twice is not.
+  unique("panel_availability_unique_window").on(t.orgId, t.weekday, t.fromTime, t.toTime),
+  check("panel_availability_weekday_range", sql`${t.weekday} between 0 and 6`),
+  check("panel_availability_times_ordered", sql`${t.toTime} > ${t.fromTime}`),
+]);
 
 /* ====================================================================== */
 /*  saved_views                                                            */
