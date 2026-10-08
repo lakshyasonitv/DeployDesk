@@ -1,20 +1,76 @@
 # 04 — Tasks
 
-> Work is organised into **sprints**, at the user's request: each sprint ends at a stable,
-> committed, verified state rather than running on continuously.
+> **The working queue.** Now / Next / Later is below; everything finished is under
+> "Done — history" further down, newest first.
 >
-> **The four gates** every sprint must pass before it counts as done:
+> **The four gates**, all of which must pass before anything counts as done:
+>
 > 1. every route returns 200 — **cold and warm**, at least twice each
-> 2. `npm run db:verify` → **30/30** (21 originally; +9 across the dual-role stages)
-> 3. `npm test` → **88/88** — the WHOLE suite, not just `tests/leak`. `test:leak` runs only
->    `tests/leak`, so it misses `tests/business-clock.test.ts`; use `npm test` as the gate.
->
-> These two numbers grow as suites are added. **If a gate number here disagrees with what
-> the command prints, this line is the stale one** — check the newest journal entry, then
-> fix it here. A stale gate number has already caused one wrong conclusion in this project.
+> 2. `npm run db:verify` → **30/30**
+> 3. `npm test` → **183/183** — the WHOLE suite. `test:leak` runs only `tests/leak` and
+>    misses `tests/business-clock.test.ts`, `tests/matching.test.ts` and two others, so
+>    **`npm test` is the gate**. It also loads `.env.local`; bare `npx vitest` does not.
 > 4. `npm run build` → clean (stop `next dev` and delete `.next` first)
 >
-> Phase checkboxes live in `../docs/BUILD-PLAN.md`. This file is the working queue.
+> **A test count here grows as suites are added. If a number disagrees with what the command
+> prints, THIS LINE is the stale one** — check the newest journal entry, then fix it here. A
+> stale gate number has already caused one wrong conclusion in this project.
+>
+> Phase checkboxes live in `../docs/BUILD-PLAN.md`.
+
+---
+
+## NOW
+
+- [ ] **Apply migration `0006_panel_availability.sql`** — written, not applied; the owner
+      runs migrations. Nothing queries the table yet, so the deployed site is safe until
+      then.
+- [ ] **Then wire panel availability**: a read model, `POST /api/client/interviews/availability`,
+      and the "Set panel availability" drawer back on the interviews header. **Advisory, not
+      a gate** — a slot outside those windows is flagged and still sent.
+- [ ] **Continue the page-by-page audit.** Status first, questions second, fixes third.
+      Done: **Role pipeline**, **Matching desk**. Not yet: **Talent pool**, **Margin**,
+      **Duplicate checks**, **Organisations**, and the whole client and vendor sides.
+
+      Both audits so far found the same shape of defect — a control that *looked* like it
+      worked. **Check persistence by reloading, not by watching the screen update.**
+
+## NEXT
+
+- [ ] **The 7 remaining inert controls** — the list with the reason for each is
+      `05-status.md` §3. Closest to done: **Save draft** on client interviews, where the
+      endpoint already accepts a null outcome.
+- [ ] **Skill adjacency for the matcher.** Without it a React Native developer is
+      *excluded* from a React role by the no-overlap gate, not merely ranked lower.
+      `skills.category` already exists, which is what `docs/MATCHING.md` points at.
+- [ ] **A versioned `matching_weights` table.** `docs/MATCHING.md` asks for it so changing
+      a weight does not silently rewrite the meaning of historical scores. Today a change
+      reinterprets every past score.
+- [ ] **`rate_changes` is never written.** The table exists; no endpoint records a rate
+      change.
+
+## LATER
+
+- [ ] **drizzle-orm 0.44.7 advisory** (GHSA-gpj5-g38j-94v9). Low exposure — no `sql.raw`
+      or `sql.identifier` anywhere — but 0.45.x is breaking, so it wants its own pass with
+      the 183 tests as the net.
+- [ ] **RLS stays inert and documented.** Masking is enforced in portal-specific read
+      models (ADR-003); the policies exist but nothing runs as a non-service role. See
+      `05-status.md`.
+- [ ] **Roster paging** at launch scale, and **duplicate detection rules** (no agreed
+      thresholds exist; inventing them is what working agreement 8 forbids).
+
+### Owner's own items
+
+- [ ] **Rotate the Supabase database password** — shared in chat twice.
+- [ ] Ask the `vaibhavalteryx-1351` account owner to delete the stray `deploydesk` Vercel
+      project.
+
+---
+
+# Done — history
+
+> Newest first. The narrative for each lives in `journal/`.
 
 ---
 

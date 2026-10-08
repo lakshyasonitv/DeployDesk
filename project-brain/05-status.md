@@ -96,7 +96,7 @@ header link hardcoded to `REQ-2291` was removed.
 requirement check names fixture codes instead of counting rows. Nothing was loosened; the
 code check is stricter than the count was.
 
-## 3. Visible but inert — 10 controls that do nothing
+## 3. Visible but inert — 7 controls that do nothing
 
 Each needs a decision, not just wiring. Grouped by what they actually need.
 
@@ -114,11 +114,6 @@ Each needs a decision, not just wiring. Grouped by what they actually need.
 - **Raise invoice** (`/vendor/earnings`) — billing integration
 
 **Needs only work, no decisions**
-- **Download statement** (`/client/engagements`, `/vendor/earnings`), **Export to finance** (`/ops/margin`) — agreed: real CSV from the same read model the screen uses, so file and screen cannot disagree
-- **Load more** (`/ops/pool`) — server-side paging. The roster's version of this is
-  **fixed**: "Load more" said neither how many more nor how many were left, and with 42
-  people meant four clicks. It now reads "Show all 42 people" and the count beside it is a
-  sentence rather than a bare ratio.
 - **Add to a requirement** (`/ops/pool`) — add a pool candidate to a match set
 - **Ask Talentvibes** (`/client/shortlists` index) — opens nothing; the drawer exists only on the detail page
 - **Sending a broker message** — the thread now READS real data, but Send only appends locally; there is no write endpoint for a client message
