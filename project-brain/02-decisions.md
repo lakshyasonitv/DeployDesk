@@ -760,3 +760,52 @@ A candidate from **Bandra**, or named **Bandyopadhyay**, would have broken it id
 **The general rule:** a masking assertion about SHAPE must be made against shape. Matching a
 substring of arbitrary user data for a field name is a false positive waiting for the right
 customer to sign up — and in a leak suite, a false positive trains people to ignore it.
+
+## 2026-10-08 — The SLA clock restarts on entry to a stage, and nobody can re-date it by hand
+
+**Reported by the owner** as due dates being "randomly decided".
+
+**They were not random.** `docs/DOMAIN.md` gives every stage its own clock — "Clock starts" is
+a column in that table — but the stage endpoint set `{ stage, updatedAt }` and nothing else.
+A requirement kept the deadline it was given when **posted**: `new` + 4 business hours. Drag
+it to `matching` and it was still judged against a deadline that had passed the same
+afternoon, so the Due column read "Overdue 71h" and the number only grew. **The dates
+referred to a stage the role had left.**
+
+Only `shortlisted` looked right, and by accident: the read model derives `paused` from that
+stage, so it shows "Awaiting client" rather than a deadline.
+
+**Decision.** Entering a stage sets `sla_due_at` AND `sla_window_hours` from that stage's
+window, in business hours and minus holidays. Both together: the read model prefers the
+per-requirement window over the per-stage default (migration 0002), so writing the deadline
+without the window would leave the state judged against the old stage's band.
+
+`draft`, `placed`, `closed` and `cancelled` clear the deadline instead of carrying a stale
+one — there is nothing left to be late for.
+
+**Rejected: a manual override.** Put to the owner and declined. The deadline is a promise the
+business made, not a per-role negotiation, and the main reason anyone wants to edit one is to
+quietly extend a deadline they are about to miss. Keeping it derived keeps the column
+trustworthy and needs no schema change.
+
+**Rejected: one clock from posting for the role's whole life.** Simpler to explain, but it
+contradicts the per-stage table and makes every long role late from day one.
+
+**The seed's drift is a different cause and deliberately left.** The seed back-solves
+`sla_due_at` from each fixture's intended colour at seed time, so it is right the day you seed
+and drifts after — that is the recurring `db:verify` 28/2. The failure message diagnoses
+itself and reseeding fixes it.
+
+---
+
+## 2026-10-08 — A header button with no object is removed, not repointed
+
+**Decision.** "Open matching workspace" is gone from the Role pipeline header. It was
+`href="/ops/matching/REQ-2291"` — a literal, so it always opened one seeded requirement
+whatever was on screen or filtered to.
+
+**Why removed rather than pointed somewhere better.** Every card and REQ code on the board
+already links to its own matching desk. A header button has no role attached, so it can only
+guess — and the two candidate guesses ("most urgent", "first in view") are both surprising.
+Third time this pattern has come up: the extension request on "People working" and the slot
+controls on interviews went the same way. **The action belongs on the thing it acts on.**

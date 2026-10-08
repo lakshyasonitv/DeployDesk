@@ -116,10 +116,16 @@ export function PipelineBoard({
                 </button>
               ))}
             </div>
-            <Link href="/ops/matching/REQ-2291"
-              style={s("padding:8px 13px;border-radius:8px;font-size:12.5px;font-weight:700;background:var(--t1);color:var(--surface)")}>
-              Open matching workspace
-            </Link>
+            {/*
+              "Open matching workspace" used to live here as
+              `href="/ops/matching/REQ-2291"` — a literal, so it always opened one seeded
+              requirement whatever was on screen or filtered to.
+
+              Removed rather than repointed: a header button has no role attached, and every
+              card and REQ code on this board already links to its own matching desk. Same
+              call as the extension request on "People working" and the slot controls on
+              interviews — the action belongs on the thing it acts on.
+            */}
           </div>
         </div>
 

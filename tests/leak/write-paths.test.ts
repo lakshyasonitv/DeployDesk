@@ -39,7 +39,8 @@ import { POST as changeStage } from "@/app/api/ops/requirements/stage/route";
 import { POST as runMatchingRoute } from "@/app/api/ops/matching/run/route";
 import { algoScore } from "../../src/lib/matching/score";
 import { getVendorAssessments, getVendorRoster } from "../../src/read-models/vendor";
-import { getOpsTalentPool } from "../../src/read-models/ops";
+import { getOpsTalentPool, getOpsPipeline } from "../../src/read-models/ops";
+import { SLA_WINDOW_HOURS } from "../../src/lib/derived";
 
 /** A Request the route handlers accept. */
 function post(body: unknown, method = "POST"): Request {
@@ -100,6 +101,147 @@ afterAll(async () => {
     await db.delete(s.requirements).where(inArray(s.requirements.id, reqs.map((r) => r.id)));
   }
 }, 60_000);
+
+/* ====================================================================== */
+/*  The SLA clock restarts on entry to a stage                             */
+/* ====================================================================== */
+
+/**
+ * Reported by the owner as due dates being "randomly decided".
+ *
+ * They were not random. The stage endpoint set `{ stage, updatedAt }` and nothing else, so a
+ * requirement kept the deadline it was given when POSTED — `new` + 4 business hours. Moved
+ * to `matching`, it was still judged against a deadline that had passed the same afternoon,
+ * so the Due column read "Overdue" and the number grew forever. The dates referred to a
+ * stage the role had left.
+ *
+ * `docs/DOMAIN.md` gives every stage its own clock; "Clock starts" is a column in that
+ * table.
+ */
+describe("moving a stage restarts the SLA clock", () => {
+  async function newRole() {
+    const res = await createRequirement(post({
+      roleTitle: MARK, skills: ["React"], experienceBand: "5-8", quantity: 1,
+      budgetMinPaise: 13_000_000, budgetMaxPaise: 22_000_000,
+      engagementType: "contract", workMode: "remote",
+      noticeAccepted: ["immediate"], stage: "new",
+    }));
+    expect(res.status).toBe(201);
+    return (await res.json() as { code: string }).code;
+  }
+
+  const read = (code: string) => db
+    .select({
+      stage: s.requirements.stage,
+      slaDueAt: s.requirements.slaDueAt,
+      slaWindowHours: s.requirements.slaWindowHours,
+    })
+    .from(s.requirements)
+    .where(eq(s.requirements.code, code))
+    .then((r) => r[0]);
+
+  it("gives each stage its own window and a deadline in the FUTURE", async () => {
+    const code = await newRole();
+
+    for (const stage of ["matching", "shortlisted", "interviewing"] as const) {
+      const res = await changeStage(post({ code, toStage: stage }));
+      expect(res.status).toBe(200);
+
+      const row = await read(code);
+      expect(row.slaWindowHours, `${stage} kept the wrong window`)
+        .toBe(SLA_WINDOW_HOURS[stage]);
+      // The regression itself: the deadline used to be whatever `new` set, long past.
+      expect(row.slaDueAt, `${stage} has no deadline`).not.toBeNull();
+      expect(row.slaDueAt!.getTime(), `${stage} deadline is in the past`)
+        .toBeGreaterThan(Date.now());
+    }
+  });
+
+  it("lands the deadline inside business hours, not at 22:00 on a Sunday", async () => {
+    // addBusinessHours, not now + 36. A role moved on a Saturday evening is not due on
+    // Sunday night, when nobody is working and the client cannot be served.
+    const code = await newRole();
+    await changeStage(post({ code, toStage: "matching" }));
+    const row = await read(code);
+
+    // 09:00-19:00 IST, so the IST hour of the deadline must sit in that window.
+    const istHour = Number(
+      row.slaDueAt!.toLocaleString("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", hour12: false }),
+    );
+    expect(istHour, `deadline landed at ${istHour}:00 IST`).toBeGreaterThanOrEqual(9);
+    expect(istHour).toBeLessThanOrEqual(19);
+
+    const istDay = row.slaDueAt!.toLocaleString("en-US", { timeZone: "Asia/Kolkata", weekday: "short" });
+    expect(istDay, "deadline landed on a Sunday").not.toBe("Sun");
+  });
+
+  it("clears the deadline on a terminal stage rather than carrying a stale one", async () => {
+    const code = await newRole();
+    await changeStage(post({ code, toStage: "matching" }));
+    expect((await read(code)).slaDueAt).not.toBeNull();
+
+    await changeStage(post({ code, toStage: "placed" }));
+    const row = await read(code);
+    // Nothing left to be late for. The read model renders this as "No deadline", and for
+    // `placed` it shows the margin instead.
+    expect(row.slaDueAt).toBeNull();
+    expect(row.slaWindowHours).toBeNull();
+  });
+
+  it("rescues a role whose old deadline has already passed", async () => {
+    /**
+     * The symptom the owner actually saw, and the strongest form of this test.
+     *
+     * A role created seconds ago still has a FUTURE `new` deadline, so simply moving it
+     * and checking it is not late passes even with the bug present — which it did on the
+     * first version of this test. The bug only shows once the old deadline is behind us.
+     *
+     * So the deadline is aged into the past first, which is exactly the state every role
+     * on the owner's board was in: posted days ago, dragged along since, still judged
+     * against `new` + 4 business hours.
+     *
+     * Asserted through the read model the board renders from, because that is what a
+     * person looks at.
+     */
+    const code = await newRole();
+
+    await db.update(s.requirements)
+      .set({ slaDueAt: new Date(Date.now() - 72 * 3_600_000) })
+      .where(eq(s.requirements.code, code));
+
+    const before = (await getOpsPipeline()).requirements.find((r) => r.code === code);
+    expect(before!.sla.state, "the setup did not actually make it late").toBe("late");
+
+    await changeStage(post({ code, toStage: "matching" }));
+
+    const after = (await getOpsPipeline()).requirements.find((r) => r.code === code);
+    expect(after, "the moved requirement is missing from the pipeline").toBeDefined();
+    expect(after!.sla.state, `still reads "${after!.sla.label}" after moving stage`)
+      .not.toBe("late");
+  });
+
+  it("records the old and new deadline in the audit row", async () => {
+    const code = await newRole();
+    await changeStage(post({ code, toStage: "matching" }));
+
+    const [reqRow] = await db
+      .select({ id: s.requirements.id }).from(s.requirements)
+      .where(eq(s.requirements.code, code));
+    const [entry] = await db
+      .select({ before: s.auditLog.before, after: s.auditLog.after })
+      .from(s.auditLog)
+      .where(and(
+        eq(s.auditLog.entityId, reqRow.id),
+        eq(s.auditLog.action, "requirement.stage_changed"),
+      ))
+      .limit(1);
+
+    // A deadline that moves without a record of it moving is the thing a dispute turns on.
+    expect(entry).toBeDefined();
+    expect((entry.after as Record<string, unknown>).slaWindowHours).toBe(36);
+    expect(entry.before).toHaveProperty("slaDueAt");
+  });
+});
 
 /* ====================================================================== */
 /*  Posting a requirement must not dead-end at an empty matching desk      */
