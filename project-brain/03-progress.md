@@ -21,7 +21,7 @@ models rather than RLS (ADR-003).
 
 | Gate | State |
 |---|---|
-| `npm test` | **183 passing**, 10 files |
+| `npm test` | **207 passing**, 10 files |
 | `npm run db:verify` | **30/30** |
 | `npm run build` | clean |
 | `npx tsc --noEmit` | clean |
@@ -29,11 +29,12 @@ models rather than RLS (ADR-003).
 **Built and working end to end:** all 16 screens on the v2 design; the dual-role workspace;
 search across all three portals; CSV exports; the "How this works" explainer; the client
 placement panel with a working extension request; interview slots (offer times, move a
-round); real talent-pool filters with saved views; the draft → listed path; and **the
-matching engine** — `docs/MATCHING.md`'s six components and five gates, so a posted
+round); real talent-pool filters with saved views and a search box; the draft → listed path;
+**Talentvibes-controlled client rates**; **"Add to a requirement"** from the pool; and
+**the matching engine** — `docs/MATCHING.md`'s six components and five gates, so a posted
 requirement is sourced automatically instead of dead-ending on an empty desk.
 
-**`05-status.md` is the authoritative list** of what works, what is half-built and the **10**
+**`05-status.md` is the authoritative list** of what works, what is half-built and the **6**
 controls that still do nothing, each with a note on whether it needs a data model, an
 external system, or just work.
 
@@ -42,9 +43,14 @@ external system, or just work.
 Supabase `fmgwcspsuljefhfdcqen`, ap-south-1 (Mumbai). **39 base tables**, migrations
 `0000`–`0005` applied.
 
-**Migration `0006_panel_availability.sql` is written and NOT applied.** It is the last table
-a control on screen is blocked on ("Set panel availability"). The owner runs migrations;
-nothing in the code queries that table yet, so the deployed site is safe until they do.
+**Two migrations are written and NOT applied**, both waiting on the owner, who runs
+migrations. Nothing in the code queries either table yet, so the deployed site is safe until
+they do.
+
+| File | What it unblocks |
+|---|---|
+| `0006_panel_availability.sql` | "Set panel availability" on the client interviews screen — weekly windows per client org, IST, **advisory not a gate** |
+| `0007_margin_policy.sql` | an ops-only setting for the target and floor margin, so 22% / 18% stop being constants in `rate-band.ts`. One row, enforced by the schema |
 
 ### Two numbers that look like a contradiction and are not
 
@@ -80,7 +86,7 @@ percent-encoded (`@` becomes `%40`). Ask the owner for credentials; do not guess
 | `npm run dev` | dev server; **slow by design**, judge speed on `next start` instead |
 | `npm run build` | production build — **stop `next dev` and `rm -rf .next` first**, or it fails with `Cannot find module for page` |
 | `npx next start -p 3000` | production server, what to measure |
-| `npm test` | **the gate** — 183 tests. It loads `.env.local`; bare `npx vitest` does not |
+| `npm test` | **the gate** — 207 tests. It loads `.env.local`; bare `npx vitest` does not |
 | `npm run db:verify` | 30 assertions over the seeded data |
 | `npm run db:seed` | reseed (~4s) |
 | `npm run db:apply -- --dry` | list pending hand-written SQL migrations, touch nothing |
@@ -120,15 +126,18 @@ percent-encoded (`@` becomes `%40`). Ask the owner for credentials; do not guess
 
 ## Start here next time
 
-**1. Migration 0006 is waiting on the owner.** Once applied, wire panel availability: a read
-model, a `POST /api/client/interviews/availability`, and the "Set panel availability" drawer
-back on the interviews header. It is **advisory, not a gate** — a slot outside those windows
-is flagged and still sent.
+**1. Two migrations are waiting on the owner — `0006` and `0007`.** Once `0006` is applied,
+wire panel availability: a read model, a `POST /api/client/interviews/availability`, and the
+"Set panel availability" drawer back on the interviews header. It is **advisory, not a gate**
+— a slot outside those windows is flagged and still sent. Once `0007` is applied: a reader
+with the constants as its fallback, an ops-only settings control, and an audit row per change
+(changing the FLOOR re-derives which past placements count as exceptions, because margin is
+never stored).
 
 **2. Continue the page-by-page audit.** The owner's pattern is: status first, questions
-second, fixes third. **Role pipeline** and **Matching desk** are done. Not yet audited:
-**Talent pool**, **Margin**, **Duplicate checks**, **Organisations** on the ops side, and the
-whole client and vendor sides.
+second, fixes third. **Role pipeline**, **Matching desk**, **Margin** and **Talent pool**
+are done. Not yet audited: **Duplicate checks** and **Organisations** on the ops side, and
+the whole client and vendor sides.
 
 The two audits so far both found the same shape of defect — a control that *looked* like it
 worked. The pipeline's due dates referred to a stage the role had left; the matching desk's

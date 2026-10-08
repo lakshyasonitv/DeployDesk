@@ -4,8 +4,8 @@
 > against the running app, the database, or a grep of the source. Re-verify before quoting
 > it: the commands are at the bottom.
 >
-> Gates at the time of writing, commit `cbf6df1`:
-> **20 pages + 14 API routes · 39 base tables · `db:verify` 30/30 · `npm test` 135/135 ·
+> Gates at the time of writing, commit `ec4ebd3` plus the working tree:
+> **20 pages + 20 API routes · 39 base tables · `db:verify` 30/30 · `npm test` 207/207 ·
 > build + typecheck clean**
 >
 > `npm test` is the gate, not `npm run test:leak` — the latter only runs `tests/leak` and
@@ -25,6 +25,8 @@ These persist to Supabase, write an audit row, and are covered by tests.
 | **Request interviews** | `/client/shortlists/[code]` | creates round 1 at `proposed`; `meeting_url` stays null because Talentvibes issues it. Undo withdraws only rounds still proposed |
 | **Confirm availability ("still free")** | `/vendor/roster` | appends to `availability_confirmations`, updates `last_confirmed_at`, audit row |
 | **Move a role along the pipeline** | `/ops` | drag or arrows → `requirements.stage` + stage event + audit row, all in one transaction |
+| **Add somebody to a role by hand** | `/ops/pool` | tick rows, pick an open role. A failed staleness / duplicate / deployed gate is **recorded on the match**, not enforced — the matcher already sources every eligible person, so refusing them would make the button a no-op. Scored by the same function the matcher uses; Undo removes only what it wrote |
+| **Set the proposed client rate** | `/ops/matching/[code]` | editable per candidate, margin live as you type, a reason required below the 18% floor and recorded with the setter's name, re-scores and re-ranks, refuses a candidate already quoted (ADR-004) |
 | **Send a masked shortlist** | `/ops/matching/[code]` | immutable snapshot (ADR-009), duplicate and eligibility pre-checks |
 | **Live match preview** | `/client/requirements/new` | aggregate counts only, buckets anything under 5, excludes own-group and blocked supply |
 | **Light / dark theme** | everywhere | persists in `localStorage`, applied before first paint so there is no flash |
@@ -96,7 +98,7 @@ header link hardcoded to `REQ-2291` was removed.
 requirement check names fixture codes instead of counting rows. Nothing was loosened; the
 code check is stricter than the count was.
 
-## 3. Visible but inert — 7 controls that do nothing
+## 3. Visible but inert — 6 controls that do nothing
 
 Each needs a decision, not just wiring. Grouped by what they actually need.
 
@@ -114,7 +116,9 @@ Each needs a decision, not just wiring. Grouped by what they actually need.
 - **Raise invoice** (`/vendor/earnings`) — billing integration
 
 **Needs only work, no decisions**
-- **Add to a requirement** (`/ops/pool`) — add a pool candidate to a match set
+- ~~**Add to a requirement** (`/ops/pool`)~~ — **wired 2026-10-08.** Tick rows, pick an open
+  role; a failed gate is recorded on the match rather than enforced, which is what makes the
+  control worth having (see `02-decisions.md`)
 - **Ask Talentvibes** (`/client/shortlists` index) — opens nothing; the drawer exists only on the detail page
 - **Sending a broker message** — the thread now READS real data, but Send only appends locally; there is no write endpoint for a client message
 

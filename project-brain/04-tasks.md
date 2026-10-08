@@ -7,7 +7,7 @@
 >
 > 1. every route returns 200 — **cold and warm**, at least twice each
 > 2. `npm run db:verify` → **30/30**
-> 3. `npm test` → **183/183** — the WHOLE suite. `test:leak` runs only `tests/leak` and
+> 3. `npm test` → **207/207** — the WHOLE suite. `test:leak` runs only `tests/leak` and
 >    misses `tests/business-clock.test.ts`, `tests/matching.test.ts` and two others, so
 >    **`npm test` is the gate**. It also loads `.env.local`; bare `npx vitest` does not.
 > 4. `npm run build` → clean (stop `next dev` and delete `.next` first)
@@ -29,7 +29,7 @@
       and the "Set panel availability" drawer back on the interviews header. **Advisory, not
       a gate** — a slot outside those windows is flagged and still sent.
 - [ ] **Continue the page-by-page audit.** Status first, questions second, fixes third.
-      Done: **Role pipeline**, **Matching desk**. Not yet: **Talent pool**, **Margin**,
+      Done: **Role pipeline**, **Matching desk**, **Margin**, **Talent pool**. Not yet:
       **Duplicate checks**, **Organisations**, and the whole client and vendor sides.
 
       Both audits so far found the same shape of defect — a control that *looked* like it
@@ -56,7 +56,16 @@
 
 ## NEXT
 
-- [ ] **The 7 remaining inert controls** — the list with the reason for each is
+- [x] **"Add to a requirement"** ✅ 2026-10-08 — a checkbox per pool row, a select-all, a
+      header button naming the count, and a picker over the open roles. A person failing the
+      staleness / duplicate / deployed gate **is added with the reason recorded in
+      `matches.eligibility`** rather than refused, because the matcher already sources every
+      eligible person automatically — refusing them would have made the button a no-op.
+      Self-dealing, blocked suppliers and anybody off the bench are refused. Scored through
+      the same `componentsFor` the matcher uses, `algo_rank` renumbered, `manual_rank`
+      untouched, with an Undo that removes only what it wrote.
+
+- [ ] **The 6 remaining inert controls** — the list with the reason for each is
       `05-status.md` §3. Closest to done: **Save draft** on client interviews, where the
       endpoint already accepts a null outcome.
 - [ ] **Skill adjacency for the matcher.** Without it a React Native developer is

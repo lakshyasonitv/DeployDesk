@@ -14,6 +14,7 @@ import * as s from "../../db/schema";
 import { formatPaiseExact, formatPaiseShort } from "../../lib/money/paise";
 import { marginBand, marginPct, isBelowFloor, MARGIN_FLOOR_PCT, MARGIN_TARGET_PCT } from "../../lib/money/rate-band";
 import { MATCHING_COMPONENTS } from "../../lib/matching/score";
+import { OPEN_STAGES } from "../../lib/matching/run";
 import {
   SLA_WINDOW_HOURS, ageLabel, formatExperience, freshnessFor, slaFor, type SlaState, istFormat } from "../../lib/derived";
 
@@ -683,6 +684,68 @@ export async function getOpsSavedViews(userId: string) {
     .where(and(eq(s.savedViews.userId, userId), eq(s.savedViews.screen, "ops.pool")))
     .orderBy(asc(s.savedViews.name));
   return rows.map((r) => ({ name: r.name, filters: (r.filters ?? {}) as PoolFilters }));
+}
+
+/* ====================================================================== */
+/*  The roles somebody from the pool can be added to                       */
+/* ====================================================================== */
+
+export interface OpsOpenRequirement {
+  code: string;
+  roleTitle: string;
+  clientName: string;
+  /** How many people the client wants, which is what makes a role worth adding to. */
+  positions: number;
+  stage: string;
+  experienceBand: string;
+  budgetLabel: string;
+  /** Already sourced for this role, so the picker can say "12 in the pool". */
+  poolCount: number;
+}
+
+/**
+ * The open roles, for "Add to a requirement" on the talent pool.
+ *
+ * `draft`, `placed`, `closed` and `cancelled` are deliberately absent. A draft has not been
+ * committed to by the client yet, and the other three are finished -- a match row on any of
+ * them is invisible work nobody will ever look at again. The endpoint enforces the same list
+ * from `OPEN_STAGES`, because a stage can change between rendering this picker and using it.
+ *
+ * Ops-only: `clientName` appears here because the broker is the one party that sees both
+ * sides. This must never be imported by a client or vendor read model (ADR-003).
+ */
+export async function getOpsOpenRequirements(): Promise<OpsOpenRequirement[]> {
+  const rows = await db
+    .select({
+      code: s.requirements.code,
+      roleTitle: s.requirements.roleTitle,
+      clientName: s.organizations.name,
+      positions: s.requirements.quantity,
+      stage: s.requirements.stage,
+      experienceBand: s.requirements.experienceBand,
+      budgetMinPaise: s.requirements.budgetMinPaise,
+      budgetMaxPaise: s.requirements.budgetMaxPaise,
+      poolCount: sql<number>`(
+        select count(*)::int from matches m where m.requirement_id = ${s.requirements.id}
+      )`,
+    })
+    .from(s.requirements)
+    .innerJoin(s.organizations, eq(s.organizations.id, s.requirements.clientOrgId))
+    .where(inArray(s.requirements.stage, [...OPEN_STAGES]))
+    // Newest first: a broker reaching for the pool is usually working a role that just came in.
+    .orderBy(desc(sql`coalesce(${s.requirements.postedAt}, ${s.requirements.createdAt})`));
+
+  return rows.map((r) => ({
+    code: r.code,
+    roleTitle: r.roleTitle,
+    clientName: r.clientName,
+    positions: r.positions,
+    stage: r.stage,
+    experienceBand: r.experienceBand,
+    // Same shape as the pipeline: one rupee sign, an en dash, the short form.
+    budgetLabel: `${formatPaiseShort(r.budgetMinPaise)}–${formatPaiseShort(r.budgetMaxPaise).replace("₹", "")}`,
+    poolCount: r.poolCount,
+  }));
 }
 
 export async function getOpsTalentPool(opts: PoolFilters & { limit?: number } = {}) {

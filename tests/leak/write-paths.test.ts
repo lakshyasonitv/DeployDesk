@@ -39,13 +39,18 @@ import { POST as changeStage } from "@/app/api/ops/requirements/stage/route";
 import { POST as runMatchingRoute } from "@/app/api/ops/matching/run/route";
 import { POST as saveRank, DELETE as resetRank } from "@/app/api/ops/matching/rank/route";
 import { POST as setRate } from "@/app/api/ops/matching/rate/route";
+import {
+  POST as addToRequirementRoute, DELETE as undoAddRoute,
+} from "@/app/api/ops/pool/add-to-requirement/route";
 import { POST as sendShortlist } from "@/app/api/ops/shortlists/send/route";
 import { algoScore as weightedTotal } from "../../src/lib/matching/score";
 import { marginPct, MARGIN_FLOOR_PCT } from "../../src/lib/money/rate-band";
 import { getOpsMatchingWorkspace } from "../../src/read-models/ops";
 import { algoScore } from "../../src/lib/matching/score";
 import { getVendorAssessments, getVendorRoster } from "../../src/read-models/vendor";
-import { getOpsTalentPool, getOpsPipeline } from "../../src/read-models/ops";
+import {
+  getOpsTalentPool, getOpsPipeline, getOpsOpenRequirements,
+} from "../../src/read-models/ops";
 import { SLA_WINDOW_HOURS } from "../../src/lib/derived";
 
 /** A Request the route handlers accept. */
@@ -392,6 +397,431 @@ describe("the matching desk saves what a broker arranges", () => {
     // miss — so the desk says so rather than looking like it did nothing.
     expect(out.keptManualOrder, "a re-run did not notice the manual order").toBe(true);
     expect(out.added).toBe(0); // nothing new listed between the two runs
+  });
+});
+
+/* ====================================================================== */
+/*  Adding somebody from the talent pool, by hand                          */
+/* ====================================================================== */
+
+/**
+ * "Add to a requirement" was a dead button in the talent pool header.
+ *
+ * Doubly dead: no handler, and no way to say WHO to add — there was no selection on that
+ * table at all. The interesting half is not the plumbing, it is what the gates do. The
+ * matcher already sources every ELIGIBLE person automatically, so an add that refused
+ * ineligible candidates could only ever add somebody matching had already found. It would be
+ * a button that did nothing, again.
+ *
+ * So `docs/MATCHING.md` is followed literally — *"Record the reason in `matches.eligibility`
+ * when ops explicitly asks to see blocked candidates"* — and the gate is RECORDED rather
+ * than enforced. Self-dealing, blocked suppliers and people off the bench are still refused,
+ * because those rows would be created and then never displayed.
+ */
+describe("adding somebody to a role by hand", () => {
+  /** An open role, and the pool the matcher sourced for it on posting. */
+  async function openRole(quantity = 2) {
+    const res = await createRequirement(post({
+      roleTitle: MARK, skills: ["React"], experienceBand: "5-8", quantity,
+      budgetMinPaise: 13_000_000, budgetMaxPaise: 22_000_000,
+      engagementType: "contract", workMode: "remote",
+      noticeAccepted: ["immediate"], stage: "new",
+    }));
+    expect(res.status).toBe(201);
+    const { code } = await res.json() as { code: string };
+    const view = await getOpsMatchingWorkspace(code);
+    return { code, sourced: view!.candidates.map((c) => c.maskedId) };
+  }
+
+  /**
+   * A listed, just-confirmed profile.
+   *
+   * Created AFTER the role on purpose, so the matcher has never seen it — which is what
+   * makes "the matcher never sourced them" a real assertion rather than a coincidence of
+   * the seed.
+   */
+  async function freshProfile() {
+    const created = await createResource(post({
+      fullName: MARK, baseCity: "Pune", experienceMonths: 72,
+      skills: ["React"], vendorRatePaise: 14_000_000,
+      workModes: ["remote"], status: "draft",
+    }));
+    expect(created.status).toBe(201);
+    const { maskedId } = await created.json() as { maskedId: string };
+    expect((await listResource(post({ maskedId, to: "listed" }))).status).toBe(200);
+    return maskedId;
+  }
+
+  /** The match rows for a role, as the database holds them. */
+  async function matchRows(code: string) {
+    return db
+      .select({
+        id: s.matches.id,
+        maskedId: s.benchResources.maskedId,
+        algoScore: s.matches.algoScore,
+        algoRank: s.matches.algoRank,
+        manualRank: s.matches.manualRank,
+        eligibility: s.matches.eligibility,
+        scoreSkill: s.matches.scoreSkill,
+        scoreTest: s.matches.scoreTest,
+        scoreExpFit: s.matches.scoreExpFit,
+        scoreRate: s.matches.scoreRate,
+        scoreFreshness: s.matches.scoreFreshness,
+        scoreVendor: s.matches.scoreVendor,
+        proposedClientRatePaise: s.matches.proposedClientRatePaise,
+      })
+      .from(s.matches)
+      .innerJoin(s.requirements, eq(s.requirements.id, s.matches.requirementId))
+      .innerJoin(s.benchResources, eq(s.benchResources.id, s.matches.resourceId))
+      .where(eq(s.requirements.code, code));
+  }
+
+  const add = (code: string, maskedIds: string[]) =>
+    addToRequirementRoute(post({ code, maskedIds }));
+
+  it("puts a profile the matcher never sourced into the pool", async () => {
+    const role = await openRole();
+    const maskedId = await freshProfile();
+    expect(role.sourced, "created before the profile, so it cannot be sourced yet")
+      .not.toContain(maskedId);
+
+    const res = await add(role.code, [maskedId]);
+    expect(res.status).toBe(200);
+    const body = await res.json() as {
+      added: string[]; flagged: unknown[]; refused: Array<{ reason: string }>;
+    };
+    expect(body.refused, "a listed, just-confirmed profile was refused").toEqual([]);
+    expect(body.added).toContain(maskedId);
+
+    // Through the read model the desk renders from, not the column.
+    const view = await getOpsMatchingWorkspace(role.code);
+    expect(view!.candidates.map((c) => c.maskedId)).toContain(maskedId);
+  });
+
+  it("scores them with the same scorer the matcher uses", async () => {
+    /**
+     * The reason `componentsFor` was lifted out of a closure inside `runMatching` instead of
+     * being copied. Two copies of a scoring rule is how a hand-added candidate ends up
+     * scored differently from a sourced one, on the same screen, with nothing saying why —
+     * the mistake the ranking weights had made twice already.
+     */
+    const role = await openRole();
+    const maskedId = await freshProfile();
+    await add(role.code, [maskedId]);
+
+    const rows = await matchRows(role.code);
+    const mine = rows.find((r) => r.maskedId === maskedId);
+    expect(mine, "no match row was written").toBeDefined();
+
+    // The total is the weighted blend of ITS OWN six components, so a default or a
+    // placeholder cannot pass.
+    expect(mine!.algoScore).toBe(algoScore(mine!));
+    expect(mine!.proposedClientRatePaise, "added without a price").not.toBeNull();
+    for (const key of [
+      "scoreSkill", "scoreTest", "scoreExpFit", "scoreRate", "scoreFreshness", "scoreVendor",
+    ] as const) {
+      expect(mine![key], `${key} out of range`).toBeGreaterThanOrEqual(0);
+      expect(mine![key], `${key} out of range`).toBeLessThanOrEqual(100);
+    }
+
+    // Ranked among the rest rather than parked at the end: contiguous 1..n, no gaps, no
+    // duplicates, and nobody left on the 9999 the insert uses as a placeholder.
+    const ranks = rows.map((r) => r.algoRank).sort((a, b) => a - b);
+    expect(ranks).toEqual(rows.map((_, i) => i + 1));
+  });
+
+  it("scores a hand-added candidate identically to one the matcher sourced", async () => {
+    /**
+     * The assertion the refactor was for, and the one the test above cannot make.
+     *
+     * Checking that `algo_score` is the weighted blend of its own components only proves the
+     * row is self-consistent — a SECOND copy of the scoring assembly would be self-consistent
+     * too, and would quietly disagree with the matcher. So the same person is put into two
+     * identical roles by the two different paths, and the six components have to match.
+     *
+     * `componentsFor` was a closure inside `runMatching` until this feature needed it; this
+     * is what keeps it one function.
+     */
+    const byHand = await openRole();
+    const maskedId = await freshProfile();
+    await add(byHand.code, [maskedId]);
+
+    // An identical role posted AFTER the profile is listed, so the matcher sources them.
+    const sourced = await openRole();
+    expect(
+      sourced.sourced,
+      "the matcher did not source a fresh, listed, in-band profile — nothing to compare",
+    ).toContain(maskedId);
+
+    const [manual] = (await matchRows(byHand.code)).filter((r) => r.maskedId === maskedId);
+    const [auto] = (await matchRows(sourced.code)).filter((r) => r.maskedId === maskedId);
+
+    const components = (r: typeof manual) => ({
+      scoreSkill: r.scoreSkill, scoreTest: r.scoreTest, scoreExpFit: r.scoreExpFit,
+      scoreRate: r.scoreRate, scoreFreshness: r.scoreFreshness, scoreVendor: r.scoreVendor,
+    });
+    expect(components(manual)).toEqual(components(auto));
+    expect(manual.algoScore).toBe(auto.algoScore);
+    expect(manual.proposedClientRatePaise).toBe(auto.proposedClientRatePaise);
+  });
+
+  it("does not reshuffle the ranks the matcher already assigned", async () => {
+    /**
+     * Why the renumber reads `algo_rank` instead of re-sorting the stored components.
+     *
+     * `runMatching` breaks ties on the RAW assessment score, the raw days since confirmation
+     * and the raw reliability — not on the bucketed components it writes to the row. So
+     * re-sorting the pool here from `score_test` / `score_freshness` / `score_vendor` would be
+     * a second, subtly different ranking rule, and a later re-run would shuffle ranks back
+     * with nothing explaining why. The existing rows keep their order; only the new one is
+     * placed.
+     */
+    const role = await openRole();
+    expect(role.sourced.length, "no pool to disturb").toBeGreaterThan(1);
+
+    const orderOf = async (code: string) =>
+      (await matchRows(code))
+        .sort((a, b) => a.algoRank - b.algoRank)
+        .map((r) => r.maskedId);
+
+    const before = await orderOf(role.code);
+    const maskedId = await freshProfile();
+    await add(role.code, [maskedId]);
+
+    const after = await orderOf(role.code);
+    expect(after.filter((id) => id !== maskedId)).toEqual(before);
+    expect(after).toContain(maskedId);
+    // And still 1..n: the new row does not sit on the 9999 the insert uses as a placeholder.
+    const rows = await matchRows(role.code);
+    expect(rows.map((r) => r.algoRank).sort((a, b) => a - b))
+      .toEqual(rows.map((_, i) => i + 1));
+  });
+
+  it("keeps two equally-scored candidates in the order the matcher put them", async () => {
+    /**
+     * The assertion the test above cannot make, because **the seed contains no score ties**
+     * for a role like this — so the tie-breaks never engage and either renumber produces the
+     * same answer. This manufactures the tie.
+     *
+     * `runMatching` breaks ties on the RAW assessment score, the raw days since confirmation
+     * and the raw reliability. The row stores the BUCKETED components. So a renumber that
+     * re-sorted the pool from `score_test` / `score_freshness` / `score_vendor` would be a
+     * second, subtly different ranking rule, and would move a candidate the matcher had
+     * already placed — which is why the renumber reads `algo_rank` instead.
+     *
+     * The two rows are made to tie on `algo_score` while the LOWER-ranked one is given the
+     * better stored tie-breaks, so a re-sort from those columns would promote it and this
+     * assertion would fail. Writing `algo_score` by hand is what ADR-011 forbids in real
+     * data: this is a `MARK` fixture, deleted in `afterAll`, that nothing else reads.
+     */
+    const role = await openRole();
+    const ranked = (await matchRows(role.code)).sort((a, b) => a.algoRank - b.algoRank);
+    expect(ranked.length, "need at least two candidates to tie").toBeGreaterThan(1);
+    const [first, second] = ranked;
+
+    await db.update(s.matches)
+      .set({ scoreTest: 0, scoreFreshness: 0, scoreVendor: 0 })
+      .where(eq(s.matches.id, first.id));
+    await db.update(s.matches)
+      .set({ algoScore: first.algoScore, scoreTest: 100, scoreFreshness: 100, scoreVendor: 100 })
+      .where(eq(s.matches.id, second.id));
+
+    const maskedId = await freshProfile();
+    await add(role.code, [maskedId]);
+
+    const after = (await matchRows(role.code))
+      .sort((a, b) => a.algoRank - b.algoRank)
+      .map((r) => r.maskedId)
+      .filter((id) => id !== maskedId);
+    expect(after.slice(0, 2), "the renumber re-sorted rows the matcher had already ranked")
+      .toEqual([first.maskedId, second.maskedId]);
+  });
+
+  it("records the gate a person failed instead of refusing them", async () => {
+    const role = await openRole();
+    const maskedId = await freshProfile();
+
+    // Age the confirmation past the 14-day staleness gate. The matcher would skip them
+    // entirely; the manual add is the documented way to see them anyway.
+    await db
+      .update(s.benchResources)
+      .set({ lastConfirmedAt: new Date(Date.now() - 40 * 864e5) })
+      .where(eq(s.benchResources.maskedId, maskedId));
+
+    const res = await add(role.code, [maskedId]);
+    expect(res.status).toBe(200);
+    const body = await res.json() as {
+      added: string[]; flagged: Array<{ maskedId: string; eligibility: string }>;
+    };
+
+    expect(body.added, "a stale profile was reported as clean").not.toContain(maskedId);
+    expect(body.flagged).toEqual([{ maskedId, eligibility: "blocked_stale" }]);
+
+    // In the pool, carrying the reason — that is the whole feature.
+    const rows = await matchRows(role.code);
+    expect(rows.find((r) => r.maskedId === maskedId)?.eligibility).toBe("blocked_stale");
+
+    const view = await getOpsMatchingWorkspace(role.code);
+    expect(
+      view!.candidates.map((c) => c.maskedId),
+      "a flagged candidate must still be visible to the desk that flagged them",
+    ).toContain(maskedId);
+  });
+
+  it("refuses somebody who is off the bench", async () => {
+    // Nobody can be offered a withdrawn profile, so adding one is meaningless rather than
+    // deliberate. This is the line between "record the gate" and "refuse".
+    const role = await openRole();
+    const maskedId = await freshProfile();
+    expect((await withdrawResource(post({ maskedId }, "DELETE"))).status).toBe(200);
+
+    const res = await add(role.code, [maskedId]);
+    expect(res.status).toBe(200);
+    const body = await res.json() as {
+      written: string[]; refused: Array<{ maskedId: string; reason: string }>;
+    };
+    expect(body.refused).toEqual([{ maskedId, reason: "off_the_bench" }]);
+    expect(body.written).toEqual([]);
+
+    const rows = await matchRows(role.code);
+    expect(rows.map((r) => r.maskedId)).not.toContain(maskedId);
+  });
+
+  it("says nothing changed for somebody already in the role", async () => {
+    const role = await openRole();
+    expect(role.sourced.length, "no pool to re-add from").toBeGreaterThan(0);
+    const before = await matchRows(role.code);
+
+    const res = await add(role.code, [role.sourced[0]]);
+    const body = await res.json() as { alreadyThere: string[]; written: string[] };
+
+    expect(body.alreadyThere).toEqual([role.sourced[0]]);
+    expect(body.written).toEqual([]);
+    // No duplicate row, and no silent re-score of somebody a broker may have priced.
+    expect((await matchRows(role.code)).length).toBe(before.length);
+  });
+
+  it("leaves a hand-arranged order alone", async () => {
+    /**
+     * The product owner's choice: *"Scored and ranked like anybody else. Any manual ordering
+     * you have arranged is preserved; only algo_rank is renumbered."* An add that reshuffled
+     * a broker's order would silently destroy work nobody asked it to touch.
+     */
+    const role = await openRole();
+    const arranged = [...role.sourced].reverse();
+    expect((await saveRank(post({ code: role.code, order: arranged, included: [] }))).status).toBe(200);
+
+    const maskedId = await freshProfile();
+    await add(role.code, [maskedId]);
+
+    // The desk orders by `coalesce(manual_rank, algo_rank + 1000)`, so somebody with no
+    // manual rank lands under the arranged list — where the matching desk already warns
+    // that new candidates are easy to miss.
+    const view = await getOpsMatchingWorkspace(role.code);
+    expect(view!.candidates.map((c) => c.maskedId)).toEqual([...arranged, maskedId]);
+
+    const rows = await matchRows(role.code);
+    const manual = rows.filter((r) => r.manualRank != null);
+    expect(manual.length, "the manual order was cleared by an add").toBe(arranged.length);
+    expect(rows.map((r) => r.algoRank).sort((a, b) => a - b))
+      .toEqual(rows.map((_, i) => i + 1));
+  });
+
+  it("the Undo removes exactly what the add wrote", async () => {
+    const role = await openRole();
+    const maskedId = await freshProfile();
+    const added = await add(role.code, [maskedId]);
+    const { written } = await added.json() as { written: string[] };
+    expect(written).toEqual([maskedId]);
+
+    const res = await undoAddRoute(post({ code: role.code, maskedIds: written }, "DELETE"));
+    expect(res.status).toBe(200);
+    const body = await res.json() as { removed: string[] };
+    expect(body.removed).toEqual([maskedId]);
+
+    const rows = await matchRows(role.code);
+    expect(rows.map((r) => r.maskedId)).not.toContain(maskedId);
+    // Everybody the matcher sourced is untouched, and the ranks close up behind the
+    // deletion rather than leaving a gap the desk would render.
+    expect(rows.length).toBe(role.sourced.length);
+    expect(rows.map((r) => r.algoRank).sort((a, b) => a - b))
+      .toEqual(rows.map((_, i) => i + 1));
+  });
+
+  it("the Undo will not remove somebody a broker has since arranged", async () => {
+    // An Undo that reverses more than it did is worse than no Undo. Once a candidate has
+    // been ranked by hand or marked to send, they are work rather than an accidental add.
+    const role = await openRole();
+    const maskedId = await freshProfile();
+    await add(role.code, [maskedId]);
+
+    const view = await getOpsMatchingWorkspace(role.code);
+    const order = view!.candidates.map((c) => c.maskedId);
+    await saveRank(post({ code: role.code, order, included: [maskedId] }));
+
+    const res = await undoAddRoute(post({ code: role.code, maskedIds: [maskedId] }, "DELETE"));
+    const body = await res.json() as { removed: string[]; keptBecauseArranged: string[] };
+    expect(body.removed).toEqual([]);
+    expect(body.keptBecauseArranged).toEqual([maskedId]);
+    expect((await matchRows(role.code)).map((r) => r.maskedId)).toContain(maskedId);
+  });
+
+  it("refuses a role nobody is working any more", async () => {
+    const role = await openRole();
+    const maskedId = await freshProfile();
+    expect((await cancelRequirement(post({ code: role.code }, "DELETE"))).status).toBe(200);
+
+    const res = await add(role.code, [maskedId]);
+    expect(res.status).toBe(409);
+    expect((await res.json() as { error: string }).error).toBe("stage_closed");
+    expect((await matchRows(role.code)).map((r) => r.maskedId)).not.toContain(maskedId);
+  });
+
+  it("leaves an audit row naming who was added and which gate they failed", async () => {
+    // Working agreement 5. This changes the pool a client will be shown a shortlist from,
+    // and it deliberately includes people a gate had excluded — the part a dispute turns on.
+    const role = await openRole();
+    const maskedId = await freshProfile();
+    await db
+      .update(s.benchResources)
+      .set({ lastConfirmedAt: new Date(Date.now() - 40 * 864e5) })
+      .where(eq(s.benchResources.maskedId, maskedId));
+    await add(role.code, [maskedId]);
+
+    const [req] = await db
+      .select({ id: s.requirements.id })
+      .from(s.requirements)
+      .where(eq(s.requirements.code, role.code));
+
+    const [row] = await db
+      .select({ after: s.auditLog.after, context: s.auditLog.context })
+      .from(s.auditLog)
+      .where(and(
+        eq(s.auditLog.entityId, req.id),
+        eq(s.auditLog.action, "pool.added_to_requirement"),
+      ));
+
+    expect(row, "no audit row for a manual add").toBeDefined();
+    expect(JSON.stringify(row.after)).toContain("blocked_stale");
+    expect(JSON.stringify(row.context)).toContain(role.code);
+  });
+
+  it("offers only roles somebody is still working", async () => {
+    const open = await openRole();
+    const codes = (await getOpsOpenRequirements()).map((r) => r.code);
+    expect(codes, "a posted role is missing from the picker").toContain(open.code);
+
+    await cancelRequirement(post({ code: open.code }, "DELETE"));
+    const after = await getOpsOpenRequirements();
+    expect(after.map((r) => r.code), "a cancelled role is still offered")
+      .not.toContain(open.code);
+
+    // A draft has not been committed to by the client; the other closed stages are
+    // finished. Either way a match row on one is invisible work.
+    for (const r of after) {
+      expect(["new", "matching", "shortlisted", "interviewing"], `${r.code} is ${r.stage}`)
+        .toContain(r.stage);
+    }
   });
 });
 
@@ -839,6 +1269,7 @@ describe("every write endpoint validates its input", () => {
     ["client/interviews/feedback", feedback, { maskedId: "nope", roundNo: 99 }],
     ["ops/duplicates/resolve", resolveDuplicate, { code: "nope" }],
     ["ops/requirements/stage", changeStage, { code: "nope" }],
+    ["ops/pool/add-to-requirement", addToRequirementRoute, { code: "nope", maskedIds: [] }],
   ];
 
   for (const [name, handler, body] of cases) {

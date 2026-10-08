@@ -33,6 +33,10 @@
 
 **2026-10-08**
 
+- [A manual add records the gate it failed, and does not enforce it](#2026-10-08-a-manual-add-records-the-gate-it-failed-and-does-not-enforce-it)
+- [The talent pool's search was built and unreachable](#2026-10-08-the-talent-pools-search-was-built-and-unreachable)
+- [Talentvibes sets the price, and a sent candidate cannot be re-priced](#2026-10-08-talentvibes-sets-the-price-and-a-sent-candidate-cannot-be-re-priced)
+- [One definition of the margin, and no figure on the Margin page that is not computed](#2026-10-08-one-definition-of-the-margin-and-no-figure-on-the-margin-page-that-is-not-computed)
 - [The matching desk saves what a broker arranges](#2026-10-08-the-matching-desk-saves-what-a-broker-arranges)
 - [panel_availability: a weekly routine per client org, advisory not a gate](#2026-10-08-panelavailability-a-weekly-routine-per-client-org-advisory-not-a-gate)
 - [db:verify judges the fixture against the moment it describes](#2026-10-08-dbverify-judges-the-fixture-against-the-moment-it-describes)
@@ -77,7 +81,184 @@
 - [Database changes are file-first and approval-gated](#2026-10-06-database-changes-are-file-first-and-approval-gated)
 - [Dual-role organisations: three decisions taken before building](#2026-10-06-dual-role-organisations-three-decisions-taken-before-building)
 
----
+## 2026-10-08 — A manual add records the gate it failed, and does not enforce it
+
+- **Decision.** "Add to a requirement" on the talent pool takes a tick-box selection and puts
+  those people into an open role. A person failing a **staleness, duplicate or deployed** gate
+  **is still added**, carrying the reason in `matches.eligibility` so the desk flags them.
+  **Self-dealing, blocked suppliers and anybody off the bench are refused.** Added candidates
+  are scored and ranked exactly like sourced ones; `algo_rank` is renumbered, `manual_rank` is
+  never touched.
+
+- **Why.** Enforcing the gates here would make the button pointless. The matcher already
+  sources every ELIGIBLE person automatically the moment a role is posted, so a manual add
+  that refused ineligible candidates **could only ever add somebody matching had already
+  found** — a second dead button in the place of the first. `docs/MATCHING.md` had already
+  settled it: *"Record the reason in `matches.eligibility` when ops explicitly asks to see
+  blocked candidates."* The owner chose the same shape when asked.
+
+  The two refusals are not gates in the same sense. A **blocked supplier** is a client's
+  explicit instruction rather than a rule of thumb, and `getOpsMatchingWorkspace` filters
+  self-dealing and blocked rows out of the desk — so the row would be written and then never
+  displayed. A **withdrawn** profile cannot be offered to anybody at all.
+
+- **Rejected.**
+  - *A "+" button on each row.* The owner's call, and the right one: the common case is
+    "these four", and four navigations to add four people is the shape of a form, not a desk.
+  - *Refusing ineligible candidates.* Above — it makes the feature a no-op.
+  - *Adding them silently.* The opposite failure. A stale profile mixed into a pool with
+    nothing saying so is how a client gets offered somebody whose availability nobody checked.
+  - *Summarising the outcome in a toast.* Ten people can produce four outcomes at once
+    (added, flagged, already there, refused). The dialog stays open and lists them per person;
+    only a clean add closes and toasts.
+
+- **Impact.** `POST`/`DELETE /api/ops/pool/add-to-requirement`, `getOpsOpenRequirements()`,
+  and a selection context spanning the page header and the table — the checkboxes are in one
+  and the button is in the other. **`componentsFor` was lifted out of a closure inside
+  `runMatching` into an exported function** so both paths score through one copy; a test puts
+  the same person into two identical roles by the two paths and compares all six components.
+  The Undo removes only what the call wrote, and refuses anybody since hand-ranked, marked to
+  send, or already quoted to a client (ADR-004 froze their band).
+
+  **The renumber reads `algo_rank`, it does not re-sort from the stored components.**
+  `runMatching` breaks ties on the **raw** assessment score, the raw days since confirmation
+  and the raw reliability; the row stores the **bucketed** components. Re-sorting from those
+  columns would therefore be a second, subtly different ranking rule — the exact duplication
+  `componentsFor` was extracted to avoid — and a later re-run would shuffle ranks back with
+  nothing explaining why. So existing rows keep the order the matcher gave them, new rows are
+  merged in by score, and an existing row wins a tie because it was ranked by the fuller rule.
+  A test manufactures a tie (the seed has none) and fails if the pool is re-sorted.
+
+  Leaves **6** inert controls, from 7.
+
+## 2026-10-08 — The talent pool's search was built and unreachable
+
+**Decision.** A search box at the head of the filter row on `/ops/pool`, applying on Enter or
+blur rather than per keystroke.
+
+**Why it was needed at all.** `getOpsTalentPool` has searched **name, masked id, employer and
+skills** in SQL since the filters landed, and `PoolFilters` already preserved `q` across chip
+changes and counted it as an active filter — but **there was no input**. The only way to
+search the pool was to edit the URL. A feature that is built, tested and unreachable is
+indistinguishable from one that does not exist.
+
+**Applied on commit, not per keystroke.** Every chip applies on click because a chip is a
+decision; a text box is not. Pushing a navigation per letter would mean a database query per
+letter and a back-button history with one entry per character typed. Enter or blur commits,
+Escape clears.
+
+**The box syncs inside `apply()`, not at each call site.** `typed` is seeded from
+`current.search` on mount only, so "Clear all filters" left the old text sitting in the box
+with no filter behind it, and applying a saved view carrying a search would not have shown
+it. Syncing in the one funnel every filter change passes through covers both, and anything
+added later.
+
+**Four assertions pin what it covers** — by name, by masked id, by employer, by skill — plus
+case-insensitivity, a term that matches nothing, and that it searches the whole exchange
+rather than the first page. That last one was the original defect: `search` used to run in
+memory **after** `.limit(60)`.
+## 2026-10-08 — Talentvibes sets the price, and a sent candidate cannot be re-priced
+
+**Decision.** `POST /api/ops/matching/rate` lets a broker set the proposed client rate per
+candidate on the matching desk, with the margin updating as they type.
+
+**Why.** The rate was computed — `vendor / (1 - target)`, rounded, clamped into budget — and
+**nobody could change it**; the desk rendered it as a read-only `Detail`. That one number
+decides the band the client sees, the margin Talentvibes earns and 14% of the ranking score,
+so it is the central commercial lever of the business and it was set by a constant.
+`docs/MATCHING.md` already said otherwise: the margin-constrained case should "surface it to
+ops ... and **let a human decide**", and there was no way to decide.
+
+**Setting a rate re-scores and re-ranks.** `score_rate` is computed FROM the rate and
+`algo_score` is the weighted blend, so writing the rate alone would leave the desk showing a
+price that disagrees with the bar beside it and the total beneath it — the incoherence
+ADR-011 exists to prevent. `algo_rank` is renumbered across the pool because a changed score
+changes the order. **`manual_rank` is untouched**: re-pricing one candidate must not
+rearrange an order somebody arranged by hand.
+
+**A sent candidate cannot be re-priced** — `already_quoted`, 409. ADR-004 freezes the band on
+`shortlist_items` at send time, so the client holds a price derived from the old rate;
+changing it afterwards would leave the desk and the client disagreeing with nothing on either
+screen saying so. Re-pricing means sending a new shortlist, which the sequence number already
+supports.
+
+**Below the floor is allowed, with a reason and a name.** Mirrors placements, where
+`engagements` carries `margin_approved_by` and `margin_exception_note` and the Margin page
+shows both. A below-floor price is a real commercial choice — the two seeded exceptions are
+strategic account entries — so it is recorded, not refused.
+
+**The reason lives in `audit_log`, not a new column on `matches`.** The audit row is the
+durable record a dispute is argued from, and keeping it there meant the rate control works
+**today** rather than waiting on a migration. The read model recovers the latest
+`matching.rate_set` entry per candidate for display.
+
+**Rejected: a hard block below the floor.** It would have made the two seeded exceptions
+impossible to enter, and both are deliberate.
+
+**Migration 0007 is written and NOT applied** — `margin_policy`, one row, for the
+configurable target and floor. Exactly one row is enforced by the schema, because a settings
+table that can hold two will eventually hold two and then the product has two margins again
+— which it genuinely did until today. Changing the TARGET affects future pricing only;
+changing the FLOOR re-derives which past placements count as exceptions, since margin is
+never stored, so every change writes an audit row.
+
+## 2026-10-08 — One definition of the margin, and no figure on the Margin page that is not computed
+
+**The owner's question was "please make sure that the margins are the actual number not just
+random demo data."** They are — and the audit that confirmed it found four things that were
+not.
+
+**The margins themselves are real.** `marginPct = (client - vendor) / client * 100` over the
+stored paise on each engagement. Verified against an independent SQL sum: suppliers
+₹28,74,000, clients ₹37,37,762, we keep ₹8,63,762, and **zero rows** where the displayed
+margin or spread disagrees with that row's own rates.
+
+**Decision 1 — one definition of the target and floor.** `rate-band.ts` declared
+`MARGIN_TARGET_PCT = 22` / `MARGIN_FLOOR_PCT = 18` while `matching/score.ts` separately
+declared `TARGET_MARGIN = 0.22` / `MARGIN_FLOOR = 0.18` — the same rule twice, in two units,
+the second pair added earlier the same day. Tuning one would have left the scorer pricing at
+the old target while the Margin page coloured rows against the new one. `score.ts` now
+derives its fractions from the percent definition, which is also what makes a configurable
+margin possible at all.
+
+`algoScore` had the same fault and worse: it spelled the six ranking weights inline as
+`0.30 + 0.22 + 0.16 ...`, a THIRD copy alongside `MATCHING_COMPONENTS` and the seed's. It now
+reads the declaration. The 25 scorer tests, including the fixture's worked example, pass
+unchanged — which is what makes it a refactor rather than a change.
+
+**Decision 2 — the seed no longer prices on a number nobody agreed.**
+`src/db/seed/dual-role.ts` divided by `(1 - 0.24)`: a **24%** target, where the whole product
+uses 22%. The dual-role matches were priced on one basis and judged on another. Same class as
+the talent pool's client rate, which used to be invented by dividing the vendor rate by a
+hardcoded 24%.
+
+**Decision 3 — nothing on the Margin page that is not computed.** The `+12%` on the
+gross-spread card came from the v2 mockup and read +12% every day forever, in green, beside a
+real figure. There is no previous-period data to compare against — `rate_changes` is never
+written, so historical rates are lost — so it is **removed rather than approximated**.
+
+**Decision 4 — the money counts live placements only.** `getOpsMargin()` had no status
+filter, so `ended` and `terminated` engagements fed gross spread and run-rate while
+`livePlacements` counted correctly. The whole page now filters to `onboarding`, `active`,
+`ending`, so the footer totals are the sum of the rows a reader can see: **totals that
+disagree with the visible rows are worse than either number alone.**
+
+**Decision 5 — a presentation string is not an input.** The footer totals were computed by
+parsing the labels back out: `Number(label.replace(...)) * 100`. Right for "₹1,38,000" and
+catastrophically wrong the day the formatter abbreviated — "₹1.38L" would have read as 138
+rupees. The read model now returns raw paise alongside the labels, and the page sorts and
+totals on numbers.
+
+**And no month scoping, rather than a fake one.** v2 shows `[August 2026 ▾]`; this page had a
+button rendering the current month with no handler, next to a stat labelled "· MONTH", over
+data that was never period-scoped. A margin desk answers "what are we earning right now",
+which is what these monthly rates are, so the button and the implied filter are gone and the
+labels say what the figures are.
+
+**Still to come, from the same conversation:** the proposed client rate is computed and
+nobody can change it, which `docs/MATCHING.md` already says should be a human decision. That
+needs an endpoint plus a migration for a configurable target — recorded in `04-tasks.md`.
+
 ## 2026-10-08 — The matching desk saves what a broker arranges
 
 **Decision.** `POST`/`DELETE /api/ops/matching/rank` persists `manual_rank` and `included`
@@ -1016,131 +1197,3 @@ then dual-role in three stages: migrations and RLS files (SQL approved before it
 then the matching function with self-dealing bypass tests, then UI. The 12 leak tests and
 21 seed checks must stay green after each stage.
 
-## 2026-10-08 — One definition of the margin, and no figure on the Margin page that is not computed
-
-**The owner's question was "please make sure that the margins are the actual number not just
-random demo data."** They are — and the audit that confirmed it found four things that were
-not.
-
-**The margins themselves are real.** `marginPct = (client - vendor) / client * 100` over the
-stored paise on each engagement. Verified against an independent SQL sum: suppliers
-₹28,74,000, clients ₹37,37,762, we keep ₹8,63,762, and **zero rows** where the displayed
-margin or spread disagrees with that row's own rates.
-
-**Decision 1 — one definition of the target and floor.** `rate-band.ts` declared
-`MARGIN_TARGET_PCT = 22` / `MARGIN_FLOOR_PCT = 18` while `matching/score.ts` separately
-declared `TARGET_MARGIN = 0.22` / `MARGIN_FLOOR = 0.18` — the same rule twice, in two units,
-the second pair added earlier the same day. Tuning one would have left the scorer pricing at
-the old target while the Margin page coloured rows against the new one. `score.ts` now
-derives its fractions from the percent definition, which is also what makes a configurable
-margin possible at all.
-
-`algoScore` had the same fault and worse: it spelled the six ranking weights inline as
-`0.30 + 0.22 + 0.16 ...`, a THIRD copy alongside `MATCHING_COMPONENTS` and the seed's. It now
-reads the declaration. The 25 scorer tests, including the fixture's worked example, pass
-unchanged — which is what makes it a refactor rather than a change.
-
-**Decision 2 — the seed no longer prices on a number nobody agreed.**
-`src/db/seed/dual-role.ts` divided by `(1 - 0.24)`: a **24%** target, where the whole product
-uses 22%. The dual-role matches were priced on one basis and judged on another. Same class as
-the talent pool's client rate, which used to be invented by dividing the vendor rate by a
-hardcoded 24%.
-
-**Decision 3 — nothing on the Margin page that is not computed.** The `+12%` on the
-gross-spread card came from the v2 mockup and read +12% every day forever, in green, beside a
-real figure. There is no previous-period data to compare against — `rate_changes` is never
-written, so historical rates are lost — so it is **removed rather than approximated**.
-
-**Decision 4 — the money counts live placements only.** `getOpsMargin()` had no status
-filter, so `ended` and `terminated` engagements fed gross spread and run-rate while
-`livePlacements` counted correctly. The whole page now filters to `onboarding`, `active`,
-`ending`, so the footer totals are the sum of the rows a reader can see: **totals that
-disagree with the visible rows are worse than either number alone.**
-
-**Decision 5 — a presentation string is not an input.** The footer totals were computed by
-parsing the labels back out: `Number(label.replace(...)) * 100`. Right for "₹1,38,000" and
-catastrophically wrong the day the formatter abbreviated — "₹1.38L" would have read as 138
-rupees. The read model now returns raw paise alongside the labels, and the page sorts and
-totals on numbers.
-
-**And no month scoping, rather than a fake one.** v2 shows `[August 2026 ▾]`; this page had a
-button rendering the current month with no handler, next to a stat labelled "· MONTH", over
-data that was never period-scoped. A margin desk answers "what are we earning right now",
-which is what these monthly rates are, so the button and the implied filter are gone and the
-labels say what the figures are.
-
-**Still to come, from the same conversation:** the proposed client rate is computed and
-nobody can change it, which `docs/MATCHING.md` already says should be a human decision. That
-needs an endpoint plus a migration for a configurable target — recorded in `04-tasks.md`.
-
-## 2026-10-08 — Talentvibes sets the price, and a sent candidate cannot be re-priced
-
-**Decision.** `POST /api/ops/matching/rate` lets a broker set the proposed client rate per
-candidate on the matching desk, with the margin updating as they type.
-
-**Why.** The rate was computed — `vendor / (1 - target)`, rounded, clamped into budget — and
-**nobody could change it**; the desk rendered it as a read-only `Detail`. That one number
-decides the band the client sees, the margin Talentvibes earns and 14% of the ranking score,
-so it is the central commercial lever of the business and it was set by a constant.
-`docs/MATCHING.md` already said otherwise: the margin-constrained case should "surface it to
-ops ... and **let a human decide**", and there was no way to decide.
-
-**Setting a rate re-scores and re-ranks.** `score_rate` is computed FROM the rate and
-`algo_score` is the weighted blend, so writing the rate alone would leave the desk showing a
-price that disagrees with the bar beside it and the total beneath it — the incoherence
-ADR-011 exists to prevent. `algo_rank` is renumbered across the pool because a changed score
-changes the order. **`manual_rank` is untouched**: re-pricing one candidate must not
-rearrange an order somebody arranged by hand.
-
-**A sent candidate cannot be re-priced** — `already_quoted`, 409. ADR-004 freezes the band on
-`shortlist_items` at send time, so the client holds a price derived from the old rate;
-changing it afterwards would leave the desk and the client disagreeing with nothing on either
-screen saying so. Re-pricing means sending a new shortlist, which the sequence number already
-supports.
-
-**Below the floor is allowed, with a reason and a name.** Mirrors placements, where
-`engagements` carries `margin_approved_by` and `margin_exception_note` and the Margin page
-shows both. A below-floor price is a real commercial choice — the two seeded exceptions are
-strategic account entries — so it is recorded, not refused.
-
-**The reason lives in `audit_log`, not a new column on `matches`.** The audit row is the
-durable record a dispute is argued from, and keeping it there meant the rate control works
-**today** rather than waiting on a migration. The read model recovers the latest
-`matching.rate_set` entry per candidate for display.
-
-**Rejected: a hard block below the floor.** It would have made the two seeded exceptions
-impossible to enter, and both are deliberate.
-
-**Migration 0007 is written and NOT applied** — `margin_policy`, one row, for the
-configurable target and floor. Exactly one row is enforced by the schema, because a settings
-table that can hold two will eventually hold two and then the product has two margins again
-— which it genuinely did until today. Changing the TARGET affects future pricing only;
-changing the FLOOR re-derives which past placements count as exceptions, since margin is
-never stored, so every change writes an audit row.
-
-## 2026-10-08 — The talent pool's search was built and unreachable
-
-**Decision.** A search box at the head of the filter row on `/ops/pool`, applying on Enter or
-blur rather than per keystroke.
-
-**Why it was needed at all.** `getOpsTalentPool` has searched **name, masked id, employer and
-skills** in SQL since the filters landed, and `PoolFilters` already preserved `q` across chip
-changes and counted it as an active filter — but **there was no input**. The only way to
-search the pool was to edit the URL. A feature that is built, tested and unreachable is
-indistinguishable from one that does not exist.
-
-**Applied on commit, not per keystroke.** Every chip applies on click because a chip is a
-decision; a text box is not. Pushing a navigation per letter would mean a database query per
-letter and a back-button history with one entry per character typed. Enter or blur commits,
-Escape clears.
-
-**The box syncs inside `apply()`, not at each call site.** `typed` is seeded from
-`current.search` on mount only, so "Clear all filters" left the old text sitting in the box
-with no filter behind it, and applying a saved view carrying a search would not have shown
-it. Syncing in the one funnel every filter change passes through covers both, and anything
-added later.
-
-**Four assertions pin what it covers** — by name, by masked id, by employer, by skill — plus
-case-insensitivity, a term that matches nothing, and that it searches the whole exchange
-rather than the first page. That last one was the original defect: `search` used to run in
-memory **after** `.limit(60)`.
