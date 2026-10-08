@@ -1,7 +1,7 @@
 ---
 project: talentvibes bench
 status: active
-last_log: 2026-10-07
+last_log: 2026-10-08
 ---
 
 # 03 — Progress
@@ -126,6 +126,22 @@ percent-encoded (`@` becomes `%40`). Ask the user for credentials; do not guess.
 endpoint with a dead button), and the 16 controls that still do nothing, each with a note on
 whether it needs a data model, an external system, or just work. It was verified by
 inspection on 2026-10-07, not written from memory, and it carries the commands to re-verify.
+
+## Migration 0005 is wired, bar one control
+
+As of 2026-10-08, three of 0005's four tables are in use and the fourth (`holiday_calendar`)
+always was. **Interview slots** (offer times, move a round) and **saved views** both landed,
+alongside **real pool filters** — seven chips pushed into SQL, replacing a `search` that
+filtered in memory after `.limit(60)` and so only ever saw the first 60 of 1,284 rows.
+
+**Only "Panel availability" is left**, and it is **removed from the screen** rather than
+inert: recurring availability has nowhere to live because `interview_slots.interview_id` is
+`not null`. It needs a new table and therefore the owner's approval.
+
+**A display bug worth knowing about was fixed at the same time.** `IST_TZ` was declared and
+never used for formatting, so 16 date formatters rendered in the server's timezone — UTC on
+Vercel. An interview booked for 11:00 IST showed as **05:30** on the deployed site. Every
+date a person reads now goes through `istFormat()`.
 
 ## People working, and one layout bug
 

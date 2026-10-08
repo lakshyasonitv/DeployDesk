@@ -50,18 +50,33 @@ client may know about that placement, and it is where **"Request an extension"**
 `withdrawn` rather than a delete). `getClientEngagements` is a new client read path with
 three leak tests. The name is absent and the panel **says why** — see `02-decisions.md`.
 
-## 3. Visible but inert — 15 controls that do nothing
+**Interview slots** — `/client/interviews`, 2026-10-08. "Offer times" and "Move this" on
+each round drive `POST`/`DELETE /api/client/interviews/slots`. Validated against 09:00-19:00
+IST Mon-Sat minus the holiday table — the first use of that calendar on a client write path —
+and the whole meeting must fit, not just its start. **Join is a real link** where
+`meeting_url` exists and reads "Link to come" where it does not.
+
+**Pool filters and saved views** — `/ops/pool`, 2026-10-08. Seven chips are real and pushed
+into SQL, options read from the data; `POST`/`DELETE /api/ops/pool/views` saves and forgets
+views. Filters live in the **query string**, which is what makes a saved view just a set of
+parameters. Two counts on screen now mean two different things: `matchCount` (the whole
+exchange, no limit) and `resultCount` (what is rendered).
+
+## 3. Visible but inert — 11 controls that do nothing
 
 Each needs a decision, not just wiring. Grouped by what they actually need.
 
 **Needs a data model that does not exist yet**
-- **Reschedule**, **Propose new slots**, **Panel availability** (`/client/interviews`) — no availability/slot model
+- **Panel availability** (`/client/interviews`) — **REMOVED from the screen rather than left
+  inert.** It needs recurring availability ("Tuesdays suit us") and
+  `interview_slots.interview_id` is `not null`, so every slot must hang off a specific
+  round — there is nowhere to put it. That is a new table, which needs the owner's approval
+  under the database-safety rule. Deliberately not faked with a read-only list behind a
+  button that says "set".
 - **Save draft** (`/client/interviews`) — feedback drafts have no column; the endpoint supports a null outcome, so this is close
-- **Save this view** (`/ops/pool`) — saved views need a table
 - **Detection rules** (`/ops/duplicates`) — a settings screen that does not exist
 
 **Needs an external system**
-- **Join** (`/client/interviews`) — a real meeting link; v2 says Talentvibes issues it
 - **Invite N to test** (`/vendor/assessments`) — the assessment provider adapter (ADR-006)
 - **Raise invoice** (`/vendor/earnings`) — billing integration
 
@@ -83,9 +98,9 @@ still do nothing**, which is the next piece of work.
 | Table | Seeded | Control waiting on it |
 |---|---|---|
 | `holiday_calendar` | 6 rows (3 fixed national dates × 2 years) | **already in use** — the create endpoint reads it when setting a deadline |
-| `interview_slots` | 7 (2 accepted, 1 declined with a reason) | Propose new slots · Reschedule · Panel availability |
+| `interview_slots` | 7 (2 accepted, 1 declined with a reason) | ~~Propose new slots · Reschedule~~ — **wired 2026-10-08**. Panel availability still blocked: it needs a table of its own |
 | `extension_requests` | 1, at `with_supplier` | ~~Request an extension~~ — **wired 2026-10-07** |
-| `saved_views` | 2, scoped to user **and** org | Save this view |
+| `saved_views` | 2, scoped to user **and** org | ~~Save this view~~ — **wired 2026-10-08** |
 
 **Holidays: three rows a year on purpose.** Republic Day, Independence Day and Gandhi
 Jayanti are the only Indian public holidays with a fixed nationwide date. Diwali, Holi, Eid

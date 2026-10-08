@@ -783,3 +783,34 @@ working properly".
 - [x] **`tests/layout-guards.test.ts`** ✅ — fails any inline pixel width over 2000px.
       Verified by reintroducing the bug and watching it fail, not by assertion.
 - [x] **The grid is responsive** ✅ — was `repeat(3, 1fr)` at every width.
+
+## Migration 0005's last controls, and the IST display bug · ✅ 2026-10-08
+
+- [x] **Interview slots** ✅ — "Offer times" and "Move this" per round,
+      `POST`/`DELETE /api/client/interviews/slots`. Validated against 09:00-19:00 IST Mon-Sat
+      minus the holiday table, with the **whole meeting** required to fit. The Undo withdraws
+      only the rows that call created and **derives** the round's status rather than restoring
+      a client-supplied one — otherwise "put it back to confirmed" would mark an unbooked
+      interview as booked. The picker means **IST wherever the browser is**, because the
+      window is IST and a viewer abroad picking 11:00 would otherwise be offering 05:30.
+- [x] **Join is a real link** ✅ — where `meeting_url` exists; "Link to come" where it does
+      not, since the link is Talentvibes-issued and only exists once a round is locked.
+- [x] **Pool filters** ✅ — seven chips, all pushed into SQL, options read from the data.
+      Replaced a `search` that filtered in memory after `.limit(60)`.
+- [x] **Saved views** ✅ — `POST`/`DELETE /api/ops/pool/views`. Filters live in the query
+      string, so a view is just a set of parameters.
+- [x] **"Load more"** ✅ — was inert and said neither how many more nor how many were left.
+      Now "Show all N", raising the limit in the URL (capped at 300) and keeping the filters.
+- [x] **Every date a person reads is pinned to IST** ✅ — `IST_TZ` existed and was never used
+      for display, so 16 formatters rendered in the server's zone. An 11:00 IST interview
+      showed as **05:30** on Vercel.
+- [x] **The last three vocabulary items** ✅ — see `06-vocabulary.md` §2.
+
+### Not done, and why
+
+- **Panel availability** is **removed from the screen**, not wired. Recurring availability has
+  nowhere to live: `interview_slots.interview_id` is `not null`. That is a new table and needs
+  the owner's approval under the database-safety rule. Keeping the button and making it a
+  read-only list was considered and rejected — it turns a *write* control into a *view*.
+- **`rate_changes`** is still never written, and **duplicate detection rules** still have no
+  agreed thresholds.

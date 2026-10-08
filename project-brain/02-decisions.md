@@ -494,3 +494,83 @@ reintroducing the bug and watching it fail** with the file, line and reason.
 **Also fixed in passing:** the grid was `repeat(3, 1fr)` at every width, so three columns
 squashed on a narrow window. Now `repeat(auto-fit, minmax(272px, 1fr))` — three across on a
 desktop, then two, then one, which is what `SCREENS.md` intended by "auto-fit, min 300px".
+
+## 2026-10-08 — Display is an edge, and it was the one nobody converted
+
+**Decision.** Every date a person reads goes through `istFormat()`. `tests/business-clock.test.ts`
+pins it with absolute strings.
+
+**Why.** `IST_TZ` was declared in `src/lib/derived.ts` and used for documentation only.
+Sixteen formatters passed `"en-IN"` with **no `timeZone`**, which formats in whatever zone
+the process runs in — UTC on Vercel. An interview booked for 11:00 IST rendered as **05:30**
+on the deployed site. The locale was right and the clock was wrong, which is the hardest kind
+of wrong to notice: nothing errors, nothing looks malformed, the time is simply not the time.
+
+Working agreement 3 says business clocks run in Asia/Kolkata and to convert at the edges. The
+audit that introduced the business clock fixed the **arithmetic** and left the **rendering**,
+so the rule was half-applied for as long as the product has existed.
+
+**Rejected: a formatter per shape.** One `istFormat(value, opts)` instead, taking the Intl
+options each call site already passed. Seven money formatters are untouched —
+`toLocaleString("en-IN")` on a *number* has no timezone to get wrong.
+
+**Date-only columns were accidentally correct and are now correct on purpose.** `date` parses
+as UTC midnight, and 05:30 IST on the 31st is still the 31st — but the same value in a zone
+*behind* UTC would have shown the 30th.
+
+---
+
+## 2026-10-08 — A control that needs a table it does not have is removed, not faked
+
+**Decision.** "Panel availability" is **off the interviews screen**. "Propose new slots" and
+"Reschedule" ship, because `interview_slots` supports them completely.
+
+**Why.** Recurring availability — "Tuesdays suit us" — has nowhere to live:
+`interview_slots.interview_id` is `not null`, so every slot hangs off one specific round.
+That is a new table, and the database-safety rule says to ask before adding one.
+
+**Rejected: keeping the button and making it a read-only list of slots.** That was the first
+plan and it is worse than leaving it inert. It renames a *write* control into a *view*: a
+person clicks a button that says "set" and gets a list. Working agreement 8 says pick the
+safest default and do not invent business rules silently; quietly redefining what a control
+does is the same failure wearing different clothes.
+
+---
+
+## 2026-10-08 — Pool filters live in the URL, and a filter must agree with what it filters
+
+**Decision.** The talent pool's filters are query parameters, pushed into SQL. A saved view
+is therefore nothing but a set of parameters.
+
+**Why the URL.** A view becomes a navigation rather than a second state mechanism, the page
+re-queries on its own under `force-dynamic`, a filtered pool can be pasted to a colleague,
+and the back button undoes a filter.
+
+**Why in SQL.** The one filter that already worked, `search`, ran in memory **after**
+`.limit(60)` — so it searched the first 60 rows of 1,284 and the count beside it described
+the page. `matchCount` (no limit, counted in the database) and `resultCount` (rendered) are
+now separate numbers, and a test asserts the first does not move when the page size does.
+
+**The freshness filter uses the same arithmetic as the pill it filters on** — an IST
+calendar-date subtraction, not `now() - interval '10 days'`. Elapsed-hours arithmetic would
+let a row sit under "Needs confirming" while its own pill read "Confirmed".
+
+**That check caught a real bug.** The three freshness states are exhaustive and exclusive, so
+their counts must sum to the unfiltered total. They summed to one MORE: the `unconfirmed`
+condition was an **un-parenthesised OR**, so `and(...conds)` produced
+`status in (...) and last_confirmed_at is null or days >= 14`, which SQL reads as
+`(status in (...) and last_confirmed_at is null) or (days >= 14)` — the second branch escaped
+the status filter and pulled in withdrawn profiles. **An OR inside an AND needs its own
+parentheses, every time.**
+
+**The score filter is pinned to the highest attempt**, which is the row the SCORE column
+shows. Otherwise someone whose first attempt scored 90 and whose retake scored 60 passes an
+"80+" filter and then renders 60.
+
+**Skills AND together**, one EXISTS each: naming two skills means one person with both.
+
+**No audit row for a saved view.** Working agreement 5 covers a stage, a rate, a shortlist or
+a duplicate resolution. A saved view is none of them and no dispute turns on which filters a
+broker bookmarked; writing one anyway would dilute a log whose value is that every line in it
+matters. `filters` is `jsonb`, so it is Zod-validated rather than trusted — without a schema
+the endpoint would store any object posted to it and the pool would read it back as filters.
