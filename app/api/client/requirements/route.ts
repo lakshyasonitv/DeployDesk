@@ -4,6 +4,7 @@ import { z } from "zod";
 import { db } from "@/src/db/client";
 import * as s from "@/src/db/schema";
 import { getDemoSession } from "@/src/lib/auth/session";
+import { runMatching } from "@/src/lib/matching/run";
 import { SLA_WINDOW_HOURS } from "@/src/lib/derived";
 import { addBusinessHours } from "@/src/lib/business-clock";
 import { getHolidaySet } from "@/src/db/holidays";
@@ -193,10 +194,39 @@ export async function POST(req: Request) {
 
   const { created, ignored } = result;
 
+  /**
+   * Source candidates immediately — OUTSIDE the transaction above.
+   *
+   * Before this, nothing but the seed ever wrote a `matches` row, so a requirement a client
+   * posted got a real "N profiles match" preview and then dead-ended: the ops matching desk
+   * showed zero candidates and offered no control that would source any.
+   *
+   * Outside the transaction on purpose. The requirement is the thing the client just
+   * created and it must exist whatever happens next; matching is derived work that can be
+   * re-run at will from the desk. A scorer fault must not roll back a client's posting.
+   *
+   * A draft is not sourced: there is nothing to source for a role nobody has committed to
+   * yet, and doing it would put work on a broker's desk for something that may never be
+   * posted.
+   */
+  let matched = 0;
+  if (b.stage === "new") {
+    try {
+      matched = (await runMatching(created.code)).matched;
+    } catch (err) {
+      // Logged, not surfaced as a failure: the requirement IS created, and "Re-run
+      // matching" on the desk is the recovery. Failing the POST here would tell the client
+      // their posting did not work when it did.
+      console.error(`matching failed for ${created.code}`, err);
+    }
+  }
+
   return NextResponse.json({
     code: created.code,
     stage: b.stage,
     slaHours: b.stage === "new" ? windowHours : null,
+    /** How many candidates were sourced, so the toast can say something true. */
+    matched,
     skillsIgnored: ignored,
   }, { status: 201 });
 }

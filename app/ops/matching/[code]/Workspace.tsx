@@ -5,6 +5,14 @@ import { useRouter } from "next/navigation";
 import { s, sx, TOKENS, SLA_COLOR, MARGIN_COLOR, stageMeta } from "@/src/lib/ui/style";
 import type { OpsMatchCandidate } from "@/src/read-models/ops";
 
+/** Gate keys in plain English, for the "why is this pool empty" line. */
+const REASON: Record<string, string> = {
+  blocked_stale: "not confirmed in the last 14 days",
+  blocked_duplicate: "blocked by a duplicate flag",
+  blocked_deployed: "in the wrong city for an onsite role",
+  no_skill_overlap: "with none of the required skills",
+};
+
 /**
  * Ops matching workspace: build and override the ranked shortlist, then send it masked.
  *
@@ -66,6 +74,65 @@ export function Workspace({
   const [pickerOpen, setPickerOpen] = useState(false);
   const [dragging, setDragging] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+  const [sourcing, setSourcing] = useState(false);
+  const [sourceNote, setSourceNote] = useState<string | null>(null);
+
+  /**
+   * Source candidates, or re-source them.
+   *
+   * The desk has always said "matching starts here" with nothing that starts it: only the
+   * seed ever wrote a match row, so a requirement a client posted showed a real "N profiles
+   * match" preview and then zero candidates here. Posting now sources automatically; this
+   * is how a role picks up people listed since, and how an older requirement gets a pool at
+   * all.
+   *
+   * Re-running never discards a manual ordering — `manual_rank` and `included` are outside
+   * the runner's update set.
+   */
+  async function sourceCandidates() {
+    if (sourcing) return;
+    setSourcing(true);
+    setSourceNote(null);
+    try {
+      const res = await fetch("/api/ops/matching/run", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ code: requirement.code }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error === "stage_closed"
+          ? "This role is already closed."
+          : "Could not source candidates.");
+      }
+      const out = await res.json() as {
+        matched: number;
+        excluded: Record<string, number>;
+      };
+
+      if (out.matched === 0) {
+        /**
+         * Say WHY the pool is empty rather than just that it is. The gate counts are the
+         * difference between "nobody matches" and "everybody who matches is unconfirmed",
+         * which are two completely different problems for a broker.
+         */
+        const why = Object.entries(out.excluded)
+          .filter(([, n]) => n > 0)
+          .map(([k, n]) => `${n} ${REASON[k] ?? k}`)
+          .join(", ");
+        setSourceNote(why
+          ? `Nobody is eligible. Excluded: ${why}.`
+          : "Nobody on any bench matches this role yet.");
+      } else {
+        setSourceNote(`${out.matched} candidate${out.matched === 1 ? "" : "s"} sourced.`);
+      }
+      router.refresh();
+    } catch (e) {
+      setSourceNote(e instanceof Error ? e.message : "Could not source candidates.");
+    } finally {
+      setSourcing(false);
+    }
+  }
   const [toast, setToast] = useState<string | null>(null);
 
   const byId = new Map(initial.map((c) => [c.maskedId, c]));
@@ -150,12 +217,19 @@ export function Workspace({
               </button>
             </div>
             <div style={s("font-size:12.5px;color:var(--t3);margin-top:4px")}>
-              {initial.length
+              {sourceNote ?? (initial.length
                 ? `${initial.length} candidates sourced from ${sourcedBenches} of ${benchCount} benches`
-                : "no candidates sourced yet — matching starts here"}
+                : "no candidates sourced yet — matching starts here")}
             </div>
           </div>
           <div style={s("display:flex;gap:8px;flex:none")}>
+            <button onClick={sourceCandidates} disabled={sourcing}
+              title="Score every eligible person on the exchange against this role"
+              style={sx("padding:8px 13px;border:1px solid var(--border-2);border-radius:8px;font-size:12.5px;font-weight:600;background:var(--surface);font-family:inherit", {
+                cursor: sourcing ? "default" : "pointer", opacity: sourcing ? 0.6 : 1,
+              })}>
+              {sourcing ? "Sourcing…" : initial.length ? "Re-run matching" : "Source candidates"}
+            </button>
             <button onClick={reset}
               style={s("padding:8px 13px;border:1px solid var(--border-2);border-radius:8px;font-size:12.5px;font-weight:600;background:var(--surface);cursor:pointer;font-family:inherit")}>
               Reset to algorithm
@@ -426,8 +500,20 @@ export function Workspace({
               );
             })}
             {rows.length === 0 ? (
-              <div style={s("background:var(--surface);border:1px dashed var(--border-2);border-radius:12px;padding:34px;text-align:center;color:var(--t4);font-size:12.5px")}>
-                No candidates sourced for this requirement yet.
+              <div style={s("background:var(--surface);border:1px dashed var(--border-2);border-radius:12px;padding:30px;text-align:center")}>
+                <div style={s("font-size:13px;font-weight:600")}>
+                  No candidates sourced for this requirement yet.
+                </div>
+                <div style={s("font-size:12px;color:var(--t4);margin-top:5px;line-height:1.55")}>
+                  Matching scores every eligible person on the exchange against this role and
+                  ranks them. Requirements posted from now on are sourced automatically.
+                </div>
+                <button onClick={sourceCandidates} disabled={sourcing}
+                  style={sx("margin-top:13px;padding:8px 15px;border:0;border-radius:9px;font-size:12.5px;font-weight:700;color:#fff;background:var(--brand);font-family:inherit", {
+                    cursor: sourcing ? "default" : "pointer", opacity: sourcing ? 0.6 : 1,
+                  })}>
+                  {sourcing ? "Sourcing…" : "Source candidates"}
+                </button>
               </div>
             ) : null}
           </div>

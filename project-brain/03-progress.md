@@ -127,6 +127,23 @@ endpoint with a dead button), and the 16 controls that still do nothing, each wi
 whether it needs a data model, an external system, or just work. It was verified by
 inspection on 2026-10-07, not written from memory, and it carries the commands to re-verify.
 
+## Matching actually runs now — 2026-10-08
+
+The biggest remaining hole, reported by the owner: the client side said *"14 profiles match"*
+and the Talentvibes desk showed none. **Both numbers were right.** The client preview is a
+live count of eligible supply; the desk reads `matches`, and **only the seed ever wrote a
+`matches` row**. So the 25 seeded requirements worked end to end and anything a client posted
+dead-ended on a desk whose copy said "matching starts here" with nothing that started it.
+
+`src/lib/matching/` now implements `docs/MATCHING.md` — six components, five gates, the
+spec's tie-breaks. Posting sources automatically; the desk can re-source. An empty pool
+explains itself by gate, because "nobody matches" and "everybody who matches is unconfirmed"
+are different problems.
+
+**Known gap worth knowing:** no skill-adjacency table, so a React Native developer is
+*excluded* from a React role rather than ranked lower. `skills.category` exists, which is
+what the spec itself points at.
+
 ## A draft was a dead end — fixed 2026-10-08
 
 The owner added a person, saved them as a draft, and could find them nowhere. **Three

@@ -13,8 +13,13 @@ import type { ResourceSeed } from "./resources";
 import type { DualRoleSeed } from "./dual-role";
 import { isSelfDealing, refusalReason } from "../../services/matching-eligibility";
 
-/** Weights from docs/MATCHING.md. Order matches the `r[]` arrays in the pools. */
-const WEIGHTS = [0.30, 0.22, 0.16, 0.14, 0.10, 0.08] as const;
+/**
+ * Weights from docs/MATCHING.md, imported rather than restated.
+ *
+ * The order matches the `r[]` arrays in the pools, which is the order
+ * `MATCHING_COMPONENTS` declares.
+ */
+import { WEIGHTS } from "../../lib/matching/score";
 
 /** ADR-011: algo_score is COMPUTED from the components, never copied from the fixture. */
 function computeAlgoScore(components: number[]): number {

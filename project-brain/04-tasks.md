@@ -841,3 +841,32 @@ All three observations were correct, and they had three different causes.
 
 - **Scores remain read-only** until the ADR-006 adapter exists. A row at `invited` is as far
   as this can honestly go.
+
+## The matching engine · ✅ 2026-10-08
+
+Reported as: the client side says 14 profiles match, the Talentvibes desk shows none.
+
+- [x] **`src/lib/matching/score.ts`** ✅ — the six components from `docs/MATCHING.md`, pure
+      arithmetic, 25 tests stating every boundary directly. Reproduces the fixture's worked
+      example (96/88/92/90/100/95 → 93).
+- [x] **`src/lib/matching/run.ts`** ✅ — five eligibility gates, ranking with the spec's
+      tie-breaks (test score → freshness → reliability, **never** id or insertion order,
+      which clusters by vendor), and the write.
+- [x] **Posting sources automatically** ✅ — outside the create transaction, so a scorer
+      fault cannot roll back a client's posting.
+- [x] **`POST /api/ops/matching/run`** ✅ — "Source candidates" / "Re-run matching" on the
+      desk, with an empty pool explaining itself by gate.
+- [x] **One definition of the weights** ✅ — was two (ops read model, seed), would have been
+      three.
+- [x] **A re-run keeps a manual ordering** ✅ — asserted.
+- [x] **A pre-existing leak test fixed** ✅ — it matched `/band/i` against the row's text and
+      fired on the assessment status `abandoned`.
+
+### Known gaps, deliberately
+
+- **No skill adjacency.** A React Native developer scores 0 on a React requirement and is
+  dropped by the no-overlap gate. `skills.category` exists, which is what the spec points at.
+- **No `matching_weights` table.** The spec wants the weights versioned so a change does not
+  rewrite the meaning of historical scores. Today a change reinterprets every past score.
+- **Provisional vendors** are judged on `placements_count`; the spec says *submissions*,
+  which is not recorded.

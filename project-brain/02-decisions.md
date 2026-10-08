@@ -685,3 +685,78 @@ queue anybody twice: people with a test already `invited` or `in_progress` are *
 and reported, not rejected. The Undo sets rows to `abandoned` rather than deleting them —
 "we asked and changed our mind" is a different fact from "we never asked", and it is the
 first thing a supplier would argue about on an assessment bill.
+
+## 2026-10-08 — The matching engine, and why a posted role used to dead-end
+
+**Reported by the owner:** the client side said *"14 profiles match the requirements"* and
+the ops matching desk for that requirement showed none.
+
+**Both numbers were right, and they measured different things.** The client preview
+(`/api/client/match-preview`) is a live count of eligible supply — "there is supply out there
+for this role". The desk reads `matches`, which holds the candidates *sourced and ranked* for
+one requirement. And **only the seed ever wrote a `matches` row**: two inserts, both in
+`src/db/seed/`, none in `app/`. So the 25 seeded requirements worked end to end and anything
+a client posted dead-ended on a desk whose own copy said "matching starts here" with nothing
+that started it.
+
+**Decision.** `src/lib/matching/score.ts` (pure arithmetic) and `run.ts` (gates, ranking, the
+write). Posting a requirement sources candidates automatically; `POST /api/ops/matching/run`
+re-sources, which is how a role posted on Monday picks up somebody listed on Tuesday.
+
+**Matching runs OUTSIDE the create transaction.** The requirement is what the client just
+created and must exist whatever happens next; matching is derived work that can be re-run at
+will. A scorer fault must not roll back a posting — the endpoint logs and returns 201, and
+the desk's "Re-run matching" is the recovery. Telling a client their posting failed when it
+did not would be the worse error.
+
+**A draft requirement is not sourced.** Nothing to source for a role nobody has committed to,
+and doing it would put work on a broker's desk for something that may never be posted.
+
+**Re-running never discards a broker's work.** Rows are updated, not deleted and reinserted,
+and `manual_rank` and `included` are outside the update set. `docs/MATCHING.md` keeps
+`algo_rank` alongside a manual override for exactly this, so the workspace can say "manual
+override active, algorithm ranking saved". Asserted by a test.
+
+**Rejected: shipping adjacency credit.** The spec gives 0.4 of a skill's weight to a
+same-category near miss (React ↔ React Native) from an explicit adjacency table, and
+**that table does not exist**. The owner chose exact matching first. The consequence is
+honest and recorded in a test: a React Native developer scores **0** on a React requirement
+and is dropped by the no-overlap gate, so near-miss candidates are excluded rather than
+merely ranked lower. `skills.category` already exists — which is what the spec itself points
+at — so adding it later is cheap.
+
+**One substitution, named rather than hidden.** The spec caps "provisional" vendors at 75 for
+the reliability component, defined as the first 10 *submissions*. `vendor_profiles` has no
+submissions counter, only `placements_count`, so that is the proxy — and a stricter one,
+since a supplier can submit many people before placing ten.
+
+**The weights now have ONE definition.** They lived in the ops read model (`COMPONENTS`) and
+in the seed (`WEIGHTS`); a scorer would have made three. Both import from
+`src/lib/matching/score.ts`, so a change cannot reach the bars on screen without also
+reaching the arithmetic behind the total. `docs/MATCHING.md` still asks for a versioned
+`matching_weights` table so a change does not silently rewrite historical scores — that is
+not built, so a change here reinterprets every past score.
+
+**The empty pool says WHY.** The runner returns counts per gate, and the desk turns them into
+plain English — "Nobody is eligible. Excluded: 7 not confirmed in the last 14 days, 3 with
+none of the required skills." The difference between "nobody matches" and "everybody who
+matches is unconfirmed" is two completely different problems for a broker.
+
+---
+
+## 2026-10-08 — A leak test matched a value, not a field, and fired on a real name
+
+**Decision.** `tests/leak/dual-role-ui.test.ts` checks for a forbidden *field* by walking the
+row's keys, not by regex over the row's serialised text.
+
+**Why.** The assertion was
+`expect(JSON.stringify(r)).not.toMatch(/rateBand|band/i)` — intended to prove a bench row
+never carries a client-facing rate band. It also matched any **value** containing those four
+letters, and the assessment status **`abandoned`** does: a-BAND-oned. It failed the first time
+a real roster row carried one, on the owner's own newly added person.
+
+A candidate from **Bandra**, or named **Bandyopadhyay**, would have broken it identically.
+
+**The general rule:** a masking assertion about SHAPE must be made against shape. Matching a
+substring of arbitrary user data for a field name is a false positive waiting for the right
+customer to sign up — and in a leak suite, a false positive trains people to ignore it.

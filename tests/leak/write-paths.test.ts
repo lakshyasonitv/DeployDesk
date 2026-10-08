@@ -36,6 +36,8 @@ import { POST as decide } from "@/app/api/client/shortlists/decide/route";
 import { POST as feedback } from "@/app/api/client/interviews/feedback/route";
 import { POST as resolveDuplicate } from "@/app/api/ops/duplicates/resolve/route";
 import { POST as changeStage } from "@/app/api/ops/requirements/stage/route";
+import { POST as runMatchingRoute } from "@/app/api/ops/matching/run/route";
+import { algoScore } from "../../src/lib/matching/score";
 import { getVendorAssessments, getVendorRoster } from "../../src/read-models/vendor";
 import { getOpsTalentPool } from "../../src/read-models/ops";
 
@@ -98,6 +100,150 @@ afterAll(async () => {
     await db.delete(s.requirements).where(inArray(s.requirements.id, reqs.map((r) => r.id)));
   }
 }, 60_000);
+
+/* ====================================================================== */
+/*  Posting a requirement must not dead-end at an empty matching desk      */
+/* ====================================================================== */
+
+/**
+ * Reported by the owner: the client side said "14 profiles match the requirements" and the
+ * ops matching desk for that requirement showed none.
+ *
+ * Both numbers were right and they measured different things. The client preview is a live
+ * count of eligible supply; the desk reads `matches`, and **only the seed ever wrote a
+ * `matches` row**. So the 25 seeded requirements worked end to end and anything a client
+ * posted dead-ended on a desk whose own copy said "matching starts here" with nothing that
+ * started it.
+ */
+describe("a posted requirement is sourced", () => {
+  /** A role wide enough that the fixture bench can satisfy it. */
+  const ROLE = {
+    roleTitle: MARK,
+    skills: ["React"],
+    experienceBand: "5-8" as const,
+    quantity: 1,
+    budgetMinPaise: 13_000_000,
+    budgetMaxPaise: 22_000_000,
+    engagementType: "contract" as const,
+    workMode: "remote" as const,
+    noticeAccepted: ["immediate"],
+    stage: "new" as const,
+  };
+
+  async function postRole(extra: Record<string, unknown> = {}) {
+    const res = await createRequirement(post({ ...ROLE, ...extra }));
+    expect(res.status).toBe(201);
+    return await res.json() as { code: string; matched: number };
+  }
+
+  it("has candidates the moment it is posted", async () => {
+    const { code, matched } = await postRole();
+    expect(matched, "posting a requirement sourced nobody").toBeGreaterThan(0);
+
+    const rows = await db
+      .select({ algoRank: s.matches.algoRank, algoScore: s.matches.algoScore })
+      .from(s.matches)
+      .innerJoin(s.requirements, eq(s.requirements.id, s.matches.requirementId))
+      .where(eq(s.requirements.code, code));
+    expect(rows.length).toBe(matched);
+  });
+
+  it("stores algo_score as the weighted blend of its own components (ADR-011)", async () => {
+    // The desk renders the six components as bars beside the total. A broker who adds up
+    // the bars has to get the number shown, or the one screen built to explain an ordering
+    // cannot be defended.
+    const { code } = await postRole();
+    const rows = await db
+      .select({
+        algoScore: s.matches.algoScore,
+        scoreSkill: s.matches.scoreSkill, scoreTest: s.matches.scoreTest,
+        scoreExpFit: s.matches.scoreExpFit, scoreRate: s.matches.scoreRate,
+        scoreFreshness: s.matches.scoreFreshness, scoreVendor: s.matches.scoreVendor,
+      })
+      .from(s.matches)
+      .innerJoin(s.requirements, eq(s.requirements.id, s.matches.requirementId))
+      .where(eq(s.requirements.code, code));
+
+    expect(rows.length).toBeGreaterThan(0);
+    const wrong = rows.filter((r) => algoScore(r) !== r.algoScore);
+    expect(wrong, "a total that does not follow from its bars").toEqual([]);
+  });
+
+  it("ranks 1..n with no gaps and no ties in rank", async () => {
+    // Ties in SCORE are expected and broken by the spec's rules; two rows sharing a RANK
+    // would mean the client is shown an ambiguous order.
+    const { code } = await postRole();
+    const rows = await db
+      .select({ algoRank: s.matches.algoRank })
+      .from(s.matches)
+      .innerJoin(s.requirements, eq(s.requirements.id, s.matches.requirementId))
+      .where(eq(s.requirements.code, code));
+
+    const ranks = rows.map((r) => r.algoRank).sort((a, b) => a - b);
+    expect(ranks).toEqual(Array.from({ length: ranks.length }, (_, i) => i + 1));
+  });
+
+  it("never sources anyone a gate excludes", async () => {
+    const { code } = await postRole();
+    const rows = await db
+      .select({ status: s.benchResources.status, confirmed: s.benchResources.lastConfirmedAt })
+      .from(s.matches)
+      .innerJoin(s.requirements, eq(s.requirements.id, s.matches.requirementId))
+      .innerJoin(s.benchResources, eq(s.benchResources.id, s.matches.resourceId))
+      .where(eq(s.requirements.code, code));
+
+    expect(rows.length).toBeGreaterThan(0);
+    for (const r of rows) {
+      // draft, deployed and withdrawn are out; unconfirmed (>= 14 days) is out.
+      expect(["listed", "in_process"]).toContain(r.status);
+      expect(r.confirmed).not.toBeNull();
+      const days = (Date.now() - r.confirmed!.getTime()) / 86_400_000;
+      expect(days, "a stale profile was sourced").toBeLessThan(15);
+    }
+  });
+
+  it("a draft requirement is NOT sourced", async () => {
+    // Nothing to source for a role nobody has committed to, and doing it would put work on
+    // a broker's desk for something that may never be posted.
+    const { code, matched } = await postRole({ stage: "draft" });
+    expect(matched).toBe(0);
+    const rows = await db
+      .select({ id: s.matches.id })
+      .from(s.matches)
+      .innerJoin(s.requirements, eq(s.requirements.id, s.matches.requirementId))
+      .where(eq(s.requirements.code, code));
+    expect(rows).toEqual([]);
+  });
+
+  it("re-running keeps a broker's manual ordering", async () => {
+    /**
+     * The one thing a re-run must never do. `manual_rank` and `included` are a broker's own
+     * work; the spec keeps `algo_rank` alongside a manual override precisely so the
+     * workspace can say "manual override active, algorithm ranking saved".
+     */
+    const { code } = await postRole();
+    const [first] = await db
+      .select({ id: s.matches.id })
+      .from(s.matches)
+      .innerJoin(s.requirements, eq(s.requirements.id, s.matches.requirementId))
+      .where(eq(s.requirements.code, code))
+      .limit(1);
+
+    await db.update(s.matches)
+      .set({ manualRank: 1, included: true })
+      .where(eq(s.matches.id, first.id));
+
+    const res = await runMatchingRoute(post({ code }));
+    expect(res.status).toBe(200);
+
+    const [after] = await db
+      .select({ manualRank: s.matches.manualRank, included: s.matches.included })
+      .from(s.matches)
+      .where(eq(s.matches.id, first.id));
+    expect(after.manualRank, "a re-run discarded a manual ranking").toBe(1);
+    expect(after.included).toBe(true);
+  });
+});
 
 /* ====================================================================== */
 /*  A draft must not be a dead end, and an untested person must be visible */

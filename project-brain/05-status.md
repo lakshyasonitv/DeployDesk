@@ -70,6 +70,17 @@ could find them nowhere. Three defects at once —
 Drafts tab, and the skill tests screen reads **from the bench** rather than from
 `assessments`. Six regression tests walk the whole path.
 
+**Matching actually runs** — 2026-10-08. `src/lib/matching/score.ts` implements
+`docs/MATCHING.md`'s six components and `run.ts` the five eligibility gates, the ranking and
+the write. **Posting a requirement sources candidates**, and `POST /api/ops/matching/run`
+re-sources from the desk ("Source candidates" / "Re-run matching"). 25 pure scorer tests plus
+6 integration tests.
+
+Before this, only the SEED wrote a `matches` row — so a requirement a client posted got a
+real "N profiles match" preview and then an empty desk. **Known gap:** no skill-adjacency
+table, so a near-miss candidate (React Native for a React role) is excluded rather than
+ranked lower.
+
 ## 3. Visible but inert — 10 controls that do nothing
 
 Each needs a decision, not just wiring. Grouped by what they actually need.

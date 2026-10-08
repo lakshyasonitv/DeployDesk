@@ -13,6 +13,7 @@ import { db } from "../../db/client";
 import * as s from "../../db/schema";
 import { formatPaiseExact, formatPaiseShort } from "../../lib/money/paise";
 import { marginBand, marginPct, isBelowFloor, MARGIN_FLOOR_PCT, MARGIN_TARGET_PCT } from "../../lib/money/rate-band";
+import { MATCHING_COMPONENTS } from "../../lib/matching/score";
 import {
   SLA_WINDOW_HOURS, ageLabel, formatExperience, freshnessFor, slaFor, type SlaState, istFormat } from "../../lib/derived";
 
@@ -267,14 +268,14 @@ export interface OpsMatchCandidate {
   isManuallyRanked: boolean;
 }
 
-const COMPONENTS = [
-  { key: "scoreSkill", label: "Skill match", weightPct: 30 },
-  { key: "scoreTest", label: "Proctored score", weightPct: 22 },
-  { key: "scoreExpFit", label: "Experience fit", weightPct: 16 },
-  { key: "scoreRate", label: "Rate vs budget", weightPct: 14 },
-  { key: "scoreFreshness", label: "Availability freshness", weightPct: 10 },
-  { key: "scoreVendor", label: "Vendor reliability", weightPct: 8 },
-] as const;
+/**
+ * The weighting panel's labels and percentages.
+ *
+ * Imported rather than declared: these lived here AND in the seed, and the scorer would
+ * have made a third copy. One definition means a change cannot reach the bars on screen
+ * without also reaching the arithmetic behind the total.
+ */
+const COMPONENTS = MATCHING_COMPONENTS;
 
 export async function getOpsMatchingWorkspace(requirementCode: string) {
   const [req] = await db

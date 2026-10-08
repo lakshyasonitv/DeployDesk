@@ -162,9 +162,27 @@ describe("acceptance test 2: a dual-role user switches sides, each showing only 
 
     for (const r of roster.resources) {
       expect(r.vendorRateLabel).toMatch(/₹/);
-      // A band is a range; a vendor rate is a single exact figure. If a roster row ever
-      // carried a band, the bench side would be showing the client-facing view too.
-      expect(JSON.stringify(r)).not.toMatch(/rateBand|band/i);
+      /**
+       * A band is a range; a vendor rate is a single exact figure. If a roster row ever
+       * carried a band, the bench side would be showing the client-facing view too.
+       *
+       * Checked against FIELD NAMES, not against the row's text. This was
+       * `JSON.stringify(r)).not.toMatch(/rateBand|band/i)`, which also matched any VALUE
+       * containing those four letters — and the assessment status `abandoned` does
+       * (a-BAND-oned). It failed the first time a real roster row carried one. A candidate
+       * from Bandra, or named Bandyopadhyay, would have broken it the same way.
+       */
+      const keys: string[] = [];
+      (function walkKeys(v: unknown) {
+        if (Array.isArray(v)) v.forEach(walkKeys);
+        else if (v && typeof v === "object") {
+          for (const [k, inner] of Object.entries(v as Record<string, unknown>)) {
+            keys.push(k);
+            walkKeys(inner);
+          }
+        }
+      })(r);
+      expect(keys.filter((k) => /band/i.test(k)), "a band field on a bench row").toEqual([]);
     }
   });
 
