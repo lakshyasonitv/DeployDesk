@@ -610,3 +610,78 @@ where the root URL sends people would otherwise have broken nothing visible.
 **`ACCENT_GRADIENT` in `style.ts` is now unused and deliberately kept.** It is a design token
 from the v2 handoff, not logic — an unused palette entry is a palette, whereas an unused
 function implies a caller.
+
+## 2026-10-08 — A draft was a one-way door, and three defects hid it
+
+**Reported by the owner**, who added a person, saved them as a draft, and could not find them
+in the ops talent pool, on the skill tests screen, or anywhere that would fix it. Three
+separate faults combined, and none of them was wrong on its own:
+
+1. The ops pool excludes `draft`, which is **correct** — a draft is not an offer.
+2. The roster showed each row's *assessment* status and never its *resource* status, had no
+   drafts tab and no draft count, so a draft looked identical to a listed profile.
+3. **No endpoint anywhere moved `draft` → `listed`.** The add form could create one and
+   nothing could ever undo that.
+
+**Decision.** `POST /api/vendor/resources/list` moves a person between `draft` and `listed`
+only. `in_process` and `deployed` are refused with `not_draftable`: a client is mid-decision
+on those people and their own supplier must not be able to quietly pull them off the
+exchange — the same reason `DELETE /api/vendor/resources` refuses them. Listing stamps
+`last_confirmed_at`, matching the create endpoint, because the moment a vendor lists someone
+is the moment they assert availability. Unlisting clears both stamps so Undo restores the
+draft exactly.
+
+**The roster now shows a DRAFT badge and a Drafts tab**, the tab only appearing when there
+are drafts — an always-visible "Drafts 0" is noise.
+
+**The lesson worth keeping:** each of the three pieces was defensible alone. The bug was
+that together they left no way forward, which is a kind of defect no single-screen review
+finds. The regression test walks the whole path rather than asserting each piece.
+
+---
+
+## 2026-10-08 — The skill tests screen asks its question the wrong way round
+
+**Decision.** `getVendorAssessments` reads `FROM bench_resources LEFT JOIN assessments`.
+
+**Why.** It read `FROM assessments INNER JOIN bench_resources`, so it listed only people who
+**already had a test record** — and a person just added to the bench has none. They were
+structurally invisible on the one screen whose job is to get them tested. Worse,
+`summary.notStarted` counted *assessment rows* at status `not_started` rather than people
+with no test, so the header read "Invite 0 to test" while the bench was full of untested
+people.
+
+The question the screen answers is "who have I not had tested yet?", which is asked **of the
+bench**. Joining the other way round could not express it.
+
+Withdrawn and archived people are excluded — testing someone nobody can hire is spending
+money for nothing. Drafts are **included**: a score in hand before listing is a reasonable
+thing to want, and the card is labelled so a draft is never taken for a live profile.
+
+---
+
+## 2026-10-08 — "Request a test" records the request, and never invents a score
+
+**Decision.** `POST /api/vendor/assessments/invite` writes an `assessments` row at status
+`invited` with `provider = 'invigil'` and `provider_ref = null`. The UI says **"test
+requested"**, never "invitation sent", because nothing has been sent.
+
+**Why.** ADR-006 puts the provider behind an `AssessmentProvider` adapter that does not exist
+yet. "Queued for a test" is nonetheless a true internal state, and recording it is what lets
+the adapter later claim these rows, call the provider and fill in `provider_ref` — no
+migration, no change to this route.
+
+**Rejected: leaving the button inert.** Offered to the owner and declined. The screen could
+then show an untested person but still do nothing about them.
+
+**Rejected: faking a score so the demo looks complete.** Offered and declined, and it is the
+one option to refuse on its own merits. An independently proctored result that neither side
+can influence is the entire product; a number written by our own endpoint would be
+indistinguishable in the database from a real one later. `provider_ref` and `overall_score`
+staying null is asserted by a test.
+
+**Idempotent by design.** The button acts on everyone untested, so pressing it twice must not
+queue anybody twice: people with a test already `invited` or `in_progress` are **skipped**
+and reported, not rejected. The Undo sets rows to `abandoned` rather than deleting them —
+"we asked and changed our mind" is a different fact from "we never asked", and it is the
+first thing a supplier would argue about on an assessment bill.

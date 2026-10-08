@@ -127,6 +127,23 @@ endpoint with a dead button), and the 16 controls that still do nothing, each wi
 whether it needs a data model, an external system, or just work. It was verified by
 inspection on 2026-10-07, not written from memory, and it carries the commands to re-verify.
 
+## A draft was a dead end — fixed 2026-10-08
+
+The owner added a person, saved them as a draft, and could find them nowhere. **Three
+defects, none wrong on its own:** the ops pool excludes drafts (correct — a draft is not an
+offer); the roster showed each row's *assessment* status and never its *resource* status, so
+a draft was indistinguishable; and **no endpoint moved `draft` → `listed`**, so the add form
+could create a state nothing could undo.
+
+Also fixed alongside it: the skill tests screen read `FROM assessments INNER JOIN
+bench_resources`, so an untested person was invisible on the screen meant to get them tested,
+and "Invite N to test" counted assessment rows rather than untested people — reading
+"Invite 0 to test" with a bench full of them.
+
+**The lesson:** each piece was defensible alone; the bug was that together they left no way
+forward. That is a defect no single-screen review finds, which is why the regression test
+walks the whole path.
+
 ## Migration 0005 is wired, bar one control
 
 As of 2026-10-08, three of 0005's four tables are in use and the fourth (`holiday_calendar`)

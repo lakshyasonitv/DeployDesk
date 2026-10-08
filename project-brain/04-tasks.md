@@ -814,3 +814,30 @@ working properly".
   read-only list was considered and rejected — it turns a *write* control into a *view*.
 - **`rate_changes`** is still never written, and **duplicate detection rules** still have no
   agreed thresholds.
+
+## A draft was a dead end · ✅ FIXED 2026-10-08
+
+Reported by the owner: *"i have just created a resource lakshya soni but i cant see him in
+the talent pool … he is also not in the skill test page?? and there is no way to add him"*.
+All three observations were correct, and they had three different causes.
+
+- [x] **`POST /api/vendor/resources/list`** ✅ — draft ↔ listed, audit row, real Undo.
+      `in_process` and `deployed` refused: a client is mid-decision on those people.
+      **Nothing could undraft a person before this.**
+- [x] **The roster shows a draft as a draft** ✅ — a DRAFT badge beside the masked id, a
+      Drafts tab (only when there are any), and "List on the exchange" in place of the
+      availability button, which is meaningless for someone nobody can be offered.
+- [x] **The skill tests screen reads from the bench** ✅ — was
+      `FROM assessments INNER JOIN bench_resources`, so an untested person was invisible on
+      the screen meant to get them tested, and the header read "Invite 0 to test".
+- [x] **`POST`/`DELETE /api/vendor/assessments/invite`** ✅ — records the request at status
+      `invited`, `provider_ref` null. Idempotent; Undo sets `abandoned`, not a delete.
+      **No score is ever written** — asserted.
+- [x] **Six regression tests** ✅ — they walk the whole path (create a draft → absent from
+      the pool → visible on skill tests → list it → appears on the exchange → unlist →
+      request a test twice → abandon), because the bug was not in any one piece.
+
+### Still open on this screen
+
+- **Scores remain read-only** until the ADR-006 adapter exists. A row at `invited` is as far
+  as this can honestly go.

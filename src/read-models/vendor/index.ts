@@ -11,7 +11,7 @@
  * earnings path reads only `direction = 'payable'` invoices and is structurally unable
  * to join the receivable side.
  */
-import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, notInArray, sql } from "drizzle-orm";
 import { db } from "../../db/client";
 import * as s from "../../db/schema";
 import { formatPaiseExact, formatPaiseShort } from "../../lib/money/paise";
@@ -34,7 +34,7 @@ export interface VendorRosterResource {
 
 export async function getVendorRoster(
   vendorOrgId: string,
-  filter: "all" | "listed" | "in_process" | "expiring" | "unconfirmed" = "all",
+  filter: "all" | "listed" | "in_process" | "expiring" | "unconfirmed" | "draft" = "all",
 ) {
   const rows = await db
     .select({
@@ -129,6 +129,15 @@ export async function getVendorRoster(
   const counts = {
     all: all.length,
     listed: all.filter((r) => r.status === "listed").length,
+    /**
+     * Drafts, which had no count and no tab.
+     *
+     * A draft is excluded from the ops talent pool — correctly, a draft is not an offer —
+     * but nothing on this screen said so, and nothing could list one. Someone saved as a
+     * draft was parked: on their own roster, invisible to Talentvibes, with no control
+     * anywhere that would change it.
+     */
+    draft: all.filter((r) => r.status === "draft").length,
     in_process: all.filter((r) => r.status === "in_process").length,
     expiring: all.filter((r) => r.freshness.state === "expiring_soon").length,
     unconfirmed: all.filter((r) => r.freshness.state === "unconfirmed").length,
@@ -267,11 +276,33 @@ export async function getVendorOverview(vendorOrgId: string, viewerName: string)
 
 /* ------------------------------------------------------------- assessments */
 
+/**
+ * Everyone on this vendor's bench, with their test result if they have one.
+ *
+ * This used to read `FROM assessments INNER JOIN bench_resources`, so it listed only people
+ * who ALREADY had a test record. Someone just added to the bench was therefore structurally
+ * invisible on the screen whose whole job is to get them tested — and `summary.notStarted`
+ * counted assessment rows at status `not_started` rather than people with no test at all,
+ * so the header read "Invite 0 to test" while the bench was full of untested people.
+ *
+ * It now reads from the BENCH and joins the test, which is the direction the question is
+ * actually asked in: "who have I not had tested yet?"
+ *
+ * Withdrawn and archived people are excluded — they are off the bench, and offering to test
+ * them would be offering to spend money on someone nobody can hire. Drafts ARE included: a
+ * vendor may well want a score in hand before listing someone, and the card shows the draft
+ * state so it is never mistaken for a live profile.
+ */
 export async function getVendorAssessments(vendorOrgId: string) {
   const rows = await db
     .select({
+      resourceId: s.benchResources.id,
       maskedId: s.benchResources.maskedId,
       fullName: s.benchResources.fullName,
+      resourceStatus: s.benchResources.status,
+      listedAt: s.benchResources.listedAt,
+      createdAt: s.benchResources.createdAt,
+      // Left-joined, so every one of these is null for an untested person.
       status: s.assessments.status,
       overallScore: s.assessments.overallScore,
       scoreCoding: s.assessments.scoreCoding,
@@ -282,29 +313,65 @@ export async function getVendorAssessments(vendorOrgId: string) {
       validUntil: s.assessments.validUntil,
       track: s.assessments.track,
       attemptNo: s.assessments.attemptNo,
-      invitedAt: s.assessments.invitedAt,
     })
-    .from(s.assessments)
-    .innerJoin(s.benchResources, eq(s.benchResources.id, s.assessments.resourceId))
-    .where(eq(s.benchResources.vendorOrgId, vendorOrgId))
-    .orderBy(desc(s.assessments.completedAt));
+    .from(s.benchResources)
+    .leftJoin(s.assessments, eq(s.assessments.resourceId, s.benchResources.id))
+    .where(and(
+      eq(s.benchResources.vendorOrgId, vendorOrgId), // tenancy: own rows only
+      notInArray(s.benchResources.status, ["withdrawn", "archived"]),
+    ))
+    // Highest attempt first, so the dedupe below keeps the one that counts.
+    .orderBy(desc(s.assessments.attemptNo));
+
+  /**
+   * One card per PERSON, not per attempt. A retake adds a second `assessments` row, and a
+   * left join would otherwise show the same person twice — once with the old score.
+   */
+  const byResource = new Map<string, (typeof rows)[number]>();
+  for (const r of rows) if (!byResource.has(r.resourceId)) byResource.set(r.resourceId, r);
+
+  const people = [...byResource.values()].sort((a, b) => {
+    // Untested first: this screen exists to clear that list.
+    const aUntested = a.status == null, bUntested = b.status == null;
+    if (aUntested !== bUntested) return aUntested ? -1 : 1;
+    return (b.completedAt?.getTime() ?? 0) - (a.completedAt?.getTime() ?? 0);
+  });
+
+  /** `null` means no test record at all, which the UI shows as "not tested yet". */
+  const effective = (r: (typeof rows)[number]) => r.status ?? "not_started";
 
   const summary = {
-    scored: rows.filter((r) => r.status === "scored").length,
-    inProgress: rows.filter((r) => r.status === "in_progress" || r.status === "invited").length,
-    notStarted: rows.filter((r) => r.status === "not_started").length,
-    expired: rows.filter((r) => r.status === "expired").length,
+    scored: people.filter((r) => r.status === "scored").length,
+    inProgress: people.filter((r) => r.status === "in_progress" || r.status === "invited").length,
+    // People with no usable test, which is what the "Invite N to test" button acts on.
+    notStarted: people.filter((r) => r.status == null || r.status === "not_started").length,
+    expired: people.filter((r) => r.status === "expired").length,
   };
 
   return {
     summary,
     // There is no write path to a score column from any vendor endpoint (ADR-006).
     scoresAreReadOnly: true,
-    cards: rows.slice(0, 24).map((r) => ({
+    /**
+     * Everyone the "Invite N to test" button acts on.
+     *
+     * Supplied separately from `cards`, which is capped at 24 for the grid: the count in
+     * the header is the real one, so the button has to act on the real set rather than on
+     * whatever happens to be rendered. Capped at 50 to match the endpoint's own limit.
+     */
+    untestedMaskedIds: people
+      .filter((r) => r.status == null || r.status === "not_started")
+      .slice(0, 50)
+      .map((r) => r.maskedId),
+    cards: people.slice(0, 24).map((r) => ({
       maskedId: r.maskedId,
       fullName: r.fullName,
       track: r.track,
-      status: r.status,
+      status: effective(r),
+      /** False when there is no `assessments` row at all, so the card can offer to make one. */
+      hasTest: r.status != null,
+      /** `draft` here means the person is not on the exchange yet. */
+      resourceStatus: r.resourceStatus,
       overall: r.overallScore,
       sections: {
         coding: r.scoreCoding, dsa: r.scoreDsa,

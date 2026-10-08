@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/src/lib/ui/Toast";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
 import type { VendorRosterResource } from "@/src/read-models/vendor";
 
@@ -29,7 +31,7 @@ const ASSESSMENT_STYLE: Record<string, { dot: string; label: string; sub: string
 
 const COLS = "170px 1fr 66px 118px 138px 186px 122px";
 
-type Filter = "all" | "listed" | "in_process" | "expiring" | "unconfirmed";
+type Filter = "all" | "listed" | "in_process" | "expiring" | "unconfirmed" | "draft";
 
 export function RosterTable({
   resources, counts, total,
@@ -38,10 +40,48 @@ export function RosterTable({
   counts: Record<Filter, number>;
   total: number;
 }) {
+  const router = useRouter();
+  const toast = useToast();
   const [filter, setFilter] = useState<Filter>("all");
   const [confirmed, setConfirmed] = useState<Record<string, boolean>>({});
   const [visible, setVisible] = useState(9);
   const [, startTransition] = useTransition();
+
+  /**
+   * Puts a draft on the exchange.
+   *
+   * Until this existed, "Save as draft" was a one-way door: the ops talent pool excludes
+   * drafts (a draft is not an offer), and no control anywhere could change the status. The
+   * owner found it by adding someone and being unable to see them.
+   *
+   * Not optimistic, unlike `confirm` above: listing moves the row out of the Drafts tab and
+   * changes what a client can be offered, so it waits for the write and then re-reads.
+   */
+  const listOnExchange = async (maskedId: string, fullName: string) => {
+    try {
+      const res = await fetch("/api/vendor/resources/list", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ maskedId, to: "listed" }),
+      });
+      if (!res.ok) throw new Error("list failed");
+      toast({
+        message: `${fullName} is on the exchange. Talentvibes can offer them from now on.`,
+        undo: async () => {
+          const r = await fetch("/api/vendor/resources/list", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ maskedId, to: "draft" }),
+          });
+          if (!r.ok) throw new Error("unlist failed");
+          router.refresh();
+        },
+      });
+      router.refresh();
+    } catch {
+      toast({ tone: "error", message: `Could not list ${fullName}.` });
+    }
+  };
 
   const confirm = async (maskedIds: string[], method: "single" | "bulk") => {
     // Optimistic: the row flips immediately, then the write lands.
@@ -64,6 +104,7 @@ export function RosterTable({
   const shown = resources.filter((r) => {
     switch (filter) {
       case "listed": return r.status === "listed";
+      case "draft": return r.status === "draft";
       case "in_process": return r.status === "in_process";
       case "expiring": return r.freshness.state === "expiring_soon" && !confirmed[r.maskedId];
       case "unconfirmed": return r.freshness.state === "unconfirmed" && !confirmed[r.maskedId];
@@ -78,6 +119,10 @@ export function RosterTable({
   const PILLS: Array<[Filter, string, number, string, string]> = [
     ["all", "All", counts.all, "var(--t1)", "var(--surface)"],
     ["listed", "Listed", counts.listed, "var(--surface-3)", "var(--t2)"],
+    // Only offered when there are any — an always-visible "Drafts 0" is noise.
+    ...(counts.draft
+      ? [["draft", "Drafts", counts.draft, "var(--info-tint)", "var(--info)"] as [Filter, string, number, string, string]]
+      : []),
     ["in_process", "In process", counts.in_process, "var(--surface-3)", "var(--t2)"],
     ["expiring", "Expiring", counts.expiring, "var(--warn-tint)", "var(--warn)"],
     ["unconfirmed", "Unconfirmed", counts.unconfirmed, "var(--danger-tint)", "var(--danger)"],
@@ -166,8 +211,21 @@ export function RosterTable({
                 <div style={s("font-size:12.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
                   {r.fullName}
                 </div>
-                <div style={sx("font-size:10.5px;color:var(--t4);margin-top:2px", { fontFamily: TOKENS.mono })}>
-                  {r.maskedId} · {r.baseCity}
+                <div style={s("display:flex;align-items:center;gap:6px;margin-top:2px;min-width:0")}>
+                  <span style={sx("font-size:10.5px;color:var(--t4)", { fontFamily: TOKENS.mono })}>
+                    {r.maskedId} · {r.baseCity}
+                  </span>
+                  {/*
+                    A draft looked identical to a listed profile here, which is how someone
+                    could add a person, not find them in the talent pool, and have nothing
+                    on screen explain why.
+                  */}
+                  {r.status === "draft" ? (
+                    <span title="Not on the exchange yet. Talentvibes cannot offer this person until you list them."
+                      style={sx("padding:1px 6px;border-radius:4px;font-size:8.5px;font-weight:700;letter-spacing:.07em;flex:none", { background: "var(--info-tint)", color: "var(--info)", fontFamily: TOKENS.mono })}>
+                      DRAFT
+                    </span>
+                  ) : null}
                 </div>
               </div>
 
@@ -210,7 +268,18 @@ export function RosterTable({
               </div>
 
               <div>
-                {isConfirmed ? (
+                {/*
+                  Confirming availability on a draft is meaningless -- nobody can be offered
+                  them -- so the one thing a draft needs is the way out.
+                */}
+                {r.status === "draft" ? (
+                  <button
+                    onClick={() => startTransition(() => { void listOnExchange(r.maskedId, r.fullName); })}
+                    style={s("padding:6px 10px;border:0;border-radius:7px;font-size:11px;font-weight:700;background:var(--brand);color:#fff;cursor:pointer;width:100%;font-family:inherit")}
+                  >
+                    List on the exchange
+                  </button>
+                ) : isConfirmed ? (
                   <div style={s("padding:6px 10px;border-radius:7px;font-size:11px;font-weight:700;background:var(--surface-3);color:var(--t4);text-align:center")}>
                     Confirmed ✓
                   </div>

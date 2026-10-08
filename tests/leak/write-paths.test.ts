@@ -29,11 +29,15 @@ import * as s from "../../src/db/schema";
 
 import { POST as createResource, DELETE as withdrawResource } from "@/app/api/vendor/resources/route";
 import { POST as confirmResource } from "@/app/api/vendor/resources/confirm/route";
+import { POST as listResource } from "@/app/api/vendor/resources/list/route";
+import { POST as requestTest, DELETE as abandonTest } from "@/app/api/vendor/assessments/invite/route";
 import { POST as createRequirement, DELETE as cancelRequirement } from "@/app/api/client/requirements/route";
 import { POST as decide } from "@/app/api/client/shortlists/decide/route";
 import { POST as feedback } from "@/app/api/client/interviews/feedback/route";
 import { POST as resolveDuplicate } from "@/app/api/ops/duplicates/resolve/route";
 import { POST as changeStage } from "@/app/api/ops/requirements/stage/route";
+import { getVendorAssessments, getVendorRoster } from "../../src/read-models/vendor";
+import { getOpsTalentPool } from "../../src/read-models/ops";
 
 /** A Request the route handlers accept. */
 function post(body: unknown, method = "POST"): Request {
@@ -49,14 +53,17 @@ const MARK = "ZZ-WritePathTest";
 
 let acmeId: string;
 let cygnetId: string;
+/** The vendor `getDemoSession("vendor")` resolves to, so writes land where tests look. */
+let nimbusId: string;
 
 beforeAll(async () => {
   const orgs = await db
     .select({ id: s.organizations.id, name: s.organizations.name })
     .from(s.organizations)
-    .where(inArray(s.organizations.name, ["Acme Finserv", "Cygnet Infotech Labs"]));
+    .where(inArray(s.organizations.name, ["Acme Finserv", "Cygnet Infotech Labs", "Nimbus Softworks"]));
   acmeId = orgs.find((o) => o.name === "Acme Finserv")!.id;
   cygnetId = orgs.find((o) => o.name === "Cygnet Infotech Labs")!.id;
+  nimbusId = orgs.find((o) => o.name === "Nimbus Softworks")!.id;
 }, 60_000);
 
 afterAll(async () => {
@@ -71,7 +78,16 @@ afterAll(async () => {
     .from(s.requirements)
     .where(eq(s.requirements.roleTitle, MARK));
 
-  const ids = [...res.map((r) => r.id), ...reqs.map((r) => r.id)];
+  // Assessment rows cascade when their resource goes, but the audit entries keyed on the
+  // ASSESSMENT id do not — they have no foreign key. Collect them before the cascade.
+  const assess = res.length
+    ? await db
+        .select({ id: s.assessments.id })
+        .from(s.assessments)
+        .where(inArray(s.assessments.resourceId, res.map((r) => r.id)))
+    : [];
+
+  const ids = [...res.map((r) => r.id), ...reqs.map((r) => r.id), ...assess.map((a) => a.id)];
   if (ids.length) await db.delete(s.auditLog).where(inArray(s.auditLog.entityId, ids));
   if (res.length) {
     await db.delete(s.resourceSkills).where(inArray(s.resourceSkills.resourceId, res.map((r) => r.id)));
@@ -82,6 +98,152 @@ afterAll(async () => {
     await db.delete(s.requirements).where(inArray(s.requirements.id, reqs.map((r) => r.id)));
   }
 }, 60_000);
+
+/* ====================================================================== */
+/*  A draft must not be a dead end, and an untested person must be visible */
+/* ====================================================================== */
+
+/**
+ * The owner added someone, saved them as a draft, and could find them nowhere.
+ *
+ * Three separate defects produced that, and this walks the whole path rather than asserting
+ * each in isolation — the bug was not in any one of them, it was that together they left no
+ * way forward.
+ */
+describe("a person added as a draft can be found and acted on", () => {
+  /** Creates a draft and returns its masked id. */
+  async function newDraft() {
+    const res = await createResource(post({
+      fullName: MARK,
+      baseCity: "Pune",
+      experienceMonths: 54,
+      skills: ["Kafka"],
+      vendorRatePaise: 11_500_000,
+      workModes: ["remote"],
+      status: "draft",
+    }));
+    expect(res.status).toBe(201);
+    return (await res.json() as { maskedId: string }).maskedId;
+  }
+
+  it("is on their own roster, counted as a draft, and NOT on the exchange", async () => {
+    const maskedId = await newDraft();
+
+    const roster = await getVendorRoster(nimbusId);
+    expect(roster.counts.draft, "drafts had no count and no tab").toBeGreaterThan(0);
+    expect(roster.resources.map((r) => r.maskedId)).toContain(maskedId);
+
+    // Correct, and the part that was never explained: a draft is not an offer.
+    const pool = await getOpsTalentPool({ limit: 300 });
+    expect(pool.results.map((r) => r.maskedId)).not.toContain(maskedId);
+  });
+
+  it("appears on the skill tests screen even with no test record", async () => {
+    // THE defect. getVendorAssessments read FROM assessments INNER JOIN bench_resources,
+    // so a person with no test row was invisible on the screen whose job is to get them
+    // tested — and `notStarted` counted assessment rows rather than untested people, so
+    // the button read "Invite 0 to test".
+    const maskedId = await newDraft();
+
+    const a = await getVendorAssessments(nimbusId);
+    const card = a.cards.find((c) => c.maskedId === maskedId);
+    expect(card, "an untested person was missing from the skill tests screen").toBeDefined();
+    expect(card!.hasTest).toBe(false);
+    expect(card!.status).toBe("not_started");
+    expect(card!.resourceStatus).toBe("draft");
+
+    expect(a.summary.notStarted).toBeGreaterThan(0);
+    expect(a.untestedMaskedIds, "the button acts on the real set").toContain(maskedId);
+  });
+
+  it("can be listed on the exchange, and unlisted again", async () => {
+    const maskedId = await newDraft();
+
+    const listed = await listResource(post({ maskedId, to: "listed" }));
+    expect(listed.status).toBe(200);
+
+    const pool = await getOpsTalentPool({ limit: 300 });
+    expect(pool.results.map((r) => r.maskedId), "listing did not reach the exchange")
+      .toContain(maskedId);
+
+    // Listing confirms availability at the same moment, matching the create endpoint.
+    const [row] = await db
+      .select({ status: s.benchResources.status, listedAt: s.benchResources.listedAt, confirmed: s.benchResources.lastConfirmedAt })
+      .from(s.benchResources).where(eq(s.benchResources.maskedId, maskedId));
+    expect(row.status).toBe("listed");
+    expect(row.listedAt).not.toBeNull();
+    expect(row.confirmed).not.toBeNull();
+
+    // The Undo restores the draft exactly, stamps included.
+    expect((await listResource(post({ maskedId, to: "draft" }))).status).toBe(200);
+    const [back] = await db
+      .select({ status: s.benchResources.status, listedAt: s.benchResources.listedAt, confirmed: s.benchResources.lastConfirmedAt })
+      .from(s.benchResources).where(eq(s.benchResources.maskedId, maskedId));
+    expect(back.status).toBe("draft");
+    expect(back.listedAt).toBeNull();
+    expect(back.confirmed).toBeNull();
+  });
+
+  it("refuses to unlist somebody a client is mid-decision on", async () => {
+    // in_process and deployed are off limits: a client is deciding on them, and their own
+    // supplier must not be able to quietly pull them off the exchange.
+    const [busy] = await db
+      .select({ maskedId: s.benchResources.maskedId })
+      .from(s.benchResources)
+      .where(and(
+        eq(s.benchResources.vendorOrgId, nimbusId),
+        inArray(s.benchResources.status, ["in_process", "deployed"]),
+      ))
+      .limit(1);
+
+    if (!busy) return; // nothing in that state in the fixture; nothing to assert
+    const res = await listResource(post({ maskedId: busy.maskedId, to: "draft" }));
+    expect(res.status).toBe(409);
+    expect((await res.json() as { error: string }).error).toBe("not_draftable");
+  });
+
+  it("requests a test once, however many times the button is pressed", async () => {
+    const maskedId = await newDraft();
+
+    const first = await requestTest(post({ maskedIds: [maskedId] }));
+    expect(first.status).toBe(200);
+    expect((await first.json() as { queued: string[] }).queued).toEqual([maskedId]);
+
+    // Idempotent on purpose: the screen's button acts on everyone untested, so pressing it
+    // twice must not queue anybody twice.
+    const second = await requestTest(post({ maskedIds: [maskedId] }));
+    const out = await second.json() as { queued: string[]; alreadyWaiting: string[] };
+    expect(out.queued).toEqual([]);
+    expect(out.alreadyWaiting).toEqual([maskedId]);
+
+    const rows = await db
+      .select({ status: s.assessments.status, ref: s.assessments.providerRef, score: s.assessments.overallScore })
+      .from(s.assessments)
+      .innerJoin(s.benchResources, eq(s.benchResources.id, s.assessments.resourceId))
+      .where(eq(s.benchResources.maskedId, maskedId));
+    expect(rows.length).toBe(1);
+    expect(rows[0].status).toBe("invited");
+    // ADR-006: no provider has been called, so there is no ref — and emphatically no score.
+    expect(rows[0].ref).toBeNull();
+    expect(rows[0].score).toBeNull();
+  });
+
+  it("abandons a request rather than deleting it", async () => {
+    const maskedId = await newDraft();
+    await requestTest(post({ maskedIds: [maskedId] }));
+    expect((await abandonTest(post({ maskedIds: [maskedId] }))).status).toBe(200);
+
+    // "We asked and changed our mind" is a different fact from "we never asked", and it is
+    // the first thing a supplier would argue about on an assessment bill.
+    const rows = await db
+      .select({ status: s.assessments.status })
+      .from(s.assessments)
+      .innerJoin(s.benchResources, eq(s.benchResources.id, s.assessments.resourceId))
+      .where(eq(s.benchResources.maskedId, maskedId));
+    expect(rows.length).toBe(1);
+    expect(rows[0].status).toBe("abandoned");
+  });
+});
 
 /* ====================================================================== */
 /*  Zod at the boundary: a malformed body never reaches the database       */

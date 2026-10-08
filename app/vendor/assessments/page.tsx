@@ -1,9 +1,10 @@
-import { Shell, PageHeader, Scroll, Button, SectionLabel } from "@/src/lib/ui/Shell";
+import { Shell, PageHeader, Scroll, SectionLabel } from "@/src/lib/ui/Shell";
 import { getDemoSession, getShellNav } from "@/src/lib/auth/session";
 import { getVendorAssessments } from "@/src/read-models/vendor";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
 import { VendorAside } from "../aside";
 import { istFormat } from "@/src/lib/derived";
+import { InviteAllButton, RequestTestButton } from "./InviteToTest";
 
 /**
  * Vendor · Assessments.
@@ -17,7 +18,9 @@ export const metadata = { title: "Skill tests · DeployDesk" };
 const STATUS_PILL: Record<string, { bg: string; fg: string; label: string }> = {
   scored: { bg: "var(--ok-tint)", fg: "var(--ok)", label: "SCORED" },
   in_progress: { bg: "var(--warn-tint)", fg: "var(--warn)", label: "IN PROGRESS" },
-  invited: { bg: "var(--warn-tint)", fg: "var(--warn)", label: "INVITE SENT" },
+  // Not "INVITE SENT": ADR-006's provider adapter does not exist, so the row records a
+  // request and nothing has been sent anywhere.
+  invited: { bg: "var(--warn-tint)", fg: "var(--warn)", label: "TEST REQUESTED" },
   not_started: { bg: "var(--surface-3)", fg: "var(--t4)", label: "NOT STARTED" },
   expired: { bg: "var(--danger-tint)", fg: "var(--danger)", label: "EXPIRED" },
   abandoned: { bg: "var(--surface-3)", fg: "var(--t4)", label: "ABANDONED" },
@@ -41,7 +44,7 @@ export default async function VendorAssessmentsPage() {
       <PageHeader
         title="Skill tests"
         subtitle="Proctored by Talentvibes. Scores are visible to you and to clients — you cannot edit them."
-        actions={<Button primary accent="var(--teal)">Invite {a.summary.notStarted} to test</Button>}
+        actions={<InviteAllButton maskedIds={a.untestedMaskedIds} />}
       />
       <Scroll>
         <div style={s("display:grid;grid-template-columns:repeat(4,1fr);gap:12px")}>
@@ -76,9 +79,19 @@ export default async function VendorAssessmentsPage() {
                       {c.maskedId}{c.track ? ` · ${c.track}` : ""}
                     </div>
                   </div>
-                  <span style={sx("padding:3px 7px;border-radius:5px;font-size:8.5px;font-weight:700;letter-spacing:.07em;white-space:nowrap", { background: pill.bg, color: pill.fg, fontFamily: TOKENS.mono })}>
-                    {pill.label}
-                  </span>
+                  <div style={s("display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none")}>
+                    <span style={sx("padding:3px 7px;border-radius:5px;font-size:8.5px;font-weight:700;letter-spacing:.07em;white-space:nowrap", { background: pill.bg, color: pill.fg, fontFamily: TOKENS.mono })}>
+                      {pill.label}
+                    </span>
+                    {/* A score is worth having before listing someone, so drafts appear
+                        here — labelled, so they are never taken for a live profile. */}
+                    {c.resourceStatus === "draft" ? (
+                      <span title="Not on the exchange yet. List them on your bench roster."
+                        style={sx("padding:1px 6px;border-radius:4px;font-size:8px;font-weight:700;letter-spacing:.07em", { background: "var(--info-tint)", color: "var(--info)", fontFamily: TOKENS.mono })}>
+                        DRAFT
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
 
                 <div style={s("display:flex;align-items:baseline;gap:9px;margin-top:11px")}>
@@ -88,7 +101,7 @@ export default async function VendorAssessmentsPage() {
                   <div style={sx("font-size:8.5px;font-weight:700;letter-spacing:.1em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
                     {c.overall != null && c.testedOn
                       ? `PROCTORED · ${fmt(c.testedOn)}`
-                      : c.status === "not_started" ? "INVITE NOT SENT"
+                      : c.status === "not_started" ? "NOT TESTED YET"
                       : c.status === "in_progress" ? "IN PROGRESS"
                       : pill.label}
                   </div>
@@ -110,6 +123,14 @@ export default async function VendorAssessmentsPage() {
                     </div>
                   ))}
                 </div>
+
+                {/*
+                  The reason this screen could not do its job: an untested person was not
+                  even listed, let alone actionable.
+                */}
+                {!c.hasTest ? (
+                  <RequestTestButton maskedId={c.maskedId} fullName={c.fullName} />
+                ) : null}
 
                 <div style={s("display:flex;align-items:center;justify-content:space-between;gap:9px;margin-top:12px;padding-top:10px;border-top:1px solid var(--surface-3)")}>
                   <div style={s("font-size:10px;color:var(--t4)")}>

@@ -62,7 +62,15 @@ views. Filters live in the **query string**, which is what makes a saved view ju
 parameters. Two counts on screen now mean two different things: `matchCount` (the whole
 exchange, no limit) and `resultCount` (what is rendered).
 
-## 3. Visible but inert — 11 controls that do nothing
+**Drafts have a way out, and untested people are visible** — `/vendor/roster` and
+`/vendor/assessments`, 2026-10-08. Reported by the owner: added someone, saved as a draft,
+could find them nowhere. Three defects at once —
+`POST /api/vendor/resources/list` (draft ↔ listed) and
+`POST`/`DELETE /api/vendor/assessments/invite` now exist, the roster has a DRAFT badge and a
+Drafts tab, and the skill tests screen reads **from the bench** rather than from
+`assessments`. Six regression tests walk the whole path.
+
+## 3. Visible but inert — 10 controls that do nothing
 
 Each needs a decision, not just wiring. Grouped by what they actually need.
 
@@ -77,7 +85,6 @@ Each needs a decision, not just wiring. Grouped by what they actually need.
 - **Detection rules** (`/ops/duplicates`) — a settings screen that does not exist
 
 **Needs an external system**
-- **Invite N to test** (`/vendor/assessments`) — the assessment provider adapter (ADR-006)
 - **Raise invoice** (`/vendor/earnings`) — billing integration
 
 **Needs only work, no decisions**
