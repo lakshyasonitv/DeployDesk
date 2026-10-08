@@ -18,6 +18,16 @@ import { formatExperience, istFormat } from "../../lib/derived";
 
 /* ------------------------------------------------------------------ types */
 
+/** One candidate time for an interview round, as a client may see it. */
+export interface ClientInterviewSlot {
+  startsAtIso: string;
+  label: string;
+  durationLabel: string;
+  status: string;
+  /** "You" or "Talentvibes" — never a named person, never a supplier. */
+  byLabel: string;
+}
+
 export interface ClientMaskedCandidate {
   maskedId: string;
   position: number;
@@ -416,6 +426,8 @@ export async function getClientFeedbackDue(clientOrgId: string) {
 export async function getClientInterviews(clientOrgId: string) {
   const rows = await db
     .select({
+      // Join key only, never serialised.
+      id: s.interviews.id,
       roundNo: s.interviews.roundNo,
       status: s.interviews.status,
       scheduledAt: s.interviews.scheduledAt,
@@ -434,12 +446,69 @@ export async function getClientInterviews(clientOrgId: string) {
     .where(eq(s.requirements.clientOrgId, clientOrgId))
     .orderBy(asc(s.interviews.scheduledAt));
 
+  /**
+   * The candidate times for each round.
+   *
+   * Two columns on `interview_slots` are deliberately NOT selected:
+   *
+   *   - `proposed_by_user_id` would identify a person, and on a vendor-proposed slot that
+   *     person works for the supplier.
+   *   - `decline_reason` is free text, and the table has no `declined_by`, so there is no
+   *     way to tell whether a given reason was written by a broker or by the supplier.
+   *     **That ambiguity, not the wording, is what makes it unsafe** — the same reason
+   *     `interview_feedback.notes` never reaches a vendor verbatim and waits for a
+   *     broker-authored `relayed_summary`. No such relay column exists for slots yet, so
+   *     the client is told a time did not work and not why.
+   *
+   * `proposed_by` collapses 'ops' and 'vendor' to Talentvibes. The client's only
+   *  counterparty is the broker; distinguishing them would say a supplier is being
+   *  consulted about scheduling, which is supplier information.
+   */
+  const slotRows = rows.length
+    ? await db
+        .select({
+          interviewId: s.interviewSlots.interviewId,
+          startsAt: s.interviewSlots.startsAt,
+          durationMinutes: s.interviewSlots.durationMinutes,
+          proposedBy: s.interviewSlots.proposedBy,
+          status: s.interviewSlots.status,
+        })
+        .from(s.interviewSlots)
+        .where(inArray(s.interviewSlots.interviewId, rows.map((r) => r.id)))
+        .orderBy(asc(s.interviewSlots.startsAt))
+    : [];
+
+  const slotsBy = new Map<string, ClientInterviewSlot[]>();
+  for (const sl of slotRows) {
+    const list = slotsBy.get(sl.interviewId) ?? [];
+    list.push({
+      startsAtIso: sl.startsAt.toISOString(),
+      label: istFormat(sl.startsAt, {
+        weekday: "short", day: "numeric", month: "short",
+        hour: "2-digit", minute: "2-digit", hour12: false,
+      }),
+      durationLabel: `${sl.durationMinutes} min`,
+      status: sl.status,
+      byLabel: sl.proposedBy === "client" ? "You" : "Talentvibes",
+    });
+    slotsBy.set(sl.interviewId, list);
+  }
+
   return rows.map((r) => ({
     maskedId: r.maskedId,
     requirementCode: r.requirementCode,
     roleTitle: r.roleTitle,
+    /** The round number itself, so an endpoint can be addressed without an internal id. */
+    roundNo: r.roundNo,
     roundLabel: `ROUND ${r.roundNo}`,
     status: r.status,
+    slots: slotsBy.get(r.id) ?? [],
+    /**
+     * Always a Talentvibes-issued link (docs/MASKING.md: a meeting link created on the
+     * vendor's workspace domain is a side channel). Null until a round is confirmed, which
+     * is why "Join" cannot always be live.
+     */
+    meetingUrl: r.meetingUrl,
     scheduledAt: r.scheduledAt?.toISOString() ?? null,
     durationLabel: r.durationMinutes ? `${r.durationMinutes} min` : null,
     modeLabel: r.mode === "onsite"

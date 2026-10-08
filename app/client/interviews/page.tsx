@@ -1,9 +1,10 @@
-import { Shell, PageHeader, Scroll, Button, Card, SectionLabel, Pill } from "@/src/lib/ui/Shell";
+import { Shell, PageHeader, Scroll, Card, SectionLabel, Pill } from "@/src/lib/ui/Shell";
 import { getDemoSession, getShellNav } from "@/src/lib/auth/session";
 import { getClientInterviews, getClientFeedbackDue } from "@/src/read-models/client";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
 import { ShellAside } from "../aside";
 import { FeedbackCard } from "./FeedbackCard";
+import { SlotButton } from "./SlotPlanner";
 import { istFormat } from "@/src/lib/derived";
 
 /**
@@ -30,7 +31,22 @@ export default async function ClientInterviewsPage() {
       <PageHeader
         title="Interviews"
         subtitle="Talentvibes schedules every round and issues the meeting link. Your panel never contacts the supplier."
-        actions={<><Button>Panel availability</Button><Button primary>Propose new slots</Button></>}
+        /**
+         * No header actions.
+         *
+         * "Propose new slots" lives on each round instead: a header button has no round
+         * attached and this screen lists several, so it would either guess or open a
+         * chooser that clicking a round already is. Same call as the extension request on
+         * "People working". v2 (SCREENS.md:83) puts it in the header.
+         *
+         * "Panel availability" is GONE rather than left inert. It needs a recurring
+         * availability model, and `interview_slots.interview_id` is `not null` — every slot
+         * must hang off a specific round, so there is nowhere to record "Tuesdays suit us".
+         * That is a new table, which needs the owner's approval under the database-safety
+         * rule, so it is recorded in the brain rather than faked with a read-only list
+         * under a button that says "set".
+         */
+        actions={null}
       />
       <Scroll>
         <div style={s("display:grid;grid-template-columns:1.5fr 1fr;gap:16px;align-items:start")}>
@@ -62,9 +78,28 @@ export default async function ClientInterviewsPage() {
                       {iv.durationLabel}{iv.modeLabel ? ` · ${iv.modeLabel}` : ""}
                     </div>
                   </div>
-                  <div style={s("flex:none;display:flex;flex-direction:column;gap:6px")}>
-                    <Button primary>Join</Button>
-                    <Button>Reschedule</Button>
+                  <div style={s("flex:none;display:flex;flex-direction:column;gap:6px;align-items:stretch")}>
+                    {/*
+                      A real link when one exists. `meeting_url` is always Talentvibes-issued
+                      -- docs/MASKING.md lists a link on the vendor's workspace domain as a
+                      side channel -- and it is null until a round is confirmed, which is why
+                      this cannot always be live. It says so instead of looking broken.
+                    */}
+                    {iv.meetingUrl ? (
+                      <a href={iv.meetingUrl} target="_blank" rel="noreferrer"
+                        style={s("padding:0 13px;height:32px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:9px;font-size:12px;font-weight:700;background:var(--brand);color:#fff;text-decoration:none;white-space:nowrap")}>
+                        Join
+                      </a>
+                    ) : (
+                      <span title="Your Talentvibes team issues the link once the round is locked."
+                        style={s("padding:0 13px;height:32px;display:inline-flex;align-items:center;justify-content:center;border:1px dashed var(--border-2);border-radius:9px;font-size:12px;font-weight:600;color:var(--t4);white-space:nowrap")}>
+                        Link to come
+                      </span>
+                    )}
+                    <SlotButton round={{
+                      maskedId: iv.maskedId, roundNo: iv.roundNo, roundLabel: iv.roundLabel,
+                      status: iv.status, scheduledAt: iv.scheduledAt, slots: iv.slots,
+                    }} />
                   </div>
                 </div>
               );
@@ -87,6 +122,12 @@ export default async function ClientInterviewsPage() {
                     <div style={s("font-size:11.5px;color:var(--t3);margin-top:4px")}>
                       You proposed slots{iv.requestedAgo ? ` ${iv.requestedAgo}` : ""}. Your Talentvibes team confirms
                       release and comes back with a locked slot and a Talentvibes meeting link.
+                    </div>
+                    <div style={s("margin-top:9px")}>
+                      <SlotButton round={{
+                        maskedId: iv.maskedId, roundNo: iv.roundNo, roundLabel: iv.roundLabel,
+                        status: iv.status, scheduledAt: iv.scheduledAt, slots: iv.slots,
+                      }} />
                     </div>
                   </div>
                 ))}

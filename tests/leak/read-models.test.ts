@@ -38,6 +38,10 @@ const CLIENT_FORBIDDEN_KEYS = [
   "fullName", "full_name", "contactEmail", "contact_email", "contactPhone", "contact_phone",
   "panHash", "pan_hash", "phoneHash", "phone_hash", "emailHash", "email_hash",
   "cvObjectKey", "cv_object_key", "resourceId", "resource_id",
+  // interview_slots: the proposer is a person, and on a vendor-proposed slot that person
+  // works for the supplier. The decline reason is free text with no `declined_by` column,
+  // so there is no way to know whether a broker or the supplier wrote it.
+  "proposedByUserId", "proposed_by_user_id", "declineReason", "decline_reason",
   "freshness", "freshnessLabel", "freshnessState", "lastConfirmedAt", "last_confirmed_at",
   "algoScore", "algo_score", "duplicateFlags", "signals", "redactionNote", "redaction_note",
   "createdAt", "created_at",
@@ -218,6 +222,22 @@ describe("client portal never leaks supplier or margin data", () => {
     expect(theirs.length).toBeGreaterThan(0);
     const overlap = mine.filter((m) => theirs.some((t) => t.maskedId === m.maskedId));
     expect(overlap.map((o) => o.maskedId), "same person on two clients' lists").toEqual([]);
+  });
+
+  it("interview slots name no person and carry no decline reason", async () => {
+    const view = await getClientInterviews(acmeId);
+    const slots = view.flatMap((i) => i.slots);
+    expect(slots.length, "no slots in the fixture set — test is vacuous").toBeGreaterThan(0);
+
+    expectNoForbiddenKeys(view, CLIENT_FORBIDDEN_KEYS, "client interview slots");
+    expectNoSubstring(view, VENDOR_NAMES, "client interview slots");
+
+    // `proposed_by` has three values and the client may only ever see two labels. 'ops' and
+    // 'vendor' both collapse to Talentvibes: distinguishing them would tell the client a
+    // supplier is being consulted about scheduling.
+    for (const sl of slots) {
+      expect(["You", "Talentvibes"], `byLabel was "${sl.byLabel}"`).toContain(sl.byLabel);
+    }
   });
 
   it("requirements list", async () => {

@@ -89,6 +89,30 @@ function isWorkingDay(ist: Date, holidays: HolidaySet): boolean {
 }
 
 /**
+ * Does a meeting of `durationMinutes` starting at `start` fit inside the working window?
+ *
+ * docs/DOMAIN.md sets that window at 09:00-19:00 IST, Monday-Saturday. This validates an
+ * interview slot a client proposes: a 03:00 start is not a typo a broker should have to
+ * catch by eye, and a Sunday or a public holiday is not a time anyone's panel is sitting.
+ *
+ * The whole meeting must fit, not just its start. A 60-minute round beginning at 18:30
+ * ends after close, so it is rejected -- otherwise the rule would be satisfied by a slot
+ * that cannot actually be held.
+ */
+export function isWithinBusinessHours(
+  start: Date,
+  durationMinutes: number,
+  holidays: HolidaySet = NO_HOLIDAYS,
+): boolean {
+  const ist = istOf(start);
+  if (!isWorkingDay(ist, holidays)) return false;
+
+  const startMinutes = ist.getUTCHours() * 60 + ist.getUTCMinutes();
+  const endMinutes = startMinutes + durationMinutes;
+  return startMinutes >= DAY_START_HOUR * 60 && endMinutes <= DAY_END_HOUR * 60;
+}
+
+/**
  * Whole IST calendar days between two instants.
  *
  * This is what freshness wants, and it is NOT the same as elapsed time divided by 86.4

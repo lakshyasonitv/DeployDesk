@@ -18,8 +18,7 @@
  */
 import { describe, expect, it } from "vitest";
 import {
-  addBusinessHours, businessHoursBetween, istCalendarDaysBetween, istDay,
-} from "../src/lib/business-clock";
+  addBusinessHours, businessHoursBetween, istCalendarDaysBetween, istDay, isWithinBusinessHours } from "../src/lib/business-clock";
 import { freshnessFor, slaFor, istFormat } from "../src/lib/derived";
 
 /** An IST wall-clock time as a real instant. */
@@ -225,5 +224,43 @@ describe("istFormat renders in IST whatever zone the process is in", () => {
     // `date` columns parse as UTC midnight. 05:30 IST on the 31st is still the 31st — and
     // pinning IST means a server zone behind UTC cannot show the 30th.
     expect(istFormat("2026-10-31", { day: "numeric", month: "short" })).toBe("31 Oct");
+  });
+});
+
+/**
+ * The window a proposed interview slot has to fit inside.
+ *
+ * This backs /api/client/interviews/slots. The interesting cases are all boundaries, which
+ * is exactly why they are stated directly rather than seeded.
+ */
+describe("isWithinBusinessHours", () => {
+  it("accepts a mid-morning weekday round", () => {
+    expect(isWithinBusinessHours(ist("2026-10-12T11:00"), 60)).toBe(true);  // Monday
+  });
+
+  it("requires the WHOLE meeting to fit, not just its start", () => {
+    // 18:30 starts inside the window and ends at 19:30, which cannot be held.
+    expect(isWithinBusinessHours(ist("2026-10-12T18:30"), 60)).toBe(false);
+    // 18:00 + 60 ends exactly at close, which can.
+    expect(isWithinBusinessHours(ist("2026-10-12T18:00"), 60)).toBe(true);
+    // And the same instant is fine for a shorter round.
+    expect(isWithinBusinessHours(ist("2026-10-12T18:30"), 30)).toBe(true);
+  });
+
+  it("rejects before opening", () => {
+    expect(isWithinBusinessHours(ist("2026-10-12T08:30"), 60)).toBe(false);
+    expect(isWithinBusinessHours(ist("2026-10-12T09:00"), 60)).toBe(true);
+  });
+
+  it("works Saturday and not Sunday", () => {
+    expect(isWithinBusinessHours(ist("2026-10-10T11:00"), 60)).toBe(true);   // Saturday
+    expect(isWithinBusinessHours(ist("2026-10-11T11:00"), 60)).toBe(false);  // Sunday
+  });
+
+  it("excludes a holiday from the table", () => {
+    const holidays = new Set(["2026-10-12"]);
+    expect(isWithinBusinessHours(ist("2026-10-12T11:00"), 60, holidays)).toBe(false);
+    // The next working day is unaffected.
+    expect(isWithinBusinessHours(ist("2026-10-13T11:00"), 60, holidays)).toBe(true);
   });
 });
