@@ -253,6 +253,13 @@ export interface OpsMatchCandidate {
   noticeLabel: string;
   vendorRateLabel: string;
   proposedClientRateLabel: string;
+  /**
+   * The raw paise as well as the labels, so the desk can show the margin changing as a
+   * broker types a new rate — without parsing a formatted string back into a number, which
+   * is the bug the Margin page's footer totals had.
+   */
+  vendorRatePaise: number;
+  proposedClientRatePaise: number | null;
   /** Ops only. Derived, never stored. */
   marginPctLabel: string;
   marginBand: "green" | "amber" | "red";
@@ -266,6 +273,17 @@ export interface OpsMatchCandidate {
   lastProjectNote: string | null;
   included: boolean;
   isManuallyRanked: boolean;
+  /**
+   * Set when a broker has priced this candidate by hand.
+   *
+   * Read from `audit_log` rather than a column on `matches`: the audit row is the durable
+   * record a dispute is argued from, and keeping it there meant the rate control needed no
+   * migration. `reason` is only ever filled in for a below-floor price, where it is
+   * required.
+   */
+  rateSetBy: { name: string | null; reason: string | null } | null;
+  /** True once the candidate has gone out on a shortlist, so the band is frozen (ADR-004). */
+  rateLocked: boolean;
 }
 
 /**
@@ -392,6 +410,44 @@ export async function getOpsMatchingWorkspace(requirementCode: string) {
     for (const r of refused) refusedIds.add(r.resourceId);
   }
 
+  /**
+   * Who has been priced by hand, and who can no longer be re-priced.
+   *
+   * Both read rather than stored. The note comes from `audit_log`, which is the durable
+   * record a dispute is argued from — keeping it there meant the rate control needed no
+   * migration. The lock comes from `shortlist_items`: once a candidate has gone out, ADR-004
+   * freezes the band on that row, so the client holds a price derived from the old rate and
+   * re-pricing them would leave the two screens disagreeing with nothing saying so.
+   */
+  const [rateAudit, quotedRows] = await Promise.all([
+    db
+      .select({ context: s.auditLog.context, occurredAt: s.auditLog.occurredAt })
+      .from(s.auditLog)
+      .where(and(
+        eq(s.auditLog.entityId, req.id),
+        eq(s.auditLog.action, "matching.rate_set"),
+      ))
+      .orderBy(desc(s.auditLog.occurredAt)),
+    db
+      .select({ maskedId: s.shortlistItems.maskedId })
+      .from(s.shortlistItems)
+      .innerJoin(s.shortlists, eq(s.shortlists.id, s.shortlistItems.shortlistId))
+      .where(eq(s.shortlists.requirementId, req.id)),
+  ]);
+
+  // Newest first above, so the first entry per candidate is the one that stands.
+  const rateNotes = new Map<string, { name: string | null; reason: string | null }>();
+  for (const a of rateAudit) {
+    const ctx = (a.context ?? {}) as Record<string, unknown>;
+    const mid = typeof ctx.maskedId === "string" ? ctx.maskedId : null;
+    if (!mid || rateNotes.has(mid)) continue;
+    rateNotes.set(mid, {
+      name: typeof ctx.setByName === "string" ? ctx.setByName : null,
+      reason: typeof ctx.reason === "string" ? ctx.reason : null,
+    });
+  }
+  const quotedIds = new Set(quotedRows.map((q) => q.maskedId));
+
   const candidates: OpsMatchCandidate[] = rows
     .filter((r) => !refusedIds.has(r.resourceId))
     .map((r, idx) => {
@@ -412,6 +468,8 @@ export async function getOpsMatchingWorkspace(requirementCode: string) {
         : r.noticePeriodDays ? `${r.noticePeriodDays} days` : "Unknown",
       vendorRateLabel: formatPaiseExact(r.vendorRatePaise),
       proposedClientRateLabel: proposed ? formatPaiseExact(proposed) : "—",
+      vendorRatePaise: r.vendorRatePaise,
+      proposedClientRatePaise: proposed ?? null,
       marginPctLabel: proposed ? `${pct.toFixed(1)}%` : "—",
       marginBand: marginBand(pct),
       algoScore: r.algoScore,
@@ -430,6 +488,8 @@ export async function getOpsMatchingWorkspace(requirementCode: string) {
       lastProjectNote: r.lastProjectNote,
       included: r.included,
       isManuallyRanked: r.manualRank != null,
+      rateSetBy: rateNotes.get(r.maskedId) ?? null,
+      rateLocked: quotedIds.has(r.maskedId),
     };
   });
 

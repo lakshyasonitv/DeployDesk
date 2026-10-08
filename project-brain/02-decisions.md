@@ -1072,3 +1072,48 @@ labels say what the figures are.
 **Still to come, from the same conversation:** the proposed client rate is computed and
 nobody can change it, which `docs/MATCHING.md` already says should be a human decision. That
 needs an endpoint plus a migration for a configurable target — recorded in `04-tasks.md`.
+
+## 2026-10-08 — Talentvibes sets the price, and a sent candidate cannot be re-priced
+
+**Decision.** `POST /api/ops/matching/rate` lets a broker set the proposed client rate per
+candidate on the matching desk, with the margin updating as they type.
+
+**Why.** The rate was computed — `vendor / (1 - target)`, rounded, clamped into budget — and
+**nobody could change it**; the desk rendered it as a read-only `Detail`. That one number
+decides the band the client sees, the margin Talentvibes earns and 14% of the ranking score,
+so it is the central commercial lever of the business and it was set by a constant.
+`docs/MATCHING.md` already said otherwise: the margin-constrained case should "surface it to
+ops ... and **let a human decide**", and there was no way to decide.
+
+**Setting a rate re-scores and re-ranks.** `score_rate` is computed FROM the rate and
+`algo_score` is the weighted blend, so writing the rate alone would leave the desk showing a
+price that disagrees with the bar beside it and the total beneath it — the incoherence
+ADR-011 exists to prevent. `algo_rank` is renumbered across the pool because a changed score
+changes the order. **`manual_rank` is untouched**: re-pricing one candidate must not
+rearrange an order somebody arranged by hand.
+
+**A sent candidate cannot be re-priced** — `already_quoted`, 409. ADR-004 freezes the band on
+`shortlist_items` at send time, so the client holds a price derived from the old rate;
+changing it afterwards would leave the desk and the client disagreeing with nothing on either
+screen saying so. Re-pricing means sending a new shortlist, which the sequence number already
+supports.
+
+**Below the floor is allowed, with a reason and a name.** Mirrors placements, where
+`engagements` carries `margin_approved_by` and `margin_exception_note` and the Margin page
+shows both. A below-floor price is a real commercial choice — the two seeded exceptions are
+strategic account entries — so it is recorded, not refused.
+
+**The reason lives in `audit_log`, not a new column on `matches`.** The audit row is the
+durable record a dispute is argued from, and keeping it there meant the rate control works
+**today** rather than waiting on a migration. The read model recovers the latest
+`matching.rate_set` entry per candidate for display.
+
+**Rejected: a hard block below the floor.** It would have made the two seeded exceptions
+impossible to enter, and both are deliberate.
+
+**Migration 0007 is written and NOT applied** — `margin_policy`, one row, for the
+configurable target and floor. Exactly one row is enforced by the schema, because a settings
+table that can hold two will eventually hold two and then the product has two margins again
+— which it genuinely did until today. Changing the TARGET affects future pricing only;
+changing the FLOOR re-derives which past placements count as exceptions, since margin is
+never stored, so every change writes an audit row.

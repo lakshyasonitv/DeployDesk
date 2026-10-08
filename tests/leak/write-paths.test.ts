@@ -38,6 +38,10 @@ import { POST as resolveDuplicate } from "@/app/api/ops/duplicates/resolve/route
 import { POST as changeStage } from "@/app/api/ops/requirements/stage/route";
 import { POST as runMatchingRoute } from "@/app/api/ops/matching/run/route";
 import { POST as saveRank, DELETE as resetRank } from "@/app/api/ops/matching/rank/route";
+import { POST as setRate } from "@/app/api/ops/matching/rate/route";
+import { POST as sendShortlist } from "@/app/api/ops/shortlists/send/route";
+import { algoScore as weightedTotal } from "../../src/lib/matching/score";
+import { marginPct, MARGIN_FLOOR_PCT } from "../../src/lib/money/rate-band";
 import { getOpsMatchingWorkspace } from "../../src/read-models/ops";
 import { algoScore } from "../../src/lib/matching/score";
 import { getVendorAssessments, getVendorRoster } from "../../src/read-models/vendor";
@@ -103,6 +107,154 @@ afterAll(async () => {
     await db.delete(s.requirements).where(inArray(s.requirements.id, reqs.map((r) => r.id)));
   }
 }, 60_000);
+
+/* ====================================================================== */
+/*  Talentvibes sets the price                                             */
+/* ====================================================================== */
+
+/**
+ * The proposed client rate was computed and nobody could change it:
+ * `vendor / (1 - target)`, rounded, clamped into budget, rendered on the desk as a read-only
+ * `Detail`. That one number decides the band the client is shown, the margin we earn and 14%
+ * of the ranking score — and `docs/MATCHING.md` already said the margin-constrained case
+ * should "surface it to ops ... and let a human decide".
+ */
+describe("the proposed client rate is Talentvibes's to set", () => {
+  async function sourcedRole() {
+    const res = await createRequirement(post({
+      roleTitle: MARK, skills: ["React"], experienceBand: "5-8", quantity: 1,
+      budgetMinPaise: 13_000_000, budgetMaxPaise: 22_000_000,
+      engagementType: "contract", workMode: "remote",
+      noticeAccepted: ["immediate"], stage: "new",
+    }));
+    expect(res.status).toBe(201);
+    const { code, matched } = await res.json() as { code: string; matched: number };
+    expect(matched).toBeGreaterThan(1);
+    const view = await getOpsMatchingWorkspace(code);
+    return { code, candidates: view!.candidates };
+  }
+
+  it("sets the rate, and re-scores so the total still follows its own bars", async () => {
+    /**
+     * The coherence that matters. `score_rate` is computed FROM the rate, and `algo_score`
+     * is the weighted blend of the six components — so setting a rate without recomputing
+     * both would leave the desk showing a price that disagrees with the bar beside it.
+     */
+    const { code, candidates } = await sourcedRole();
+    const c = candidates[0];
+    // Comfortably above the floor: vendor rate plus a third.
+    const rate = Math.round((c.vendorRatePaise * 1.45) / 100_000) * 100_000;
+
+    const res = await setRate(post({ code, maskedId: c.maskedId, ratePaise: rate }));
+    expect(res.status).toBe(200);
+    const out = await res.json() as { marginPct: number; scoreRate: number; algoScore: number };
+
+    const [row] = await db
+      .select({
+        rate: s.matches.proposedClientRatePaise,
+        scoreSkill: s.matches.scoreSkill, scoreTest: s.matches.scoreTest,
+        scoreExpFit: s.matches.scoreExpFit, scoreRate: s.matches.scoreRate,
+        scoreFreshness: s.matches.scoreFreshness, scoreVendor: s.matches.scoreVendor,
+        algoScore: s.matches.algoScore,
+      })
+      .from(s.matches)
+      .innerJoin(s.requirements, eq(s.requirements.id, s.matches.requirementId))
+      .innerJoin(s.benchResources, eq(s.benchResources.id, s.matches.resourceId))
+      .where(and(eq(s.requirements.code, code), eq(s.benchResources.maskedId, c.maskedId)));
+
+    expect(row.rate).toBe(rate);
+    expect(row.scoreRate).toBe(out.scoreRate);
+    // ADR-011: the total always follows from the components.
+    expect(row.algoScore).toBe(weightedTotal(row));
+    expect(out.marginPct).toBeCloseTo(marginPct(rate, c.vendorRatePaise), 1);
+  });
+
+  it("refuses a below-floor rate with no reason, and accepts one with", async () => {
+    const { code, candidates } = await sourcedRole();
+    const c = candidates[0];
+    // A 10% margin: vendor / 0.90.
+    const thin = Math.round(c.vendorRatePaise / 0.9);
+
+    const bare = await setRate(post({ code, maskedId: c.maskedId, ratePaise: thin }));
+    expect(bare.status).toBe(400);
+    const err = await bare.json() as { error: string; floorPct: number };
+    expect(err.error).toBe("reason_required");
+    expect(err.floorPct).toBe(MARGIN_FLOOR_PCT);
+
+    // Allowed with a reason: a below-floor price is a real commercial choice, and the two
+    // seeded exceptions are strategic account entries.
+    const ok = await setRate(post({
+      code, maskedId: c.maskedId, ratePaise: thin,
+      reason: "Strategic entry into this client's estate; review at renewal.",
+    }));
+    expect(ok.status).toBe(200);
+  });
+
+  it("records who set it and why, where the desk can read it back", async () => {
+    const { code, candidates } = await sourcedRole();
+    const c = candidates[0];
+    const thin = Math.round(c.vendorRatePaise / 0.88);
+    const reason = "Below floor on purpose: first placement with this client.";
+
+    await setRate(post({ code, maskedId: c.maskedId, ratePaise: thin, reason }));
+
+    // Read through the read model the screen renders from. The note lives in audit_log, not
+    // a column, which is why this needed no migration.
+    const view = await getOpsMatchingWorkspace(code);
+    const after = view!.candidates.find((x) => x.maskedId === c.maskedId);
+    expect(after!.rateSetBy).not.toBeNull();
+    expect(after!.rateSetBy!.reason).toBe(reason);
+    expect(after!.rateSetBy!.name).toBeTruthy();
+  });
+
+  it("keeps a broker's manual order, and still renumbers algo_rank", async () => {
+    const { code, candidates } = await sourcedRole();
+    const order = candidates.map((x) => x.maskedId);
+    await saveRank(post({ code, order: [...order].reverse(), included: [] }));
+
+    const c = candidates[0];
+    await setRate(post({
+      code, maskedId: c.maskedId,
+      ratePaise: Math.round((c.vendorRatePaise * 1.5) / 100_000) * 100_000,
+    }));
+
+    const rows = await db
+      .select({ manualRank: s.matches.manualRank, algoRank: s.matches.algoRank })
+      .from(s.matches)
+      .innerJoin(s.requirements, eq(s.requirements.id, s.matches.requirementId))
+      .where(eq(s.requirements.code, code));
+
+    // Re-pricing one candidate must not rearrange work somebody did by hand.
+    expect(rows.every((r) => r.manualRank != null)).toBe(true);
+    // But algo_rank follows the new scores, and stays a clean 1..n.
+    const ranks = rows.map((r) => r.algoRank).sort((a, b) => a - b);
+    expect(ranks).toEqual(Array.from({ length: ranks.length }, (_, i) => i + 1));
+  });
+
+  it("refuses to re-price somebody already quoted to the client", async () => {
+    /**
+     * ADR-004 stores the band on `shortlist_items` at send time and forbids recomputing it.
+     * So once a candidate has gone out, the client holds a price derived from the old rate;
+     * re-pricing them would leave the desk and the client disagreeing with nothing saying so.
+     */
+    const { code, candidates } = await sourcedRole();
+    const c = candidates[0];
+    await saveRank(post({ code, order: candidates.map((x) => x.maskedId), included: [c.maskedId] }));
+
+    const sent = await sendShortlist(post({ code, maskedIds: [c.maskedId] }));
+    // Asserted rather than skipped: an early `return` here would make the guard below
+    // untested while the test still reported green, which has happened twice in this
+    // project already.
+    expect(sent.status, `sending was refused: ${await sent.clone().text()}`).toBe(200);
+
+    const res = await setRate(post({
+      code, maskedId: c.maskedId,
+      ratePaise: Math.round((c.vendorRatePaise * 1.6) / 100_000) * 100_000,
+    }));
+    expect(res.status).toBe(409);
+    expect((await res.json() as { error: string }).error).toBe("already_quoted");
+  });
+});
 
 /* ====================================================================== */
 /*  A broker's ordering has to survive a refresh                           */

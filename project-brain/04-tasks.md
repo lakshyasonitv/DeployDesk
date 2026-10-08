@@ -35,7 +35,17 @@
       Both audits so far found the same shape of defect — a control that *looked* like it
       worked. **Check persistence by reloading, not by watching the screen update.**
 
-- [ ] **Talentvibes controls the proposed client rate.** It is computed
+- [ ] **Apply migration `0007_margin_policy.sql`** — one row holding the target and floor
+      margin, so Talentvibes can change them without a deploy. Written, not applied. Once
+      applied: a reader with the constants as the fallback, an ops-only settings control, and
+      an audit row per change (the FLOOR re-derives which past placements are exceptions).
+- [x] **Talentvibes controls the proposed client rate** ✅ 2026-10-08 — editable per candidate
+      on the matching desk, margin live as you type, a reason required below the floor and
+      recorded with the setter's name, re-scores and re-ranks on save, and refuses to
+      re-price a candidate already quoted to a client (ADR-004 freezes their band). Needed no
+      migration: the reason lives in `audit_log`.
+
+      ~~Original note:~~ It is computed
       (`vendor / (1 - target)`, rounded, clamped) and **nobody can change it** — the matching
       desk renders it as a read-only `Detail`. `docs/MATCHING.md` already says the
       margin-constrained case should "surface it to ops ... and let a human decide", and

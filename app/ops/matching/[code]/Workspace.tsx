@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { s, sx, TOKENS, SLA_COLOR, MARGIN_COLOR, stageMeta } from "@/src/lib/ui/style";
+import { s, sx, TOKENS, SLA_COLOR, stageMeta } from "@/src/lib/ui/style";
 import type { OpsMatchCandidate } from "@/src/read-models/ops";
+import { MARGIN_FLOOR_PCT, MARGIN_TARGET_PCT, marginPct } from "@/src/lib/money/rate-band";
 
 /** Gate keys in plain English, for the "why is this pool empty" line. */
 const REASON: Record<string, string> = {
@@ -530,7 +531,6 @@ export function Workspace({
             {rows.map((c, idx) => {
               const inSet = included.includes(c.maskedId);
               const open = expanded === c.maskedId;
-              const mc = MARGIN_COLOR[c.marginBand];
               return (
                 <div key={c.maskedId}
                   draggable onDragStart={() => setDragging(c.maskedId)} onDragEnd={() => setDragging(null)}
@@ -618,9 +618,18 @@ export function Workspace({
                         <Detail k="LAST CONFIRMED" v={c.freshnessLabel} />
                         <Detail k="VENDOR RELIABILITY" v={`${c.vendorReliability} / 5`} />
                         <Detail k="VENDOR RATE" v={c.vendorRateLabel} />
-                        <Detail k="PROPOSED CLIENT RATE" v={c.proposedClientRateLabel} />
-                        <Detail k="MARGIN AT THAT RATE" v={c.marginPctLabel} color={mc.fg} />
                       </div>
+
+                      {/*
+                        The price, editable.
+
+                        It used to be a read-only `Detail`. That one number decides the band
+                        the client is shown, the margin we earn and 14% of the ranking score,
+                        and it was set by a constant -- while docs/MATCHING.md already said
+                        the margin-constrained case should "surface it to ops ... and let a
+                        human decide".
+                      */}
+                      <RateEditor code={requirement.code} c={c} onChanged={() => router.refresh()} />
                       {c.lastProjectNote ? (
                         <div style={s("margin-top:10px;background:var(--surface-2);border-radius:8px;padding:9px;font-size:11.5px;color:var(--t2);line-height:1.5")}>
                           {c.lastProjectNote}
@@ -666,6 +675,190 @@ function Fact({ k, v, color }: { k: string; v: string; color?: string }) {
     <div style={s("display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--surface-3)")}>
       <span style={s("font-size:11.5px;color:var(--t4)")}>{k}</span>
       <span style={sx("font-size:11.5px;font-weight:700;text-align:right", { color: color ?? "var(--t1)" })}>{v}</span>
+    </div>
+  );
+}
+
+/**
+ * Setting what we charge a client for one candidate.
+ *
+ * The margin updates as you type, from the raw paise the read model supplies — never by
+ * parsing the formatted label back into a number, which is the bug the Margin page's footer
+ * totals had.
+ *
+ * Below the floor the reason becomes required, mirroring how placements already work:
+ * `engagements` carries `margin_approved_by` and `margin_exception_note`, and the Margin page
+ * shows both. A below-floor price is a real commercial choice, not an error — the two seeded
+ * exceptions are strategic account entries — so it is allowed, recorded, and attributed.
+ */
+function RateEditor({
+  code, c, onChanged,
+}: {
+  code: string;
+  c: OpsMatchCandidate;
+  onChanged: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [rupees, setRupees] = useState(
+    c.proposedClientRatePaise ? String(Math.round(c.proposedClientRatePaise / 100)) : "",
+  );
+  const [reason, setReason] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const paise = Math.round(Number(rupees.replace(/[^\d]/g, "")) || 0) * 100;
+  const live = paise > 0 ? marginPct(paise, c.vendorRatePaise) : null;
+  const belowFloor = live != null && live < MARGIN_FLOOR_PCT;
+  const tone = live == null ? "var(--t4)"
+    : live >= MARGIN_TARGET_PCT ? "var(--ok)"
+    : live >= MARGIN_FLOOR_PCT ? "var(--warn)" : "var(--danger)";
+
+  async function save() {
+    if (busy || paise <= 0) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/ops/matching/rate", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ code, maskedId: c.maskedId, ratePaise: paise, reason: reason.trim() || undefined }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(
+          body?.error === "already_quoted"
+            ? "This candidate has already gone out on a shortlist, so the client holds a price based on the old rate. Send a new shortlist to re-price them."
+            : body?.error === "reason_required"
+              ? `That is ${body.marginPct}% margin, below our ${body.floorPct}% floor. Say why, in a sentence.`
+              : "Could not set that rate.",
+        );
+      }
+      setOpen(false);
+      setReason("");
+      onChanged();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not set that rate.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /* --------------------------------- closed --------------------------------- */
+  if (!open) {
+    return (
+      <div style={s("margin-top:11px;background:var(--surface-2);border-radius:9px;padding:11px;display:flex;align-items:center;gap:14px;flex-wrap:wrap")}>
+        <div>
+          <div style={sx("font-size:8.5px;font-weight:700;letter-spacing:.1em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
+            WE WOULD CHARGE
+          </div>
+          <div style={sx("font-size:14px;font-weight:800;margin-top:3px", { fontFamily: TOKENS.mono })}>
+            {c.proposedClientRateLabel}
+          </div>
+        </div>
+        <div>
+          <div style={sx("font-size:8.5px;font-weight:700;letter-spacing:.1em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
+            MARGIN
+          </div>
+          <div style={sx("font-size:14px;font-weight:800;margin-top:3px", { fontFamily: TOKENS.mono, color: tone })}>
+            {c.marginPctLabel}
+          </div>
+        </div>
+
+        {/* Quoted already: the band on `shortlist_items` is frozen (ADR-004). */}
+        {c.rateLocked ? (
+          <span title="Already sent to the client. The band they hold was derived from this rate, so re-pricing means a new shortlist."
+            style={s("margin-left:auto;font-size:11px;color:var(--t4)")}>
+            quoted to the client
+          </span>
+        ) : (
+          <button type="button" onClick={() => setOpen(true)}
+            style={s("margin-left:auto;padding:0 12px;height:30px;display:inline-flex;align-items:center;border:1px solid var(--border-2);border-radius:8px;font-size:11.5px;font-weight:700;background:var(--surface);cursor:pointer;font-family:inherit;white-space:nowrap")}>
+            Change the rate
+          </button>
+        )}
+
+        {c.rateSetBy ? (
+          <div style={s("flex-basis:100%;font-size:10.5px;color:var(--t4);line-height:1.5")}>
+            Set by {c.rateSetBy.name ?? "a broker"}
+            {c.rateSetBy.reason ? ` — ${c.rateSetBy.reason}` : ""}
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+
+  /* ---------------------------------- open ---------------------------------- */
+  return (
+    <div style={s("margin-top:11px;background:var(--surface-2);border:1px solid var(--border-2);border-radius:9px;padding:12px")}>
+      <div style={s("display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap")}>
+        <div>
+          <label style={sx("display:block;font-size:8.5px;font-weight:700;letter-spacing:.1em;color:var(--t4);margin-bottom:4px", { fontFamily: TOKENS.mono })}>
+            WE WOULD CHARGE · PER MONTH
+          </label>
+          <div style={s("display:flex;align-items:center;gap:6px")}>
+            <span style={sx("font-size:14px;font-weight:700", { fontFamily: TOKENS.mono })}>₹</span>
+            <input
+              autoFocus
+              value={rupees}
+              onChange={(e) => setRupees(e.target.value)}
+              inputMode="numeric"
+              style={sx("width:130px;padding:7px 10px;border:1px solid var(--border-2);border-radius:8px;font-size:14px;font-weight:700;outline:none", { fontFamily: TOKENS.mono })}
+            />
+          </div>
+        </div>
+        <div>
+          <div style={sx("font-size:8.5px;font-weight:700;letter-spacing:.1em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
+            SUPPLIER GETS
+          </div>
+          <div style={sx("font-size:13px;font-weight:700;margin-top:4px", { fontFamily: TOKENS.mono })}>
+            {c.vendorRateLabel}
+          </div>
+        </div>
+        <div>
+          <div style={sx("font-size:8.5px;font-weight:700;letter-spacing:.1em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
+            MARGIN
+          </div>
+          <div style={sx("font-size:17px;font-weight:800;margin-top:2px", { fontFamily: TOKENS.mono, color: tone })}>
+            {live == null ? "—" : `${live.toFixed(1)}%`}
+          </div>
+        </div>
+      </div>
+
+      {belowFloor ? (
+        <div style={s("margin-top:11px")}>
+          <div style={s("font-size:11.5px;color:var(--warn);font-weight:600;line-height:1.5")}>
+            That is below our {MARGIN_FLOOR_PCT}% floor. Allowed — say why, and it is recorded
+            against your name on the Margin page.
+          </div>
+          <textarea
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            rows={2}
+            placeholder="e.g. strategic entry into this client's SAP estate; review at renewal."
+            style={s("width:100%;margin-top:7px;padding:8px 10px;border:1px solid var(--warn);border-radius:8px;font-size:12px;font-family:inherit;outline:none;resize:vertical;line-height:1.5")}
+          />
+        </div>
+      ) : null}
+
+      {error ? (
+        <div style={s("margin-top:9px;font-size:11.5px;color:var(--danger);line-height:1.5")}>{error}</div>
+      ) : null}
+
+      <div style={s("display:flex;gap:7px;margin-top:11px;align-items:center")}>
+        <button type="button" onClick={save} disabled={busy || paise <= 0}
+          style={sx("padding:0 13px;height:32px;display:inline-flex;align-items:center;border:0;border-radius:8px;font-size:12px;font-weight:700;color:#fff;background:var(--brand);font-family:inherit", {
+            cursor: busy || paise <= 0 ? "default" : "pointer", opacity: busy || paise <= 0 ? 0.6 : 1,
+          })}>
+          {busy ? "Saving…" : "Set this rate"}
+        </button>
+        <button type="button" onClick={() => { setOpen(false); setError(null); }} disabled={busy}
+          style={s("padding:0 13px;height:32px;display:inline-flex;align-items:center;border:1px solid var(--border-2);border-radius:8px;font-size:12px;font-weight:600;background:var(--surface);cursor:pointer;font-family:inherit")}>
+          Cancel
+        </button>
+        <span style={s("font-size:10.5px;color:var(--t4);margin-left:auto")}>
+          Changing this re-scores the rate component and re-ranks the pool.
+        </span>
+      </div>
     </div>
   );
 }

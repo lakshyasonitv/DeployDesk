@@ -1,6 +1,6 @@
 import {
   pgTable, pgEnum, uuid, text, integer, smallint, time, date, timestamp, jsonb, index,
-  primaryKey, check, unique,
+  primaryKey, check, unique, boolean, numeric,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { organizations, users } from "./tenancy";
@@ -108,6 +108,41 @@ export const extensionRequests = pgTable("extension_requests", {
   createdAt: ts(),
   updatedAt: ts(),
 }, (t) => [index("extension_requests_engagement_idx").on(t.engagementId, t.status)]);
+
+/* ====================================================================== */
+/*  margin_policy                                                          */
+/* ====================================================================== */
+
+/**
+ * The exchange-wide target and floor margin, as data. Migration 0007.
+ *
+ * Replaces `MARGIN_TARGET_PCT` / `MARGIN_FLOOR_PCT` as the source of truth so Talentvibes
+ * can change them without a deploy. **Exactly one row**, enforced by the schema: a settings
+ * table that can hold two rows will eventually hold two, and then the product has two
+ * margins again — which it genuinely did until this was written, as percentages in
+ * `rate-band.ts` and as fractions in `matching/score.ts`.
+ *
+ * Changing the TARGET affects future pricing only: `matches.proposed_client_rate_paise` is
+ * stored and `shortlist_items` bands are frozen at send time (ADR-004).
+ *
+ * Changing the FLOOR re-derives which past placements count as exceptions, because margin is
+ * never stored (docs/DOMAIN.md) — lowering it would quietly empty the Margin page's amber
+ * card without anything having been fixed. Hence the audit row on every change.
+ */
+export const marginPolicy = pgTable("margin_policy", {
+  /** Always `true`. The primary key allows one, and the check forbids `false`. */
+  id: boolean().primaryKey().default(true),
+  targetPct: numeric("target_pct", { precision: 4, scale: 1 }).notNull().default("22.0"),
+  floorPct: numeric("floor_pct", { precision: 4, scale: 1 }).notNull().default("18.0"),
+  /** Null for the seeded default, which nobody set. */
+  updatedBy: uuid("updated_by").references(() => users.id),
+  updatedAt: ts(),
+  createdAt: ts(),
+}, (t) => [
+  check("margin_policy_single_row", sql`${t.id}`),
+  // A floor above the target would make every on-target placement a breach.
+  check("margin_policy_floor_not_above_target", sql`${t.floorPct} <= ${t.targetPct}`),
+]);
 
 /* ====================================================================== */
 /*  panel_availability                                                     */
