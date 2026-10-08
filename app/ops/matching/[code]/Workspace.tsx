@@ -75,6 +75,8 @@ export function Workspace({
   const [dragging, setDragging] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [sourcing, setSourcing] = useState(false);
+  /** Set by whichever ranking action ran last, so the toast can offer a real reversal. */
+  const [undoRank, setUndoRank] = useState<null | (() => Promise<void>)>(null);
   const [sourceNote, setSourceNote] = useState<string | null>(null);
 
   /**
@@ -107,6 +109,8 @@ export function Workspace({
       }
       const out = await res.json() as {
         matched: number;
+        added: number;
+        keptManualOrder: boolean;
         excluded: Record<string, number>;
       };
 
@@ -124,7 +128,19 @@ export function Workspace({
           ? `Nobody is eligible. Excluded: ${why}.`
           : "Nobody on any bench matches this role yet.");
       } else {
-        setSourceNote(`${out.matched} candidate${out.matched === 1 ? "" : "s"} sourced.`);
+        /**
+         * A re-run keeps a manual order, so new people land at the BOTTOM -- under a
+         * hand-arranged list, where they are easy to miss. Saying so is the difference
+         * between "the re-run did nothing" and "there are three new names below your order".
+         */
+        const kept = out.keptManualOrder ? " Your order was kept" : "";
+        const added = out.added
+          ? (kept ? "; " : " ") + out.added + " new "
+            + (out.added === 1 ? "person is" : "people are") + " at the bottom."
+          : kept ? "; nobody new." : "";
+        setSourceNote(
+          out.matched + " candidate" + (out.matched === 1 ? "" : "s") + " sourced." + kept + added,
+        );
       }
       router.refresh();
     } catch (e) {
@@ -138,37 +154,136 @@ export function Workspace({
   const byId = new Map(initial.map((c) => [c.maskedId, c]));
   const rows = order.map((id) => byId.get(id)!).filter(Boolean);
 
+  /**
+   * Saves the order and the inclusion set.
+   *
+   * All of these controls used to be local React state only: `manual_rank` and `included`
+   * were written in exactly one place, `/api/ops/shortlists/send`, at send time. So the
+   * screen whose entire purpose is arranging an order did not save it -- drag somebody to
+   * the top, refresh, gone.
+   *
+   * Optimistic: the row has already moved on screen when this is called, because a drag
+   * that waits for a round trip feels broken. A failure rolls the state back and says so.
+   */
+  async function persist(nextOrder: string[], nextIncluded: string[], what: string) {
+    const prevOrder = order;
+    const prevIncluded = included;
+    try {
+      const res = await fetch("/api/ops/matching/rank", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          code: requirement.code, order: nextOrder, included: nextIncluded,
+        }),
+      });
+      if (!res.ok) throw new Error("rank failed");
+      const out = await res.json() as { previous: { order: string[]; included: string[] } };
+
+      setToast(what);
+      // Undo restores exactly what the server had, not what this component remembers.
+      setUndoRank(() => async () => {
+        const r = await fetch("/api/ops/matching/rank", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            code: requirement.code,
+            order: out.previous.order,
+            included: out.previous.included,
+          }),
+        });
+        if (!r.ok) throw new Error("undo failed");
+        setOrder(out.previous.order);
+        setIncluded(out.previous.included);
+        setUndoRank(null);
+        setToast(requirement.code + " · order restored");
+        router.refresh();
+      });
+      router.refresh();
+    } catch {
+      setOrder(prevOrder);
+      setIncluded(prevIncluded);
+      setToast("Could not save that order. Nothing was changed.");
+    }
+  }
+
   const moveBy = (id: string, dir: -1 | 1) => {
-    setOrder((prev) => {
-      const i = prev.indexOf(id);
-      const j = i + dir;
-      if (i < 0 || j < 0 || j >= prev.length) return prev;
-      const next = [...prev];
-      next.splice(j, 0, next.splice(i, 1)[0]);
-      return next;
-    });
+    const i = order.indexOf(id);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= order.length) return;
+    const next = [...order];
+    next.splice(j, 0, next.splice(i, 1)[0]);
+    setOrder(next);
     setManual(true);
+    void persist(next, included, requirement.code + " · order saved");
   };
 
   const drop = (targetId: string) => {
     if (!dragging || dragging === targetId) { setDragging(null); return; }
-    setOrder((prev) => {
-      const next = prev.filter((x) => x !== dragging);
-      next.splice(next.indexOf(targetId), 0, dragging);
-      return next;
-    });
+    const next = order.filter((x) => x !== dragging);
+    next.splice(next.indexOf(targetId), 0, dragging);
+    setOrder(next);
     setManual(true);
     setDragging(null);
+    void persist(next, included, requirement.code + " · order saved");
   };
 
-  const toggleInclude = (id: string) =>
-    setIncluded((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
+  const toggleInclude = (id: string) => {
+    const next = included.includes(id) ? included.filter((x) => x !== id) : [...included, id];
+    setIncluded(next);
+    void persist(order, next, id + (next.includes(id) ? " included" : " removed"));
+  };
 
-  const reset = () => {
-    setOrder(initial.map((c) => c.maskedId));
-    setIncluded([]);
-    setManual(false);
-    setToast(`${requirement.code} · ranking reset to the algorithm order`);
+  /**
+   * A real reset.
+   *
+   * This used to set local state and toast "ranking reset to the algorithm order" without
+   * writing anything -- so after a shortlist had been sent, where `manual_rank` really was
+   * in the database, a refresh brought the manual order straight back. The toast claimed
+   * something that had not happened.
+   *
+   * It clears `manual_rank` and `included` for this requirement only, which is what
+   * docs/MATCHING.md defines reset as. `algo_rank` was never overwritten, so clearing the
+   * override is all it takes to fall back to the algorithm order.
+   */
+  const reset = async () => {
+    try {
+      const res = await fetch("/api/ops/matching/rank", {
+        method: "DELETE",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ code: requirement.code }),
+      });
+      if (!res.ok) throw new Error("reset failed");
+      const out = await res.json() as { previous: { order: string[]; included: string[] } };
+
+      setOrder(initial.map((c) => c.maskedId));
+      setIncluded([]);
+      setManual(false);
+      setToast(requirement.code + " · reset to the algorithm order");
+      // Discarding work somebody did by hand is the strongest case in this product for a
+      // real Undo rather than a prompt: a prompt protects against the click, an Undo
+      // protects against the decision.
+      setUndoRank(() => async () => {
+        const r = await fetch("/api/ops/matching/rank", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            code: requirement.code,
+            order: out.previous.order,
+            included: out.previous.included,
+          }),
+        });
+        if (!r.ok) throw new Error("undo failed");
+        setOrder(out.previous.order);
+        setIncluded(out.previous.included);
+        setManual(out.previous.order.length > 0);
+        setUndoRank(null);
+        setToast(requirement.code + " · order restored");
+        router.refresh();
+      });
+      router.refresh();
+    } catch {
+      setToast("Could not reset that ranking. Nothing was changed.");
+    }
   };
 
   const send = async () => {
@@ -284,7 +399,24 @@ export function Workspace({
         <div style={s("background:var(--t1);color:var(--surface);padding:10px 26px;display:flex;align-items:center;gap:11px;flex:none")}>
           <span style={s("width:7px;height:7px;border-radius:50%;background:var(--ok);flex:none")} />
           <span style={s("font-size:12.5px;flex:1")}>{toast}</span>
-          <button onClick={() => setToast(null)} style={s("border:0;background:transparent;font-size:12px;color:var(--t4);cursor:pointer;font-family:inherit")}>Dismiss</button>
+          {/*
+            A real reversal, offered by whichever ranking action ran last. Reset discards
+            work a broker did by hand, and an Undo protects against the decision where a
+            confirmation prompt only protects against the click.
+          */}
+          {undoRank ? (
+            <button
+              onClick={() => {
+                const run = undoRank;
+                setUndoRank(null);
+                void run().catch(() => setToast("Could not undo that."));
+              }}
+              style={s("border:0;background:transparent;font-size:12px;font-weight:700;color:var(--surface);cursor:pointer;font-family:inherit;text-decoration:underline")}
+            >
+              Undo
+            </button>
+          ) : null}
+          <button onClick={() => { setToast(null); setUndoRank(null); }} style={s("border:0;background:transparent;font-size:12px;color:var(--t4);cursor:pointer;font-family:inherit")}>Dismiss</button>
         </div>
       ) : null}
 

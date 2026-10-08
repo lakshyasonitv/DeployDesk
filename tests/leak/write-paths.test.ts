@@ -37,6 +37,8 @@ import { POST as feedback } from "@/app/api/client/interviews/feedback/route";
 import { POST as resolveDuplicate } from "@/app/api/ops/duplicates/resolve/route";
 import { POST as changeStage } from "@/app/api/ops/requirements/stage/route";
 import { POST as runMatchingRoute } from "@/app/api/ops/matching/run/route";
+import { POST as saveRank, DELETE as resetRank } from "@/app/api/ops/matching/rank/route";
+import { getOpsMatchingWorkspace } from "../../src/read-models/ops";
 import { algoScore } from "../../src/lib/matching/score";
 import { getVendorAssessments, getVendorRoster } from "../../src/read-models/vendor";
 import { getOpsTalentPool, getOpsPipeline } from "../../src/read-models/ops";
@@ -101,6 +103,145 @@ afterAll(async () => {
     await db.delete(s.requirements).where(inArray(s.requirements.id, reqs.map((r) => r.id)));
   }
 }, 60_000);
+
+/* ====================================================================== */
+/*  A broker's ordering has to survive a refresh                           */
+/* ====================================================================== */
+
+/**
+ * `manual_rank` and `included` were written in exactly ONE place — the send endpoint, at
+ * send time. Dragging, the arrows and the include toggles were all local React state, so the
+ * screen whose entire purpose is arranging an order **did not save the order**: drag somebody
+ * to the top, refresh, gone.
+ *
+ * And "Reset to algorithm" toasted "ranking reset to the algorithm order" while writing
+ * nothing — so after a send, where `manual_rank` really was in the database, a refresh
+ * brought the manual order straight back. The toast claimed something that had not happened.
+ */
+describe("the matching desk saves what a broker arranges", () => {
+  /** A role with a pool, sourced the way the product does it. */
+  async function sourcedRole() {
+    const res = await createRequirement(post({
+      roleTitle: MARK, skills: ["React"], experienceBand: "5-8", quantity: 1,
+      budgetMinPaise: 13_000_000, budgetMaxPaise: 22_000_000,
+      engagementType: "contract", workMode: "remote",
+      noticeAccepted: ["immediate"], stage: "new",
+    }));
+    expect(res.status).toBe(201);
+    const { code, matched } = await res.json() as { code: string; matched: number };
+    expect(matched, "no pool to reorder").toBeGreaterThan(1);
+
+    const view = await getOpsMatchingWorkspace(code);
+    return { code, order: view!.candidates.map((c) => c.maskedId) };
+  }
+
+  it("persists the order, so it survives a reload", async () => {
+    const { code, order } = await sourcedRole();
+
+    // Move the last candidate to the front — the thing a broker actually does.
+    const moved = [order[order.length - 1], ...order.slice(0, -1)];
+    const res = await saveRank(post({ code, order: moved, included: [moved[0]] }));
+    expect(res.status).toBe(200);
+
+    // Read it back through the read model the screen renders from, not the column.
+    const view = await getOpsMatchingWorkspace(code);
+    expect(view!.candidates.map((c) => c.maskedId)).toEqual(moved);
+    expect(view!.candidates[0].isManuallyRanked).toBe(true);
+  });
+
+  it("persists who is included, so the send count is right after a reload", async () => {
+    const { code, order } = await sourcedRole();
+    const pick = [order[1]];
+
+    await saveRank(post({ code, order, included: pick }));
+
+    const view = await getOpsMatchingWorkspace(code);
+    expect(view!.candidates.filter((c) => c.included).map((c) => c.maskedId)).toEqual(pick);
+  });
+
+  it("keeps algo_rank, so the algorithm ranking is still saved under an override", async () => {
+    /**
+     * docs/MATCHING.md: "manual_rank overrides it ... so KEEP algo_rank, do not overwrite
+     * it." That state — "manual override active, algorithm ranking saved" — was unreachable
+     * before, because nothing wrote manual_rank outside a send.
+     */
+    const { code, order } = await sourcedRole();
+    const before = await db
+      .select({ algoRank: s.matches.algoRank })
+      .from(s.matches)
+      .innerJoin(s.requirements, eq(s.requirements.id, s.matches.requirementId))
+      .where(eq(s.requirements.code, code));
+
+    await saveRank(post({ code, order: [...order].reverse(), included: [] }));
+
+    const after = await db
+      .select({ algoRank: s.matches.algoRank })
+      .from(s.matches)
+      .innerJoin(s.requirements, eq(s.requirements.id, s.matches.requirementId))
+      .where(eq(s.requirements.code, code));
+
+    expect(after.map((r) => r.algoRank).sort((a, b) => a - b))
+      .toEqual(before.map((r) => r.algoRank).sort((a, b) => a - b));
+  });
+
+  it("reset really clears it, and the Undo restores exactly what was there", async () => {
+    const { code, order } = await sourcedRole();
+    const moved = [...order].reverse();
+    await saveRank(post({ code, order: moved, included: [moved[0], moved[1]] }));
+
+    const res = await resetRank(post({ code }, "DELETE"));
+    expect(res.status).toBe(200);
+    const { previous } = await res.json() as {
+      previous: { order: string[]; included: string[] };
+    };
+
+    // Cleared in the DATABASE, which is what the old version never did.
+    const cleared = await db
+      .select({ manualRank: s.matches.manualRank, included: s.matches.included })
+      .from(s.matches)
+      .innerJoin(s.requirements, eq(s.requirements.id, s.matches.requirementId))
+      .where(eq(s.requirements.code, code));
+    expect(cleared.every((r) => r.manualRank === null)).toBe(true);
+    expect(cleared.every((r) => r.included === false)).toBe(true);
+
+    // The Undo restores from what the server reported, not from what a screen remembered.
+    expect(previous.order).toEqual(moved);
+    expect(previous.included).toEqual([moved[0], moved[1]]);
+
+    await saveRank(post({ code, order: previous.order, included: previous.included }));
+    const view = await getOpsMatchingWorkspace(code);
+    expect(view!.candidates.map((c) => c.maskedId)).toEqual(moved);
+    expect(view!.candidates.filter((c) => c.included).length).toBe(2);
+  });
+
+  it("refuses to rank somebody who was never sourced for the role", async () => {
+    /**
+     * The guard that matters. `included` is what the send endpoint reads, so without this a
+     * caller could put a person on a client's shortlist who had never passed an eligibility
+     * gate — not stale, not duplicate-checked, possibly from a blocked supplier.
+     */
+    const { code, order } = await sourcedRole();
+    const res = await saveRank(post({
+      code, order: [...order, "TV-9999"], included: ["TV-9999"],
+    }));
+    expect(res.status).toBe(409);
+    expect((await res.json() as { error: string }).error).toBe("not_in_pool");
+  });
+
+  it("tells you a re-run kept your order, and how many are new", async () => {
+    const { code, order } = await sourcedRole();
+    await saveRank(post({ code, order: [...order].reverse(), included: [] }));
+
+    const res = await runMatchingRoute(post({ code }));
+    expect(res.status).toBe(200);
+    const out = await res.json() as { keptManualOrder: boolean; added: number };
+
+    // New candidates land at the BOTTOM, under a hand-arranged list, where they are easy to
+    // miss — so the desk says so rather than looking like it did nothing.
+    expect(out.keptManualOrder, "a re-run did not notice the manual order").toBe(true);
+    expect(out.added).toBe(0); // nothing new listed between the two runs
+  });
+});
 
 /* ====================================================================== */
 /*  The SLA clock restarts on entry to a stage                             */

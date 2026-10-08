@@ -871,3 +871,46 @@ with one.
 side translates. Sunday is storable although `docs/DOMAIN.md` makes it non-working: the
 business-hours gate already refuses a Sunday slot, and silently dropping a row somebody
 entered is worse than letting the gate explain itself.
+
+## 2026-10-08 — The matching desk saves what a broker arranges
+
+**Decision.** `POST`/`DELETE /api/ops/matching/rank` persists `manual_rank` and `included`
+on every drag, arrow and include toggle, and "Reset to algorithm" really clears them.
+
+**Why.** Those two columns were written in exactly ONE place — the send endpoint, at send
+time. Dragging, the arrows and the include toggles were all local React state, so **the
+screen whose entire purpose is arranging an order did not save the order**: drag somebody to
+the top, refresh, gone.
+
+Worse, "Reset to algorithm" toasted *"ranking reset to the algorithm order"* while writing
+nothing. After a send — the one case where `manual_rank` really was in the database — a
+refresh brought the manual order straight back. **The toast claimed something that had not
+happened**, which is worse than a control that visibly does nothing.
+
+And `docs/MATCHING.md`'s state *"manual override active, algorithm ranking saved"* was
+**unreachable**, because nothing wrote `manual_rank` outside a send.
+
+**Save per drag, not behind a Save button.** Chosen by the owner, and consistent with every
+other control in this product: stage moves, availability confirmations, extension requests
+all write immediately with a toast offering Undo. A Save button would add a state where the
+screen and the database disagree, which is the bug being fixed.
+
+**Optimistic, with a rollback.** The row has already moved on screen when the write fires,
+because a drag that waits for a round trip feels broken. A failure puts the order back and
+says so.
+
+**`algo_rank` is never touched** — asserted. Clearing the override is all it takes to fall
+back to the algorithm order, which is why reset does not need to recompute anything.
+
+**Reset gets an Undo, not a confirmation.** It discards work somebody did by hand, which is
+the strongest case in the product for a real reversal: **a prompt protects against the click,
+an Undo protects against the decision.**
+
+**The guard that matters: an id must already be in the pool.** `included` is what the send
+endpoint reads, so without it a caller could put somebody on a client's shortlist who had
+never passed an eligibility gate — not freshness-checked, not duplicate-checked, possibly
+from a suspended supplier. Returns `not_in_pool`, asserted by a test.
+
+**A re-run now reports `added` and `keptManualOrder`**, because new candidates land at the
+bottom under a hand-arranged list where they are easy to miss. "14 sourced. Your order was
+kept; 3 new people are at the bottom." beats silence that reads as "the re-run did nothing".

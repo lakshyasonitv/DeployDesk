@@ -28,6 +28,16 @@ export interface MatchRunResult {
   requirementCode: string;
   /** Rows written. */
   matched: number;
+  /**
+   * Candidates that were NOT in the pool before this run.
+   *
+   * A re-run keeps a broker's manual order, so new people land at the bottom — below a
+   * hand-arranged list, where they are easy to miss. The desk says how many there are
+   * rather than leaving a re-run looking like it did nothing.
+   */
+  added: number;
+  /** True if a broker had arranged this pool by hand, so the message can say it was kept. */
+  keptManualOrder: boolean;
   /** Eligible supply that existed but scored into the pool — same thing, named for callers. */
   considered: number;
   /** Counts by gate, so ops can be told *why* a pool is small rather than just that it is. */
@@ -109,10 +119,25 @@ export async function runMatching(requirementCode: string): Promise<MatchRunResu
     ));
 
   if (!candidates.length) {
-    return { requirementCode: req.code, matched: 0, considered: 0, excluded };
+    return {
+      requirementCode: req.code, matched: 0, added: 0, keptManualOrder: false,
+      considered: 0, excluded,
+    };
   }
 
   const ids = candidates.map((c) => c.id);
+
+  /**
+   * Who is already in this pool, and whether anybody arranged it by hand.
+   *
+   * Read BEFORE the upsert, because afterwards every row looks like it was always there.
+   */
+  const existingRows = await db
+    .select({ resourceId: s.matches.resourceId, manualRank: s.matches.manualRank })
+    .from(s.matches)
+    .where(eq(s.matches.requirementId, req.id));
+  const alreadyInPool = new Set(existingRows.map((r) => r.resourceId));
+  const keptManualOrder = existingRows.some((r) => r.manualRank != null);
 
   /** Skills and the latest assessment, fanned out — both are per-resource lookups. */
   const [skillRows, assessRows, dupRows] = await Promise.all([
@@ -245,7 +270,10 @@ export async function runMatching(requirementCode: string): Promise<MatchRunResu
       || b.tieVendor - a.tieVendor);
 
   if (!ranked.length) {
-    return { requirementCode: req.code, matched: 0, considered: 0, excluded };
+    return {
+      requirementCode: req.code, matched: 0, added: 0, keptManualOrder,
+      considered: 0, excluded,
+    };
   }
 
   /* --------------------------------------------------------------- write ---- */
@@ -315,6 +343,8 @@ export async function runMatching(requirementCode: string): Promise<MatchRunResu
   return {
     requirementCode: req.code,
     matched: ranked.length,
+    added: ranked.filter((r) => !alreadyInPool.has(r.resourceId)).length,
+    keptManualOrder,
     considered: ranked.length,
     excluded,
   };
