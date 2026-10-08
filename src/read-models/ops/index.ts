@@ -8,7 +8,7 @@
  *
  * This is the only portal that may compute or return margin.
  */
-import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, lt, lte, sql } from "drizzle-orm";
 import { db } from "../../db/client";
 import * as s from "../../db/schema";
 import { formatPaiseExact, formatPaiseShort } from "../../lib/money/paise";
@@ -462,9 +462,172 @@ export async function getOpsMatchingWorkspace(requirementCode: string) {
 /*  Talent pool — fully unmasked                                           */
 /* ====================================================================== */
 
-export async function getOpsTalentPool(opts: { search?: string; limit?: number } = {}) {
+/**
+ * What the talent pool can be narrowed by.
+ *
+ * Every one of these is pushed into SQL. The previous version filtered `search` in memory
+ * AFTER `.limit(60)`, so a search only ever looked at the first 60 rows of 1,284 and the
+ * count beside it described the page rather than the result. A filter that narrows the rows
+ * but leaves the count describing something else is worse than no filter.
+ */
+export interface PoolFilters {
+  /**
+   * ALL of these must be present. Picking "Java Spring Boot" and "Kafka" means someone who
+   * has both — one EXISTS per skill — which is what a recruiter means by naming two.
+   */
+  skills?: string[];
+  experienceBand?: "0-3" | "3-5" | "5-8" | "8+";
+  /** Against the LATEST attempt, which is the score the table shows. */
+  minScore?: number;
+  city?: string;
+  /** The employer's organisation name, as the EMPLOYER column shows it. */
+  supplier?: string;
+  maxRatePaise?: number;
+  freshness?: "confirmed" | "expiring" | "unconfirmed";
+  search?: string;
+}
+
+/** docs/DOMAIN.md's bands, in months. The upper bound is exclusive. */
+const EXPERIENCE_BANDS: Record<string, [number, number | null]> = {
+  "0-3": [0, 36], "3-5": [36, 60], "5-8": [60, 96], "8+": [96, null],
+};
+
+/**
+ * Whole IST calendar days since a profile was last confirmed, as SQL.
+ *
+ * Deliberately the same arithmetic as `istCalendarDaysBetween`, which drives the pill in
+ * the LAST CONFIRMED column: a date subtraction in IST, not elapsed hours. If this used
+ * `now() - interval '10 days'` instead, a profile could sit under "Expiring" in the filter
+ * while its own pill read "Confirmed" — the filter and the thing it filters disagreeing is
+ * the one bug a filter must not have.
+ */
+const IST_DAYS_SINCE_CONFIRMED = sql`(
+  (now() at time zone 'Asia/Kolkata')::date
+  - (${sql.raw("bench_resources.last_confirmed_at")} at time zone 'Asia/Kolkata')::date
+)`;
+
+function poolConditions(f: PoolFilters) {
+  const conds: Array<ReturnType<typeof eq> | ReturnType<typeof sql>> = [
+    inArray(s.benchResources.status, ["listed", "in_process", "deployed"]),
+  ];
+
+  if (f.city) conds.push(eq(s.benchResources.baseCity, f.city));
+  if (f.supplier) conds.push(eq(s.organizations.name, f.supplier));
+  if (f.maxRatePaise) conds.push(lte(s.benchResources.vendorRatePaise, f.maxRatePaise));
+
+  if (f.experienceBand && EXPERIENCE_BANDS[f.experienceBand]) {
+    const [lo, hi] = EXPERIENCE_BANDS[f.experienceBand];
+    conds.push(gte(s.benchResources.experienceMonths, lo));
+    if (hi != null) conds.push(lt(s.benchResources.experienceMonths, hi));
+  }
+
+  // One EXISTS per skill, so the conditions AND together.
+  for (const label of f.skills ?? []) {
+    conds.push(sql`exists (
+      select 1 from resource_skills rs
+      join skills sk on sk.id = rs.skill_id
+      where rs.resource_id = ${s.benchResources.id} and sk.label = ${label}
+    )`);
+  }
+
+  if (f.minScore) {
+    // Pinned to the highest attempt, which is the row the SCORE column displays. Without
+    // that, someone whose first attempt scored 90 and whose retake scored 60 would pass a
+    // "80+" filter and then show 60 in the table.
+    conds.push(sql`exists (
+      select 1 from assessments a
+      where a.resource_id = ${s.benchResources.id}
+        and a.overall_score >= ${f.minScore}
+        and a.attempt_no = (
+          select max(a2.attempt_no) from assessments a2 where a2.resource_id = ${s.benchResources.id}
+        )
+    )`);
+  }
+
+  if (f.freshness === "confirmed") {
+    conds.push(sql`${s.benchResources.lastConfirmedAt} is not null and ${IST_DAYS_SINCE_CONFIRMED} < 10`);
+  } else if (f.freshness === "expiring") {
+    conds.push(sql`${s.benchResources.lastConfirmedAt} is not null
+      and ${IST_DAYS_SINCE_CONFIRMED} >= 10 and ${IST_DAYS_SINCE_CONFIRMED} < 14`);
+  } else if (f.freshness === "unconfirmed") {
+    // PARENTHESISED on purpose. Without them, `and(...conds)` yields
+    //   status in (...) and last_confirmed_at is null or days >= 14
+    // and SQL precedence reads that as
+    //   (status in (...) and last_confirmed_at is null) or (days >= 14)
+    // so the second branch escapes the status filter and pulls in withdrawn and archived
+    // profiles. It showed up as the three freshness buckets summing to one MORE than the
+    // unfiltered count.
+    conds.push(sql`(${s.benchResources.lastConfirmedAt} is null or ${IST_DAYS_SINCE_CONFIRMED} >= 14)`);
+  }
+
+  if (f.search) {
+    const q = `%${f.search}%`;
+    conds.push(sql`(
+      ${s.benchResources.fullName} ilike ${q}
+      or ${s.benchResources.maskedId} ilike ${q}
+      or ${s.organizations.name} ilike ${q}
+      or exists (
+        select 1 from resource_skills rs
+        join skills sk on sk.id = rs.skill_id
+        where rs.resource_id = ${s.benchResources.id} and sk.label ilike ${q}
+      )
+    )`);
+  }
+
+  return conds;
+}
+
+/**
+ * The values the filter chips offer.
+ *
+ * Read from the data rather than hardcoded, so a chip can never offer a city nobody is in
+ * — the same mistake as the "Microservices" skill chip that the create endpoint silently
+ * dropped because it was not in the catalogue.
+ */
+export async function getOpsPoolFacets() {
+  const [cities, suppliers, skills] = await Promise.all([
+    db.selectDistinct({ v: s.benchResources.baseCity })
+      .from(s.benchResources)
+      .where(inArray(s.benchResources.status, ["listed", "in_process", "deployed"]))
+      .orderBy(asc(s.benchResources.baseCity)),
+    db.selectDistinct({ v: s.organizations.name })
+      .from(s.benchResources)
+      .innerJoin(s.organizations, eq(s.organizations.id, s.benchResources.vendorOrgId))
+      .orderBy(asc(s.organizations.name)),
+    db.select({ v: s.skills.label, n: sql<number>`count(*)::int` })
+      .from(s.resourceSkills)
+      .innerJoin(s.skills, eq(s.skills.id, s.resourceSkills.skillId))
+      .groupBy(s.skills.label)
+      .orderBy(desc(sql`count(*)`))
+      .limit(24),
+  ]);
+  return {
+    cities: cities.map((r) => r.v),
+    suppliers: suppliers.map((r) => r.v),
+    skills: skills.map((r) => r.v),
+  };
+}
+
+/**
+ * This broker's saved pool filters.
+ *
+ * Scoped to the user, not the organisation: a saved view is a personal shortcut, and the
+ * unique constraint is (user_id, screen, name). The org is on the row too, because a pool
+ * filter can name a supplier — see the endpoint.
+ */
+export async function getOpsSavedViews(userId: string) {
+  const rows = await db
+    .select({ name: s.savedViews.name, filters: s.savedViews.filters })
+    .from(s.savedViews)
+    .where(and(eq(s.savedViews.userId, userId), eq(s.savedViews.screen, "ops.pool")))
+    .orderBy(asc(s.savedViews.name));
+  return rows.map((r) => ({ name: r.name, filters: (r.filters ?? {}) as PoolFilters }));
+}
+
+export async function getOpsTalentPool(opts: PoolFilters & { limit?: number } = {}) {
   const started = Date.now();
   const limit = opts.limit ?? 60;
+  const conds = poolConditions(opts);
 
   const rows = await db
     .select({
@@ -482,7 +645,7 @@ export async function getOpsTalentPool(opts: { search?: string; limit?: number }
     .from(s.benchResources)
     .innerJoin(s.organizations, eq(s.organizations.id, s.benchResources.vendorOrgId))
     .leftJoin(s.vendorProfiles, eq(s.vendorProfiles.orgId, s.benchResources.vendorOrgId))
-    .where(inArray(s.benchResources.status, ["listed", "in_process", "deployed"]))
+    .where(and(...conds))
     .orderBy(desc(s.benchResources.lastConfirmedAt))
     .limit(limit);
 
@@ -534,7 +697,7 @@ export async function getOpsTalentPool(opts: { search?: string; limit?: number }
   const assessBy = new Map<string, (typeof assessRows)[number]>();
   for (const a of assessRows) if (!assessBy.has(a.resourceId)) assessBy.set(a.resourceId, a);
 
-  let results = rows.map((r) => {
+  const results = rows.map((r) => {
     const f = freshnessFor(r.lastConfirmedAt);
     const a = assessBy.get(r.id);
     return {
@@ -556,22 +719,31 @@ export async function getOpsTalentPool(opts: { search?: string; limit?: number }
     };
   });
 
-  if (opts.search) {
-    const q = opts.search.toLowerCase();
-    results = results.filter((r) =>
-      r.fullName.toLowerCase().includes(q) || r.maskedId.toLowerCase().includes(q) ||
-      r.vendorName.toLowerCase().includes(q) || r.skills.some((sk) => sk.toLowerCase().includes(q)));
-  }
-
-  const [{ n: poolTotal }] = await db
-    .select({ n: sql<number>`count(*)::int` })
-    .from(s.benchResources)
-    .where(inArray(s.benchResources.status, ["listed", "in_process", "deployed"]));
+  /**
+   * Two counts, and they mean different things.
+   *
+   * `matchCount` is how many rows the filters match across the whole exchange — counted in
+   * the database with the same conditions and NO limit. `resultCount` is how many are on
+   * screen. They were the same number before filters existed; conflating them now would
+   * mean a filter that matched 300 people reported 60.
+   */
+  const [[{ n: matchCount }], [{ n: poolTotal }]] = await Promise.all([
+    db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(s.benchResources)
+      .innerJoin(s.organizations, eq(s.organizations.id, s.benchResources.vendorOrgId))
+      .where(and(...conds)),
+    db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(s.benchResources)
+      .where(inArray(s.benchResources.status, ["listed", "in_process", "deployed"])),
+  ]);
 
   return {
     results,
     // The UI advertises "62 results · 0.18s"; both are measured, not hardcoded.
     resultCount: results.length,
+    matchCount,
     poolTotal,
     elapsedSeconds: ((Date.now() - started) / 1000).toFixed(2),
   };

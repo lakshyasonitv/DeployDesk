@@ -1,15 +1,25 @@
 import { Shell, PageHeader, Button } from "@/src/lib/ui/Shell";
 import { getDemoSession, getShellNav } from "@/src/lib/auth/session";
-import { getOpsTalentPool } from "@/src/read-models/ops";
+import { getOpsTalentPool, getOpsPoolFacets, getOpsSavedViews } from "@/src/read-models/ops";
+import type { PoolFilters as Filters } from "@/src/read-models/ops";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
 import { OpsAside } from "../aside";
+import { PoolFilters } from "./PoolFilters";
 
 /**
- * Ops · Talent pool — fully unmasked.
+ * Ops · Talent pool — full detail, nothing hidden.
  *
- * Both the result count and the elapsed time are measured, not hardcoded: the design
- * advertises "62 results · 0.18s" and docs/ARCHITECTURE.md sets a p95 target of 400ms
- * at 10k profiles, so showing a real number keeps that target honest.
+ * The filters are real and they live in the query string, which is what lets a saved view
+ * be nothing more than a set of parameters: applying one is a navigation, and this page is
+ * a server component, so it re-reads and re-queries on its own.
+ *
+ * Every filter is pushed into SQL by `getOpsTalentPool`. The previous version filtered in
+ * memory AFTER `.limit(60)`, so a search only ever looked at the first 60 of 1,284 rows and
+ * the count beside it described the page rather than the result.
+ *
+ * Both numbers on screen are measured. `matchCount` is how many rows the filters match
+ * across the whole exchange, counted in the database with no limit; `resultCount` is how
+ * many are rendered. They are different numbers, and the page says which is which.
  */
 export const metadata = { title: "Talent pool · DeployDesk" };
 
@@ -21,56 +31,87 @@ const FRESHNESS_PILL = {
   unconfirmed: { bg: "var(--danger-tint)", fg: "var(--danger)" },
 } as const;
 
-/**
- * Filter affordances. These are presentational: the design shows active chips, but no
- * filtering is wired behind them yet, so none is marked active — a chip rendered as
- * "active" that filters nothing misreports the result count beside it.
- */
-const CHIPS = [
-  { label: "Skill", active: false },
-  { label: "Experience", active: false },
-  { label: "Test score", active: false },
-  { label: "Last confirmed", active: false },
-  { label: "City", active: false },
-  { label: "Employer", active: false },
-  { label: "Vendor rate", active: false },
-];
-
 function scoreColor(n: number | null) {
   if (n == null) return "var(--t4)";
   return n >= 85 ? "var(--ok)" : n >= 78 ? "var(--warn)" : "var(--t4)";
 }
 
-export default async function PoolPage() {
+const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
+
+/** Query string -> filters. Anything unrecognised is dropped rather than guessed at. */
+function parseFilters(sp: Record<string, string | string[] | undefined>): Filters {
+  const num = (v: string | undefined) => {
+    const n = Number(v);
+    return Number.isFinite(n) && n > 0 ? n : undefined;
+  };
+  const band = one(sp.exp);
+  const fresh = one(sp.fresh);
+  return {
+    skills: one(sp.skills)?.split(",").map((x) => x.trim()).filter(Boolean),
+    experienceBand: (["0-3", "3-5", "5-8", "8+"] as const).includes(band as never)
+      ? (band as Filters["experienceBand"]) : undefined,
+    minScore: num(one(sp.score)),
+    city: one(sp.city) || undefined,
+    supplier: one(sp.employer) || undefined,
+    maxRatePaise: num(one(sp.rate)),
+    freshness: (["confirmed", "expiring", "unconfirmed"] as const).includes(fresh as never)
+      ? (fresh as Filters["freshness"]) : undefined,
+    search: one(sp.q) || undefined,
+  };
+}
+
+export default async function PoolPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const sp = await searchParams;
+  const filters = parseFilters(sp);
+
+  // Capped. "Show everything" on a 10k pool is a page nobody can read and a query nobody
+  // asked for; 300 is well past what a broker scrolls and still one fast request.
+  const limit = Math.min(Number(one(sp.limit)) || 60, 300);
+
   const session = await getDemoSession("ops");
   const nav = await getShellNav(session);
-  const [pool, aside] = await Promise.all([getOpsTalentPool({ limit: 60 }), OpsAside()]);
+  const [pool, facets, savedViews, aside] = await Promise.all([
+    getOpsTalentPool({ ...filters, limit }),
+    getOpsPoolFacets(),
+    getOpsSavedViews(session.userId),
+    OpsAside(),
+  ]);
   const withScores = pool.results.filter((r) => r.score != null).length;
+  const more = pool.matchCount - pool.resultCount;
+
+  /** Raises the limit while keeping every filter that is already applied. */
+  const showMoreHref = (() => {
+    const q = new URLSearchParams();
+    for (const [k, v] of Object.entries(sp)) {
+      const val = one(v);
+      if (k !== "limit" && val) q.set(k, val);
+    }
+    q.set("limit", String(Math.min(pool.matchCount, 300)));
+    return `/ops/pool?${q}`;
+  })();
 
   return (
     <Shell portal="ops" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }} activeKey="pool" asideTitle="TODAY'S QUEUE" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Talent pool"
         subtitle={`${pool.poolTotal} profiles across the exchange · full detail, nothing hidden · ${withScores} of the ${pool.resultCount} shown have a proctored score`}
-        actions={<><Button>Save this view</Button><Button primary accent="var(--t1)">Add to a requirement</Button></>}
+        /**
+         * "Save this view" is no longer here. It belongs beside the filters it saves — in
+         * the header it had nothing to name, and it only makes sense once something is
+         * actually filtered, which is exactly when the chip row offers it.
+         */
+        actions={<Button primary accent="var(--t1)">Add to a requirement</Button>}
       />
 
-      <div style={s("padding:11px 26px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;flex:none")}>
-        {CHIPS.map((c) => (
-          <span key={c.label}
-            style={sx("padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700", {
-              background: c.active ? "var(--warn-tint)" : "var(--surface)",
-              color: c.active ? "var(--warn)" : "var(--t4)",
-              border: `1px solid ${c.active ? "var(--warn-tint)" : "var(--border)"}`,
-            })}>
-            {c.label}: any
-          </span>
-        ))}
-        <span style={s("padding:4px 10px;border:1px dashed var(--border-2);border-radius:999px;font-size:11px;font-weight:600;color:var(--t3)")}>
-          + Add filter
-        </span>
-        <span style={sx("margin-left:auto;font-size:10.5px;color:var(--t4)", { fontFamily: TOKENS.mono })}>
-          {pool.resultCount} results · {pool.elapsedSeconds}s
+      <PoolFilters current={filters} facets={facets} savedViews={savedViews} />
+
+      <div style={s("padding:0 26px 8px;display:flex;align-items:center;justify-content:flex-end;flex:none")}>
+        <span style={sx("font-size:10.5px;color:var(--t4)", { fontFamily: TOKENS.mono })}>
+          {pool.matchCount} matching · {pool.elapsedSeconds}s
         </span>
       </div>
 
@@ -121,12 +162,31 @@ export default async function PoolPage() {
           );
         })}
 
-        <div style={s("padding:14px 26px;display:flex;align-items:center;justify-content:space-between;gap:12px")}>
-          <div style={s("font-size:11.5px;color:var(--t4)")}>
-            Showing {pool.resultCount} of {pool.poolTotal} profiles on the exchange
+        {pool.results.length === 0 ? (
+          <div style={s("padding:34px 26px;text-align:center")}>
+            <div style={s("font-size:13px;font-weight:600")}>Nobody matches all of those filters.</div>
+            <div style={s("font-size:12px;color:var(--t4);margin-top:5px")}>
+              Widen one of them. The skill filter is the narrowest — every skill you add has
+              to be present on the same person.
+            </div>
           </div>
-          <Button>Load more</Button>
-        </div>
+        ) : (
+          <div style={s("padding:14px 26px;display:flex;align-items:center;justify-content:space-between;gap:12px")}>
+            <div style={s("font-size:11.5px;color:var(--t4)")}>
+              {more > 0
+                ? `Showing the ${pool.resultCount} most recently confirmed of ${pool.matchCount} matches`
+                : `All ${pool.matchCount} matches are shown`}
+            </div>
+            {/*
+              "Load more" said neither how many more nor how many were left, and did nothing
+              at all. It now names the number and raises the limit in the URL, so it keeps
+              the filters and the browser's back button undoes it.
+            */}
+            {more > 0 ? (
+              <Button href={showMoreHref}>Show all {Math.min(pool.matchCount, 300)}</Button>
+            ) : null}
+          </div>
+        )}
       </div>
     </Shell>
   );
