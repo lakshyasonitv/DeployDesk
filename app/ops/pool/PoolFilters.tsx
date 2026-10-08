@@ -56,6 +56,14 @@ export function PoolFilters({
   const router = useRouter();
   const toast = useToast();
   const [open, setOpen] = useState<string | null>(null);
+  /**
+   * The search box is local until you commit it.
+   *
+   * Every chip applies on click because a chip IS a decision. A text box is not: applying on
+   * each keystroke would push a navigation — and a database query — per letter, and the
+   * back button would then hold one entry per character typed.
+   */
+  const [typed, setTyped] = useState(current.search ?? "");
   const [naming, setNaming] = useState(false);
   const [viewName, setViewName] = useState("");
   const [busy, setBusy] = useState(false);
@@ -72,6 +80,15 @@ export function PoolFilters({
     if (next.freshness) q.set(PARAM.freshness, next.freshness);
     if (next.search) q.set("q", next.search);
     setOpen(null);
+    /**
+     * Keep the box in step with whatever was just applied.
+     *
+     * `typed` is seeded from `current.search` on mount only, so without this "Clear all
+     * filters" left the old text sitting in the box with no filter behind it — and applying
+     * a saved view that carries a search would not have shown it. Syncing here rather than
+     * at each call site covers every path through this component, including future ones.
+     */
+    setTyped(next.search ?? "");
     router.push(q.toString() ? `/ops/pool?${q}` : "/ops/pool", { scroll: false });
   }
 
@@ -181,8 +198,54 @@ export function PoolFilters({
     );
   }
 
+  const commitSearch = () => {
+    const next = typed.trim();
+    if (next === (current.search ?? "")) return;
+    apply({ ...current, search: next || undefined });
+  };
+
   return (
     <div style={s("padding:11px 26px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;flex:none")}>
+      {/*
+        The search this page already had and could not reach.
+
+        `getOpsTalentPool` has searched names, masked ids, employer names and skills in SQL
+        since the filters landed, and this component already preserved `q` across chip
+        changes and counted it as an active filter — but there was no input, so the only way
+        to set it was to edit the URL.
+      */}
+      <span style={s("position:relative;display:inline-flex;align-items:center")}>
+        <span style={s("position:absolute;left:9px;font-size:11px;color:var(--t4);pointer-events:none")}>⌕</span>
+        <input
+          value={typed}
+          onChange={(e) => setTyped(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") commitSearch();
+            // Escape clears, which is what people try first.
+            if (e.key === "Escape") { setTyped(""); if (current.search) apply({ ...current, search: undefined }); }
+          }}
+          onBlur={commitSearch}
+          placeholder="Name, TV id, skill, employer"
+          aria-label="Search the talent pool"
+          style={sx("padding:4px 10px 4px 23px;border-radius:999px;font-size:11px;font-family:inherit;outline:none;width:192px", {
+            background: current.search ? "var(--warn-tint)" : "var(--surface)",
+            border: `1px solid ${current.search ? "var(--warn-tint)" : "var(--border)"}`,
+            color: current.search ? "var(--warn)" : "var(--t1)",
+            fontWeight: current.search ? 700 : 500,
+          })}
+        />
+        {typed ? (
+          <button
+            type="button"
+            aria-label="Clear the search"
+            onClick={() => { setTyped(""); if (current.search) apply({ ...current, search: undefined }); }}
+            style={s("position:absolute;right:6px;border:0;background:transparent;font-size:13px;line-height:1;color:var(--t4);cursor:pointer;font-family:inherit")}
+          >
+            ×
+          </button>
+        ) : null}
+      </span>
+
       <Chip id="skills" label={current.skills?.length ? current.skills.join(" + ") : "any"}>
         {facets.skills.map((sk) => (
           <Option key={sk} label={sk} on={(current.skills ?? []).includes(sk)} onPick={() => toggleSkill(sk)} />

@@ -98,6 +98,59 @@ describe("a filter narrows, and the count is not the page", () => {
   });
 });
 
+describe("the search box", () => {
+  /**
+   * The search had been pushed into SQL since the filters landed, and there was **no input
+   * for it** — `PoolFilters` preserved `q` across chip changes and counted it as an active
+   * filter, but the only way to set it was to edit the URL. These assertions pin what it
+   * covers, so adding a column to the table later cannot quietly drop one.
+   */
+  it("finds a person by name, masked id, employer and skill", async () => {
+    const all = await getOpsTalentPool({ limit: 300 });
+    const sample = all.results[0];
+    expect(sample, "no pool to search").toBeDefined();
+
+    const finds = async (q: string) => {
+      const r = await getOpsTalentPool({ search: q, limit: 300 });
+      return r.results.some((x) => x.maskedId === sample.maskedId);
+    };
+
+    expect(await finds(sample.fullName.split(" ")[0]), "by name").toBe(true);
+    expect(await finds(sample.maskedId), "by masked id").toBe(true);
+    expect(await finds(sample.vendorName.split(" ")[0]), "by employer").toBe(true);
+    if (sample.skills.length) {
+      expect(await finds(sample.skills[0]), "by skill").toBe(true);
+    }
+  });
+
+  it("is case-insensitive", async () => {
+    // ILIKE, not LIKE. Somebody typing a TV id in lower case is the common case.
+    const all = await getOpsTalentPool({ limit: 300 });
+    const id = all.results[0].maskedId;
+    const lower = await getOpsTalentPool({ search: id.toLowerCase(), limit: 300 });
+    expect(lower.results.some((x) => x.maskedId === id)).toBe(true);
+  });
+
+  it("returns nothing for a term that matches nothing", async () => {
+    // A search that silently matched everything would look like it worked.
+    const r = await getOpsTalentPool({ search: "zzzznotathing", limit: 10 });
+    expect(r.matchCount).toBe(0);
+    expect(r.results).toEqual([]);
+  });
+
+  it("searches the whole exchange, not just the first page", async () => {
+    /**
+     * The original defect. `search` ran in memory AFTER `.limit(60)`, so it only ever looked
+     * at the first 60 rows of the pool and the count beside it described the page.
+     */
+    const all = await getOpsTalentPool({ limit: 300 });
+    const id = all.results[0].maskedId;
+    const narrow = await getOpsTalentPool({ search: id, limit: 1 });
+    expect(narrow.matchCount).toBeGreaterThan(0);
+    expect(narrow.results[0].maskedId).toBe(id);
+  });
+});
+
 describe("the score filter agrees with the score the table shows", () => {
   it("never returns a row displaying less than the minimum", async () => {
     // Pinned to the highest attempt in SQL. Without that, someone whose first attempt

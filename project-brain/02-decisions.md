@@ -1117,3 +1117,30 @@ table that can hold two will eventually hold two and then the product has two ma
 — which it genuinely did until today. Changing the TARGET affects future pricing only;
 changing the FLOOR re-derives which past placements count as exceptions, since margin is
 never stored, so every change writes an audit row.
+
+## 2026-10-08 — The talent pool's search was built and unreachable
+
+**Decision.** A search box at the head of the filter row on `/ops/pool`, applying on Enter or
+blur rather than per keystroke.
+
+**Why it was needed at all.** `getOpsTalentPool` has searched **name, masked id, employer and
+skills** in SQL since the filters landed, and `PoolFilters` already preserved `q` across chip
+changes and counted it as an active filter — but **there was no input**. The only way to
+search the pool was to edit the URL. A feature that is built, tested and unreachable is
+indistinguishable from one that does not exist.
+
+**Applied on commit, not per keystroke.** Every chip applies on click because a chip is a
+decision; a text box is not. Pushing a navigation per letter would mean a database query per
+letter and a back-button history with one entry per character typed. Enter or blur commits,
+Escape clears.
+
+**The box syncs inside `apply()`, not at each call site.** `typed` is seeded from
+`current.search` on mount only, so "Clear all filters" left the old text sitting in the box
+with no filter behind it, and applying a saved view carrying a search would not have shown
+it. Syncing in the one funnel every filter change passes through covers both, and anything
+added later.
+
+**Four assertions pin what it covers** — by name, by masked id, by employer, by skill — plus
+case-insensitivity, a term that matches nothing, and that it searches the whole exchange
+rather than the first page. That last one was the original defect: `search` used to run in
+memory **after** `.limit(60)`.
