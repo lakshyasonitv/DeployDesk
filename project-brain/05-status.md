@@ -44,7 +44,7 @@ write-path tests. Neither has any UI wired to it, so the buttons on screen still
 | Endpoint | Screen with the dead button | What is missing |
 |---|---|---|
 | ~~`POST /api/ops/duplicates/resolve`~~ | ~~`/ops/duplicates`~~ | **STALE, corrected 2026-10-31:** wired by `ResolveActions.tsx`, and since 2026-10-31 a flag is settled only once (409 otherwise). The `client/interviews/feedback` row below was NOT re-checked and may be stale in the same way — `FeedbackCard.tsx` exists |
-| `POST /api/client/interviews/feedback` | `/client/interviews` → "Submit feedback" / "Save draft" | same, plus the ratings need to become controlled inputs |
+| ~~`POST /api/client/interviews/feedback`~~ **STALE, corrected 2026-10-31: wired** — `FeedbackCard.tsx` calls it for both Submit and "Save for later"; since 2026-10-31 it refuses a round that was never arranged | `/client/interviews` → "Submit feedback" / "Save draft" | same, plus the ratings need to become controlled inputs |
 
 **The placement panel** — `/client/engagements`, 2026-10-07. Every row opens everything the
 client may know about that placement, and it is where **"Request an extension"** now works

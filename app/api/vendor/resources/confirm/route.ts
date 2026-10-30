@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, notInArray } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/src/db/client";
 import * as s from "@/src/db/schema";
@@ -49,6 +49,9 @@ export async function POST(req: Request) {
     .where(and(
       eq(s.benchResources.vendorOrgId, session.orgId),
       inArray(s.benchResources.maskedId, maskedIds),
+      // Nobody can be offered a withdrawn or archived person, so confirming them wrote a
+      // confirmation and an audit row for nothing.
+      notInArray(s.benchResources.status, ["withdrawn", "archived"]),
     ));
 
   if (owned.length === 0) {

@@ -1,7 +1,6 @@
 import { Shell, PageHeader, Scroll, Button, StatCard, SectionLabel } from "@/src/lib/ui/Shell";
 import { getDemoSession, getShellNav } from "@/src/lib/auth/session";
-import { getClientEngagements } from "@/src/read-models/client";
-import { formatPaiseShort } from "@/src/lib/money/paise";
+import { getClientEngagements, getClientMonthlySpendBand } from "@/src/read-models/client";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
 import { ShellAside } from "../aside";
 import { EngagementsTable } from "./EngagementsTable";
@@ -24,12 +23,11 @@ export const metadata = { title: "People working · DeployDesk" };
 export default async function ClientEngagementsPage() {
   const session = await getDemoSession("client");
   const nav = await getShellNav(session);
-  const [engagements, aside] = await Promise.all([
+  const [engagements, aside, totalBand] = await Promise.all([
     getClientEngagements(session.orgId),
     ShellAside(session.orgId),
+    getClientMonthlySpendBand(session.orgId),
   ]);
-
-  const totalPaise = engagements.reduce((a, e) => a + e.ratePaise, 0);
   const endingSoon = engagements.filter((e) => e.endingSoon).length;
 
   return (
@@ -49,7 +47,7 @@ export default async function ClientEngagementsPage() {
       <Scroll>
         <div style={s("display:grid;grid-template-columns:repeat(4,1fr);gap:12px")}>
           <StatCard label="PEOPLE WORKING" value={engagements.length} sub="across your requirements" />
-          <StatCard label="TOTAL PER MONTH" value={formatPaiseShort(totalPaise)} sub="the rate you pay Talentvibes" />
+          <StatCard label="TOTAL PER MONTH" value={totalBand} sub="range of what you pay Talentvibes" />
           <StatCard
             label="ENDING SOON"
             value={endingSoon}
@@ -68,7 +66,7 @@ export default async function ClientEngagementsPage() {
               TOTAL PER MONTH
             </span>
             <span style={sx("font-size:15px;font-weight:800", { fontFamily: TOKENS.mono })}>
-              {formatPaiseShort(totalPaise)}
+              {totalBand}
             </span>
           </div>
         ) : null}

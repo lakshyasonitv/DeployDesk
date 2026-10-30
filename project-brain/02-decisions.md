@@ -33,6 +33,7 @@
 
 **2026-10-31**
 
+- [The client's match preview has no budget dimension, and returns only buckets](#2026-10-31-the-clients-match-preview-has-no-budget-dimension-and-returns-only-buckets)
 - [Talentvibes sees everything; the client and the vendor see the bare minimum](#2026-10-31-talentvibes-sees-everything-the-client-and-the-vendor-see-the-bare-minimum)
 - [Duplicate checks: the owner delegated six calls; how each was made](#2026-10-31-duplicate-checks-the-owner-delegated-six-calls-how-each-was-made)
 
@@ -87,6 +88,23 @@
 - [Inline styles copied from the prototype via a parser helper](#2026-10-06-inline-styles-copied-from-the-prototype-via-a-parser-helper)
 - [Database changes are file-first and approval-gated](#2026-10-06-database-changes-are-file-first-and-approval-gated)
 - [Dual-role organisations: three decisions taken before building](#2026-10-06-dual-role-organisations-three-decisions-taken-before-building)
+
+## 2026-10-31 — The client's match preview has no budget dimension, and returns only buckets
+
+- **Decision:** `POST /api/client/match-preview` takes skills and an experience band, nothing
+  else. It returns a bucketed headline count and bucketed bars (score ≥ 80, available now),
+  with no pool size and no percentages.
+- **Why:** a "within budget" count over supply is a rate oracle. It compared the client's
+  budget with VENDOR rates and accepted any value, so sweeping the budget stepped the count
+  at each supplier's rate, to the paise. Comparing with the proposed client rate leaks the
+  same distribution scaled by the target margin. Exact pool size plus a percentage let
+  anyone recompute counts suppressed below 5.
+- **Rejected:**
+  - Budget against the client rate: it is the same leak, scaled.
+  - Quantising the budget to coarse steps: it is still an oracle, just a coarser one.
+  - Keeping `pct` but rounding it: rounding still narrows a suppressed count.
+- **Impact:** any future "will this budget work?" hint must come from Talentvibes, not from a
+  count over supply. A test sweeps the budget and asserts the response does not change.
 
 ## 2026-10-31 — Talentvibes sees everything; the client and the vendor see the bare minimum
 

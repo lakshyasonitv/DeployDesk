@@ -83,6 +83,12 @@ export async function POST(req: Request) {
 
   if (!round) return NextResponse.json({ error: "not_found" }, { status: 404 });
 
+  // Feedback is on a round that was arranged. `status` was selected and never read, so a
+  // rating could be filed on a round still being requested, or one that was cancelled.
+  if (round.status === "proposed" || round.status === "awaiting_vendor" || round.status === "cancelled") {
+    return NextResponse.json({ error: "round_not_held" }, { status: 409 });
+  }
+
   const [existing] = await db
     .select({
       id: s.interviewFeedback.id,

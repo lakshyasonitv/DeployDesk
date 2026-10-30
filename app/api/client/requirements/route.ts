@@ -225,8 +225,12 @@ export async function POST(req: Request) {
     code: created.code,
     stage: b.stage,
     slaHours: b.stage === "new" ? windowHours : null,
-    /** How many candidates were sourced, so the toast can say something true. */
-    matched,
+    /**
+     * Whether anyone was sourced — not how many. An exact count of eligible supply, plus the
+     * DELETE below as an undo, let a client post-and-cancel to count the market on any skill
+     * set. The UI never read the number.
+     */
+    sourced: matched > 0,
     skillsIgnored: ignored,
   }, { status: 201 });
 }
@@ -266,20 +270,24 @@ export async function DELETE(req: Request) {
   }
 
   const now = new Date();
-  await db.update(s.requirements)
-    .set({ stage: "cancelled", closedAt: now, updatedAt: now })
-    .where(eq(s.requirements.id, own.id));
+  // One transaction: this ran as two statements, which this file's own header warns against
+  // — a failure between them leaves a cancelled role with no audit row (agreement 5).
+  await db.transaction(async (tx) => {
+    await tx.update(s.requirements)
+      .set({ stage: "cancelled", closedAt: now, updatedAt: now })
+      .where(eq(s.requirements.id, own.id));
 
-  await db.insert(s.auditLog).values({
-    actorId: session.userId,
-    actorOrgId: session.orgId,
-    action: "requirement.cancelled",
-    entityType: "requirement",
-    entityId: own.id,
-    before: { stage: own.stage },
-    after: { stage: "cancelled" },
-    context: { source: "client_portal", reason: "undo" },
-    occurredAt: now,
+    await tx.insert(s.auditLog).values({
+      actorId: session.userId,
+      actorOrgId: session.orgId,
+      action: "requirement.cancelled",
+      entityType: "requirement",
+      entityId: own.id,
+      before: { stage: own.stage },
+      after: { stage: "cancelled" },
+      context: { source: "client_portal", reason: "undo" },
+      occurredAt: now,
+    });
   });
 
   return NextResponse.json({ code: parsed.data.code, stage: "cancelled" });

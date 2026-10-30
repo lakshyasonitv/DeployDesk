@@ -4,6 +4,7 @@ import { z } from "zod";
 import { db } from "@/src/db/client";
 import * as s from "@/src/db/schema";
 import { getDemoSession } from "@/src/lib/auth/session";
+import { liveWork } from "@/src/services/withdrawal";
 import { allocateMaskedId, identityHash } from "@/src/lib/masked-id";
 
 /**
@@ -204,28 +205,42 @@ export async function DELETE(req: Request) {
 
   if (!owned) return NextResponse.json({ error: "not_found" }, { status: 404 });
 
-  // Already in play: a person who has reached a client's shortlist cannot be quietly
-  // pulled, because a broker has already acted on them.
-  if (owned.status === "in_process" || owned.status === "deployed") {
-    return NextResponse.json({ error: "in_use", status: owned.status }, { status: 409 });
+  // Only someone on offer can be withdrawn; withdrawing twice wrote a second audit row.
+  if (owned.status !== "draft" && owned.status !== "listed") {
+    return NextResponse.json({ error: "not_withdrawable", status: owned.status }, { status: 409 });
+  }
+
+  /**
+   * Already in play: a person a client is relying on cannot be quietly pulled.
+   *
+   * This checked `in_process` / `deployed` only, and nothing in the app ever sets either —
+   * people on live placements are `listed` (TV-4821 in the seed). The live-work check is the
+   * one the ops duplicate screen uses (src/services/withdrawal.ts). The response says only
+   * "in use": the vendor already knows its own person is placed, and nothing more is added.
+   */
+  if ((await liveWork([owned.id])).has(owned.id)) {
+    return NextResponse.json({ error: "in_use" }, { status: 409 });
   }
 
   const now = new Date();
-  await db.update(s.benchResources)
-    .set({ status: "withdrawn", updatedAt: now })
-    .where(eq(s.benchResources.id, owned.id));
+  // One transaction, as the create path is: a row without its audit entry breaks agreement 5.
+  await db.transaction(async (tx) => {
+    await tx.update(s.benchResources)
+      .set({ status: "withdrawn", updatedAt: now })
+      .where(eq(s.benchResources.id, owned.id));
 
-  // The second audit row. This is what makes "done, then undone" legible later.
-  await db.insert(s.auditLog).values({
-    actorId: session.userId,
-    actorOrgId: session.orgId,
-    action: "resource.withdrawn",
-    entityType: "bench_resource",
-    entityId: owned.id,
-    before: { status: owned.status },
-    after: { status: "withdrawn" },
-    context: { source: "vendor_portal", reason: "undo" },
-    occurredAt: now,
+    // The second audit row. This is what makes "done, then undone" legible later.
+    await tx.insert(s.auditLog).values({
+      actorId: session.userId,
+      actorOrgId: session.orgId,
+      action: "resource.withdrawn",
+      entityType: "bench_resource",
+      entityId: owned.id,
+      before: { status: owned.status },
+      after: { status: "withdrawn" },
+      context: { source: "vendor_portal", reason: "undo" },
+      occurredAt: now,
+    });
   });
 
   return NextResponse.json({ maskedId: parsed.data.maskedId, status: "withdrawn" });

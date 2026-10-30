@@ -14,6 +14,18 @@ import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../db/client";
 import * as s from "../../db/schema";
 import { formatPaiseShort } from "../../lib/money/paise";
+import { deriveRateBand } from "../../lib/money/rate-band";
+
+/**
+ * A client rate as the client may see it: a band, never the figure (CLAUDE.md, and the
+ * owner's 2026-10-07 decision "bands everywhere, placements included"). Totals too — a total
+ * over one placement IS that placement's rate.
+ */
+function clientBand(paise: number): string {
+  if (!(paise > 0)) return "—";
+  const b = deriveRateBand(paise);
+  return `${formatPaiseShort(b.minPaise)}–${formatPaiseShort(b.maxPaise).replace("₹", "")}`;
+}
 import { formatExperience, istFormat } from "../../lib/derived";
 
 /* ------------------------------------------------------------------ types */
@@ -241,8 +253,10 @@ export async function getClientOverview(
         eq(s.engagements.clientOrgId, clientOrgId),
         inArray(s.engagements.status, ["onboarding", "active", "ending"]),
       ))
-      .orderBy(desc(s.engagements.startDate))
-      .limit(8),
+      // No limit: this set feeds the count, the monthly spend AND the CSV. A `.limit(8)` here
+      // made all three disagree with "People working" (9 for Acme) — the dashboard trims
+      // its own short list instead.
+      .orderBy(desc(s.engagements.startDate)),
 
     // Feedback actually outstanding: submitted ratings with no outcome recorded yet, on
     // this client's own interviews. Was previously a hardcoded 2.
@@ -265,8 +279,9 @@ export async function getClientOverview(
       .limit(1),
   ]);
 
-  // Second wave: this one needs the requirement ids from above.
-  const shortlistCounts = await db
+  // Second wave: this one needs the requirement ids from above. Skipped when there are none:
+  // the old `[""]` placeholder is not a uuid, so a client with no open roles got a 500.
+  const shortlistCounts = !reqs.length ? [] : await db
     .select({
       requirementId: s.shortlists.requirementId,
       shortlistId: s.shortlists.id,
@@ -276,7 +291,7 @@ export async function getClientOverview(
     })
     .from(s.shortlists)
     .leftJoin(s.shortlistItems, eq(s.shortlistItems.shortlistId, s.shortlists.id))
-    .where(inArray(s.shortlists.requirementId, reqs.length ? reqs.map((r) => r.id) : [""]))
+    .where(inArray(s.shortlists.requirementId, reqs.map((r) => r.id)))
     .groupBy(s.shortlists.requirementId, s.shortlists.id, s.shortlists.sentAt);
 
   const countByReq = new Map(shortlistCounts.map((c) => [c.requirementId, c]));
@@ -297,7 +312,7 @@ export async function getClientOverview(
       inInterview: interviewing,
       feedbackDue: Number(feedback?.n) || 0,
       activeEngagements: engagements.length,
-      monthlySpendLabel: formatPaiseShort(monthlySpend),
+      monthlySpendLabel: clientBand(monthlySpend),
     },
     openRequirements: reqs.map((r) => ({
       code: r.code,
@@ -324,7 +339,7 @@ export async function getClientOverview(
       maskedId: e.maskedId,
       roleTitle: e.roleTitle,
       sinceLabel: e.startDate ? `since ${formatDay(e.startDate)}` : "",
-      rateLabel: formatPaiseShort(e.clientRatePaise),
+      rateLabel: clientBand(e.clientRatePaise),
       status: e.status,
     })),
   };
@@ -501,7 +516,9 @@ export async function getClientInterviews(clientOrgId: string) {
     /** The round number itself, so an endpoint can be addressed without an internal id. */
     roundNo: r.roundNo,
     roundLabel: `ROUND ${r.roundNo}`,
-    status: r.status,
+    // "awaiting_vendor" is renamed before it leaves the server: the raw value says a supplier
+    // is being asked. Nothing client-side reads more than "confirmed".
+    status: r.status === "awaiting_vendor" ? "awaiting_confirmation" : r.status,
     slots: slotsBy.get(r.id) ?? [],
     /**
      * Always a Talentvibes-issued link (docs/MASKING.md: a meeting link created on the
@@ -516,9 +533,13 @@ export async function getClientInterviews(clientOrgId: string) {
       : r.meetingUrl ? "Google Meet · link issued by Talentvibes" : "Video",
     // awaiting_vendor must never surface a supplier name. This is the exact copy the
     // design promises the client.
+    // `proposed` too: a round the client has just requested was on no list at all, so the
+    // request vanished from this screen — and "Offer times" with it.
     waitingLabel: r.status === "awaiting_vendor"
       ? "Your Talentvibes team is confirming availability"
-      : null,
+      : r.status === "proposed"
+        ? "Requested. Your Talentvibes team is arranging it"
+        : null,
     requestedAgo: r.requestedAt ? relativeAgo(r.requestedAt) : null,
   }));
 }
@@ -534,10 +555,20 @@ export async function getClientBrokerThread(clientOrgId: string, requirementCode
     })
     .from(s.brokerThreads)
     .innerJoin(s.users, eq(s.users.id, s.brokerThreads.brokerUserId))
+    .leftJoin(s.requirements, eq(s.requirements.id, s.brokerThreads.scopeRequirementId))
     .where(and(
       eq(s.brokerThreads.counterpartyOrgId, clientOrgId),
       eq(s.brokerThreads.side, "client"), // a client can only ever read its own side
     ))
+    /**
+     * This role's thread first, then the general one. It took any thread at all and then
+     * relabelled it with the current code — another role's conversation, captioned as this
+     * one.
+     */
+    .orderBy(
+      sql`(${s.requirements.code} = ${requirementCode ?? ""}) desc nulls last`,
+      sql`(${s.brokerThreads.scopeType} = 'general') desc`,
+    )
     .limit(1);
 
   if (!thread) return null;
@@ -556,7 +587,7 @@ export async function getClientBrokerThread(clientOrgId: string, requirementCode
     .orderBy(asc(s.brokerMessages.sentAt));
 
   return {
-    scopeLabel: requirementCode ?? thread.scopeLabel,
+    scopeLabel: thread.scopeLabel, // the thread's own scope, never the caller's code
     brokerName: thread.brokerName,
     messages: messages.map((m) => ({
       who: m.senderSide === "client" ? "You" : m.senderName,
@@ -607,13 +638,11 @@ export interface ClientEngagement {
   /** Drives v2's amber, bold end date (SCREENS.md:100). */
   endingSoon: boolean;
   /**
-   * The rate the CLIENT pays. Exact, not a band: this is the client's own record and it is
-   * the figure they are invoiced. `tests/leak/read-models.test.ts` asserts this is allowed.
-   * The band rule in docs/MASKING.md applies to masked SHORTLIST cards, pre-placement,
-   * where an exact figure is recoverable back to the vendor's cost.
+   * The rate the client pays, as a BAND. This said "Exact, not a band" and sent the raw
+   * paise to the browser, against the owner's 2026-10-07 decision (02-decisions.md: "bands
+   * everywhere, placements included") — the one v2 rule that loosens masking, declined.
    */
   rateLabel: string;
-  ratePaise: number;
   experienceLabel: string;
   baseCity: string;
   workModes: string[];
@@ -769,8 +798,7 @@ export async function getClientEngagements(clientOrgId: string): Promise<ClientE
       // 45 days is a notice period plus a fortnight to decide — long enough that a
       // client can still act on it, which is the point of flagging it at all.
       endingSoon: daysLeft != null && daysLeft <= 45,
-      rateLabel: formatPaiseShort(r.clientRatePaise),
-      ratePaise: Number(r.clientRatePaise),
+      rateLabel: clientBand(Number(r.clientRatePaise)),
       experienceLabel: formatExperience(r.experienceMonths),
       baseCity: r.baseCity,
       workModes: r.workModes,
@@ -893,4 +921,16 @@ export async function getClientSidebar(clientOrgId: string) {
     } as Record<string, string | number | undefined>,
     items: top,
   };
+}
+
+/** What the client pays per month across its live placements, as a band (see `clientBand`). */
+export async function getClientMonthlySpendBand(clientOrgId: string): Promise<string> {
+  const [row] = await db
+    .select({ total: sql<string>`coalesce(sum(${s.engagements.clientRatePaise}), 0)` })
+    .from(s.engagements)
+    .where(and(
+      eq(s.engagements.clientOrgId, clientOrgId),
+      inArray(s.engagements.status, ["onboarding", "active", "ending"]),
+    ));
+  return clientBand(Number(row?.total ?? 0));
 }

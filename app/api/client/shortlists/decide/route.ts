@@ -53,6 +53,12 @@ const Body = z.discriminatedUnion("action", [
   }),
 ]);
 
+/**
+ * A role that is over takes no more decisions or interview requests. `stage` was selected
+ * below and never read.
+ */
+const CLOSED = new Set(["cancelled", "closed"]);
+
 /** Shortlist items on this requirement that this client actually owns. */
 async function ownedItems(clientOrgId: string, requirementCode: string, maskedIds: string[]) {
   return db
@@ -92,6 +98,7 @@ export async function POST(req: Request) {
     // Not found rather than forbidden: saying "that exists but is not yours" would
     // confirm another client's shortlist contains this person (docs/MASKING.md).
     if (!item) return NextResponse.json({ error: "not_found" }, { status: 404 });
+    if (CLOSED.has(item.stage)) return NextResponse.json({ error: "role_closed" }, { status: 409 });
 
     await db.transaction(async (tx) => {
       await tx.update(s.shortlistItems)
@@ -122,6 +129,7 @@ export async function POST(req: Request) {
   if (b.action === "request_interviews") {
     const items = await ownedItems(session.orgId, b.requirementCode, b.maskedIds);
     if (!items.length) return NextResponse.json({ error: "not_found" }, { status: 404 });
+    if (CLOSED.has(items[0].stage)) return NextResponse.json({ error: "role_closed" }, { status: 409 });
 
     // Already-requested rounds are skipped rather than duplicated. Asking twice is a
     // normal double-click, not an error worth refusing the whole call for.
@@ -196,19 +204,35 @@ export async function POST(req: Request) {
     .from(s.interviews)
     .where(inArray(s.interviews.shortlistItemId, itemIds));
 
-  const withdrawable = rounds.filter((r) => r.status === "proposed");
-  const kept = rounds.filter((r) => r.status !== "proposed");
+  /**
+   * …and only while nothing hangs off them. Deleting a round CASCADES to its offered slots
+   * and its feedback, so a proposed round the client has already offered times on (or rated)
+   * is kept — the undo of a request must not erase work done since.
+   */
+  const proposedIds = rounds.filter((r) => r.status === "proposed").map((r) => r.id);
+  const [withSlots, withFeedback] = proposedIds.length
+    ? await Promise.all([
+        db.select({ id: s.interviewSlots.interviewId }).from(s.interviewSlots)
+          .where(inArray(s.interviewSlots.interviewId, proposedIds)),
+        db.select({ id: s.interviewFeedback.interviewId }).from(s.interviewFeedback)
+          .where(inArray(s.interviewFeedback.interviewId, proposedIds)),
+      ])
+    : [[], []];
+  const touched = new Set([...withSlots, ...withFeedback].map((x) => x.id));
+  const withdrawable = rounds.filter((r) => r.status === "proposed" && !touched.has(r.id));
+  const kept = rounds.filter((r) => !withdrawable.includes(r));
 
   if (withdrawable.length) {
     await db.transaction(async (tx) => {
       await tx.delete(s.interviews)
         .where(inArray(s.interviews.id, withdrawable.map((r) => r.id)));
 
-      // Back to undecided, which is where the candidate was before the request.
-      await tx.update(s.shortlistItems)
-        .set({ clientDecision: "pending", decidedAt: null })
-        .where(inArray(s.shortlistItems.id, withdrawable.map((r) => r.shortlistItemId)));
-
+      /**
+       * The selection is NOT touched. This reset it to `pending`, but the board only ever
+       * requests people the client had already selected — so Undo un-selected them, and
+       * the board kept showing "Selected ✓" until a reload. Undo reverses the request;
+       * selecting is the client's own decision, with its own undo.
+       */
       await tx.insert(s.auditLog).values(
         withdrawable.map((r) => ({
           actorId: session.userId,
@@ -216,8 +240,8 @@ export async function POST(req: Request) {
           action: "interview.withdrawn",
           entityType: "shortlist_item",
           entityId: r.shortlistItemId,
-          before: { interview: { status: "proposed" }, client_decision: "selected" },
-          after: { interview: null, client_decision: "pending" },
+          before: { interview: { status: "proposed" } },
+          after: { interview: null },
           context: { source: "client_portal", requirement: b.requirementCode, reason: "undo" },
           occurredAt: now,
         })),

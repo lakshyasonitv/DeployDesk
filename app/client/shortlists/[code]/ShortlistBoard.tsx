@@ -146,6 +146,10 @@ export function ShortlistBoard({
             }),
           });
           if (!r.ok) throw new Error("withdraw failed");
+          // A 200 that withdrew nothing (Talentvibes had already confirmed, or times were
+          // offered) is not "Undone." — throwing lets the toast say the request still stands.
+          const done = await r.json() as { withdrawn: number };
+          if (!done.withdrawn) throw new Error("nothing withdrawn");
           router.refresh();
         },
       });
@@ -202,10 +206,9 @@ export function ShortlistBoard({
       <div style={s("padding:12px 26px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex:none")}>
         <div style={s("font-size:12.5px;color:var(--t3)")}>
           <strong style={s("font-weight:700;color:var(--t1)")}>{view.candidates.length} masked profiles</strong>
-          {" · ranked by proctored score · names, photos and supplier withheld"}
-        </div>
-        <div style={sx("font-size:10.5px;color:var(--t4)", { fontFamily: TOKENS.mono })}>
-          J / K to move · E to shortlist
+          {/* Not "ranked by proctored score": the order is your Talentvibes team's. And no
+              "J / K to move" hint — no key handler ever existed. */}
+          {" · in the order your Talentvibes team ranked them · names, photos and supplier withheld"}
         </div>
       </div>
 
@@ -361,32 +364,15 @@ function AskPanel({
   thread: BrokerThreadView | null;
   onClose: () => void;
 }) {
-  const [draft, setDraft] = useState("");
   /**
-   * Seeded from the database, not from a literal.
+   * Seeded from the database, read-only.
    *
-   * This used to open with one invented message ("Shortlist is live — six masked
-   * profiles…") while the real conversation sat unread in `broker_messages`. Sending still
-   * only appends locally — there is no write endpoint for a client message yet, and the
-   * panel says so rather than implying the broker received it.
+   * There is no write endpoint for a client message yet. Send used to append to this list
+   * in the browser only — the message vanished on reload and the broker never saw it, while
+   * the copy said it "reaches them". Until messaging exists the panel shows the
+   * conversation and says plainly that replying here is not connected.
    */
-  const [thread, setThread] = useState<Array<{ who: string; body: string; mine: boolean; at: string }>>(
-    (initial?.messages ?? []).map((m) => ({ who: m.who, body: m.body, mine: m.isMine, at: m.at })),
-  );
-
-  const send = () => {
-    const body = draft.trim();
-    if (!body) return;
-    setThread((t) => [...t, { who: "You", body, mine: true, at: "just now" }]);
-    setDraft("");
-  };
-
-  const CHIPS = [
-    "Can we hold the top profile for a week?",
-    "What is the notice period on the top two?",
-    "Any room on the rate for the SAP profile?",
-    "Can you add one more profile under ₹1.5L?",
-  ];
+  const thread = (initial?.messages ?? []).map((m) => ({ who: m.who, body: m.body, mine: m.isMine, at: m.at }));
 
   return (
     <div style={s("position:fixed;inset:0;background:rgba(16,16,20,.34);display:flex;justify-content:flex-end;z-index:50")} onClick={onClose}>
@@ -407,8 +393,8 @@ function AskPanel({
         <div style={s("flex:1;overflow:auto;padding:15px 17px;display:flex;flex-direction:column;gap:10px")}>
           {thread.length === 0 ? (
             <div style={s("font-size:12.5px;color:var(--t4);line-height:1.6;padding:4px 0")}>
-              No messages yet. {brokerName} looks after this role for you — anything you ask
-              here reaches them and no one else.
+              No messages yet. {brokerName} looks after this role for you, and this conversation
+              is between you and them only — no supplier ever sees it.
             </div>
           ) : null}
           {thread.map((m, i) => (
@@ -426,28 +412,9 @@ function AskPanel({
         </div>
 
         <div style={s("padding:11px 17px;border-top:1px solid var(--border);flex:none")}>
-          <div style={s("display:flex;flex-wrap:wrap;gap:5px;margin-bottom:9px")}>
-            {CHIPS.map((c) => (
-              <button key={c} onClick={() => setDraft(c)}
-                style={s("padding:5px 9px;border:1px solid var(--border);border-radius:999px;font-size:10.5px;background:var(--surface);cursor:pointer;color:var(--t2);font-family:inherit;text-align:left")}>
-                {c}
-              </button>
-            ))}
-          </div>
-          <div style={s("display:flex;gap:7px")}>
-            <input
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") send(); }}
-              placeholder="Message your Talentvibes team…"
-              style={s("flex:1;padding:9px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:12.5px;font-family:inherit;outline:none")}
-            />
-            <button onClick={send}
-              style={sx("padding:9px 14px;border:0;border-radius:8px;font-size:12.5px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit", {
-                background: draft.trim() ? "var(--brand)" : "var(--brand-tint-2)",
-              })}>
-              Send
-            </button>
+          <div style={s("font-size:12px;color:var(--t2);line-height:1.55")}>
+            Sending from here is not connected yet, so nothing typed here would reach{" "}
+            {brokerName}. Reach them the way you usually do; their replies appear above.
           </div>
           <div style={s("font-size:10px;color:var(--t4);margin-top:8px;line-height:1.5")}>
             Talentvibes relays anything relevant to the supplier with your company name and

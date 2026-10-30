@@ -1,4 +1,4 @@
-import { and, eq, ilike, or, sql } from "drizzle-orm";
+import { and, asc, eq, ilike, or, sql } from "drizzle-orm";
 import { db } from "../db/client";
 import * as s from "../db/schema";
 import { formatPaiseShort } from "../lib/money/paise";
@@ -106,6 +106,9 @@ export async function searchClient(clientOrgId: string, query: string): Promise<
           sql`exists (select 1 from unnest(${s.shortlistItems.skillsSnapshot}) sk where sk ilike ${pattern})`,
         ),
       ))
+      // Never storage order: rows come back in insertion order, which clusters by the
+      // supplier that submitted them (docs/MASKING.md, Ordering). Masked ids are random.
+      .orderBy(asc(s.shortlistItems.maskedId))
       .limit(PER_GROUP),
 
     db
@@ -120,6 +123,7 @@ export async function searchClient(clientOrgId: string, query: string): Promise<
         eq(s.engagements.clientOrgId, clientOrgId),
         or(ilike(s.engagements.roleTitle, pattern), ilike(s.benchResources.maskedId, pattern)),
       ))
+      .orderBy(asc(s.benchResources.maskedId)) // not storage order — see above
       .limit(PER_GROUP),
   ]);
 

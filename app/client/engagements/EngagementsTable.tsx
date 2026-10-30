@@ -192,6 +192,9 @@ function PlacementPanel({ e, onClose }: { e: ClientEngagement; onClose: () => vo
             body: JSON.stringify({ maskedId: e.maskedId }),
           });
           if (!r.ok) throw new Error("withdraw failed");
+          // 200 with nothing withdrawn is not "Undone." — let the toast say it still stands.
+          const out = await r.json() as { withdrew: unknown };
+          if (!out.withdrew) throw new Error("nothing withdrawn");
           router.refresh();
         },
       });

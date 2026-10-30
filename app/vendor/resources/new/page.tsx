@@ -62,17 +62,16 @@ export default async function AddResourcePage() {
                 <span style={sx("font-size:9px;font-weight:700;color:var(--t4)", { fontFamily: TOKENS.mono })}>CSV · XLSX</span>
               </div>
 
-              <div style={css("border:2px dashed var(--ok-tint);background:var(--ok-tint);border-radius:10px;padding:18px;text-align:center")}>
-                <div style={css("font-size:12.5px;font-weight:600;color:var(--teal)")}>
-                  Drop your bench sheet here
+              {/*
+                The drop zone and "browse files" accepted nothing: there is no upload endpoint.
+                Said plainly rather than offered. Past imports below are real.
+              */}
+              <div style={css("border:1px dashed var(--border-2);border-radius:10px;padding:14px;font-size:11.5px;color:var(--t2);line-height:1.6")}>
+                Uploading a sheet here is not connected yet. Add people one at a time with the
+                form, or send your sheet to your Talentvibes team with these columns:
+                <div style={sx("font-size:9.5px;color:var(--t4);margin-top:6px;word-break:break-word", { fontFamily: TOKENS.mono })}>
+                  name, emp_id, skills, exp_years, city, rate_inr, available_from
                 </div>
-                <div style={css("font-size:11px;color:var(--teal);margin-top:4px")}>
-                  or <span style={css("font-weight:700;text-decoration:underline")}>browse files</span> · max 500 rows
-                </div>
-              </div>
-
-              <div style={sx("font-size:9.5px;color:var(--t4);margin-top:9px;line-height:1.6;word-break:break-word", { fontFamily: TOKENS.mono })}>
-                name, emp_id, skills, exp_years, city, rate_inr, available_from
               </div>
 
               {imports ? (
@@ -112,19 +111,10 @@ export default async function AddResourcePage() {
                           </div>
                         ))}
                       </div>
-                      {/* The duplicate counterpart is deliberately not named: saying which
-                          resource it duplicates would name another supplier. */}
+                      {/* Nothing here says another supplier exists (Q11), and the "Review" /
+                          "Template" <div>s that did nothing are gone. */}
                       <div style={css("font-size:10px;color:var(--t4);margin-top:8px;line-height:1.5")}>
-                        Where a profile is already represented on the exchange, Talentvibes resolves
-                        it with both suppliers. We do not say who the other submission belongs to.
-                      </div>
-                      <div style={css("display:flex;gap:7px;margin-top:10px")}>
-                        <div style={css("padding:7px 12px;border-radius:8px;font-size:11.5px;font-weight:700;background:var(--t1);color:var(--surface)")}>
-                          Review {imports.reviewRows.length} rows
-                        </div>
-                        <div style={css("padding:7px 12px;border:1px solid var(--border-2);border-radius:8px;font-size:11.5px;font-weight:600;background:var(--surface)")}>
-                          Template
-                        </div>
+                        Rows being checked stay with Talentvibes until they are cleared.
                       </div>
                     </div>
                   ) : null}

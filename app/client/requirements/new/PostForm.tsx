@@ -24,8 +24,7 @@ const LAKH = 100_000 * 100;
 
 interface Preview {
   matching: { value: number | null; label: string };
-  bars: Array<{ label: string; value: number | null; countLabel: string; pct: number }>;
-  poolSize: number;
+  bars: Array<{ label: string; value: number | null; countLabel: string }>;
   note: string;
 }
 
@@ -83,8 +82,8 @@ export function PostForm({ availableSkills }: { availableSkills: string[] }) {
 
   // Debounced: the preview updates as you edit, but it is a server call.
   const key = useMemo(
-    () => JSON.stringify({ skills, band, minL, maxL }),
-    [skills, band, minL, maxL],
+    () => JSON.stringify({ skills, band }),
+    [skills, band],
   );
 
   useEffect(() => {
@@ -94,11 +93,8 @@ export function PostForm({ availableSkills }: { availableSkills: string[] }) {
       try {
         const res = await fetch("/api/client/match-preview", {
           method: "POST", headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            skills, experienceBand: band,
-            budgetMinPaise: Math.round(minL * LAKH),
-            budgetMaxPaise: Math.round(maxL * LAKH),
-          }),
+          // No budget: counting supply against a budget leaked supplier rates (see the route).
+          body: JSON.stringify({ skills, experienceBand: band }),
         });
         const body = await res.json();
         if (!cancelled && res.ok) setPreview(body);
@@ -107,7 +103,7 @@ export function PostForm({ availableSkills }: { availableSkills: string[] }) {
       }
     }, 350);
     return () => { cancelled = true; clearTimeout(t); };
-  }, [key, skills, band, minL, maxL]);
+  }, [key, skills, band]);
 
   const problems: string[] = [];
   if (roleTitle.trim().length < 3) problems.push("a role title");
@@ -393,20 +389,16 @@ export function PostForm({ availableSkills }: { availableSkills: string[] }) {
               <div key={b.label}>
                 <div style={s("display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px")}>
                   <span style={s("color:var(--t2)")}>{b.label}</span>
-                  <span style={sx("font-weight:700", { fontFamily: TOKENS.mono })}>
-                    {b.countLabel} <span style={s("color:var(--t4)")}>({b.pct}%)</span>
-                  </span>
+                  <span style={sx("font-weight:700", { fontFamily: TOKENS.mono })}>{b.countLabel}</span>
                 </div>
+                {/* Share of the headline, from two numbers already on screen; a suppressed count draws a stub. */}
                 <div style={s("height:5px;background:var(--border);border-radius:3px;overflow:hidden")}>
-                  <div style={sx("height:100%;background:var(--brand);border-radius:3px", { width: `${b.pct}%` })} />
+                  <div style={sx("height:100%;background:var(--brand);border-radius:3px", {
+                    width: `${b.value != null && preview?.matching.value ? Math.min(100, Math.round((b.value / preview.matching.value) * 100)) : 4}%`,
+                  })} />
                 </div>
               </div>
             ))}
-          </div>
-
-          <div style={s("margin-top:12px;background:var(--warn-tint);border:1px solid var(--warn-tint);border-radius:8px;padding:10px;font-size:11px;color:var(--warn);line-height:1.55")}>
-            <strong style={s("font-weight:700")}>Tighten your band?</strong> Raising the floor adds
-            profiles with higher proctored scores and usually shortens time to shortlist.
           </div>
 
           {preview ? (

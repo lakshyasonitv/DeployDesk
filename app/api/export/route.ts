@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { getDemoSession } from "@/src/lib/auth/session";
-import { getVendorEarnings } from "@/src/read-models/vendor";
+import { getVendorEarnings, getVendorRoster } from "@/src/read-models/vendor";
 import { getClientOverview } from "@/src/read-models/client";
 
 /**
@@ -28,7 +28,7 @@ import { getClientOverview } from "@/src/read-models/client";
  */
 
 const Query = z.object({
-  kind: z.enum(["vendor-earnings", "client-engagements"]),
+  kind: z.enum(["vendor-earnings", "vendor-roster", "client-engagements"]),
 });
 
 /**
@@ -65,9 +65,13 @@ function csvResponse(filename: string, body: string): Response {
   });
 }
 
-/** `2026-10-07` — stable, sortable, and unambiguous between India and the US. */
+/**
+ * `2026-10-07` — stable, sortable, and unambiguous between India and the US. The IST date
+ * (working agreement 3): `toISOString()` is UTC, so a file downloaded after midnight in
+ * India was named for the day before.
+ */
 function today(): string {
-  return new Date().toISOString().slice(0, 10);
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
 }
 
 export async function GET(req: Request) {
@@ -99,16 +103,33 @@ export async function GET(req: Request) {
     return csvResponse(`deploydesk-earnings-${today()}.csv`, csv);
   }
 
+  /* --------------------------------------------------- vendor: roster ---- */
+
+  // The roster's "Export CSV" was a <div> that looked like a button. Their own people only:
+  // `getVendorRoster` is tenancy-scoped and carries no client or margin field to leak.
+  if (parsed.data.kind === "vendor-roster") {
+    const session = await getDemoSession("vendor");
+    const { resources } = await getVendorRoster(session.orgId, "all");
+    const csv = toCsv(
+      ["Reference", "Name", "Employee code", "City", "Experience", "Skills", "Your monthly rate", "Status", "Assessment", "Availability"],
+      resources.map((r) => [
+        r.maskedId, r.fullName, r.employeeCode, r.baseCity, r.experienceLabel, r.skills.join("; "),
+        r.vendorRateLabel, r.status, r.assessment.overall ?? r.assessment.status, r.freshness.label,
+      ]),
+    );
+    return csvResponse(`deploydesk-roster-${today()}.csv`, csv);
+  }
+
   /* -------------------------------------------- client: people working ---- */
 
   if (parsed.data.kind === "client-engagements") {
     const session = await getDemoSession("client");
     const o = await getClientOverview(session.orgId, session.userName);
 
-    // `rateLabel` is what the client is charged. There is no supplier column and no vendor
-    // rate to put in one — the read model has neither.
+    // `rateLabel` is the client's own rate as a BAND — never the figure. There is no supplier
+    // column and no vendor rate to put in one — the read model has neither.
     const csv = toCsv(
-      ["Reference", "Role", "Working since", "Status", "Your monthly rate"],
+      ["Reference", "Role", "Working since", "Status", "Your monthly rate (range)"],
       o.engagements.map((g) => [g.maskedId, g.roleTitle, g.sinceLabel, g.status, g.rateLabel]),
     );
     return csvResponse(`deploydesk-people-working-${today()}.csv`, csv);

@@ -1131,11 +1131,15 @@ export async function getOpsOrgDirectory(): Promise<OpsOrgRow[]> {
            g.name                     as group_name,
            (select count(*) from bench_resources b
              where b.vendor_org_id = o.id)::int                         as bench_count,
+           -- Monthly run-rate of LIVE engagements. It summed every engagement ever, so an
+           -- ended one would have kept counting with nothing to say so.
            coalesce((select sum(e.client_rate_paise) from engagements e
-             where e.client_org_id = o.id), 0)                          as billed_as_client,
+             where e.client_org_id = o.id
+               and e.status in ('onboarding','active','ending')), 0)    as billed_as_client,
            coalesce((select sum(e.vendor_rate_paise) from engagements e
              join bench_resources br on br.id = e.resource_id
-            where br.vendor_org_id = o.id), 0)                          as paid_as_supplier,
+            where br.vendor_org_id = o.id
+              and e.status in ('onboarding','active','ending')), 0)     as paid_as_supplier,
            ps.open_requirements::int,
            ps.placements_ever::int,
            ps.probing_suspect_requirements::int

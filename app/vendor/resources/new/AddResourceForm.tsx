@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
 import { useToast } from "@/src/lib/ui/Toast";
@@ -215,7 +216,7 @@ export function AddResourceForm({
           </Field>
           <Field label="Available from">
             <Segments
-              options={[{ key: "immediate", label: "Immediate" }, { key: "30", label: "30 days" }, { key: "dated", label: "A date" }]}
+              options={[{ key: "immediate", label: "Immediate" }, { key: "30", label: "30 days" }, { key: "60", label: "60 days" }]}
               value={availability} onChange={setAvailability} accent="var(--teal)"
             />
           </Field>
@@ -267,13 +268,11 @@ export function AddResourceForm({
           Scored profiles are shortlisted far more often. The score is set by the proctoring
           provider — you cannot edit it, which is exactly why a client trusts it.
         </div>
-        <div style={s("display:flex;gap:7px")}>
-          <div style={s("padding:8px 13px;border-radius:8px;font-size:12px;font-weight:700;background:var(--t1);color:var(--surface)")}>
-            Send test invite now
-          </div>
-          <div style={s("padding:8px 13px;border:1px solid var(--border-2);border-radius:8px;font-size:12px;font-weight:600;background:var(--surface)")}>
-            Schedule for later
-          </div>
+        {/* "Send test invite now" / "Schedule for later" were <div>s styled as buttons. Requesting
+            a test is real, on Skill tests, once the person is saved. */}
+        <div style={s("font-size:11.5px;color:var(--t2)")}>
+          Once saved, request a test for them on{" "}
+          <Link href="/vendor/assessments" style={s("font-weight:700;color:var(--brand)")}>Skill tests</Link>.
         </div>
       </Group>
 

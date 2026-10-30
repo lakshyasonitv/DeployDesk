@@ -23,7 +23,9 @@ const FRESHNESS_STYLE = {
 const ASSESSMENT_STYLE: Record<string, { dot: string; label: string; sub: string }> = {
   scored: { dot: "var(--ok)", label: "Scored", sub: "proctored, valid 90 days" },
   in_progress: { dot: "var(--warn)", label: "In progress", sub: "started recently" },
-  invited: { dot: "var(--warn)", label: "Invite sent", sub: "awaiting start" },
+  // "Test requested", as the assessments screen says: nobody has sent an invite yet — the
+  // proctoring provider is not connected (see the invite route).
+  invited: { dot: "var(--warn)", label: "Test requested", sub: "Talentvibes sends the invite" },
   not_started: { dot: "var(--t4)", label: "Not started", sub: "invite not sent" },
   expired: { dot: "var(--danger)", label: "Expired", sub: "needs a retake" },
   abandoned: { dot: "var(--t4)", label: "Abandoned", sub: "not completed" },
@@ -87,17 +89,20 @@ export function RosterTable({
     // Optimistic: the row flips immediately, then the write lands.
     setConfirmed((p) => ({ ...p, ...Object.fromEntries(maskedIds.map((id) => [id, true])) }));
     try {
-      await fetch("/api/vendor/resources/confirm", {
+      const res = await fetch("/api/vendor/resources/confirm", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ maskedIds, method }),
       });
+      // The response was ignored, so a refused or failed write still showed "Confirmed ✓".
+      if (!res.ok) throw new Error("confirm failed");
     } catch {
       setConfirmed((p) => {
         const next = { ...p };
         for (const id of maskedIds) delete next[id];
         return next;
       });
+      toast({ tone: "error", message: "Could not confirm availability. Nothing was saved." });
     }
   };
 
@@ -112,8 +117,9 @@ export function RosterTable({
     }
   });
 
+  const offBench = (status: string) => status === "withdrawn" || status === "archived";
   const expiringIds = resources
-    .filter((r) => r.freshness.state !== "confirmed" && !confirmed[r.maskedId])
+    .filter((r) => !offBench(r.status) && r.freshness.state !== "confirmed" && !confirmed[r.maskedId])
     .map((r) => r.maskedId);
 
   const PILLS: Array<[Filter, string, number, string, string]> = [
@@ -150,9 +156,11 @@ export function RosterTable({
             </div>
           </div>
           <div style={s("display:flex;gap:8px;flex:none")}>
-            <div style={s("padding:8px 13px;border:1px solid var(--border-2);border-radius:8px;font-size:12.5px;font-weight:600;background:var(--surface)")}>
+            {/* A <div> that looked like a button. Plain <a>: it is a route handler, not a page. */}
+            <a href="/api/export?kind=vendor-roster"
+              style={s("padding:8px 13px;border:1px solid var(--border-2);border-radius:8px;font-size:12.5px;font-weight:600;background:var(--surface);color:var(--t1);text-decoration:none")}>
               Export CSV
-            </div>
+            </a>
             <button
               disabled={!expiringIds.length}
               onClick={() => startTransition(() => { void confirm(expiringIds, "bulk"); })}
@@ -183,7 +191,7 @@ export function RosterTable({
             })}
           </div>
           <div style={sx("font-size:10.5px;color:var(--t4);flex:none", { fontFamily: TOKENS.mono })}>
-            Rechecked every night at 02:00 IST
+            Freshness is worked out each time this page loads
           </div>
         </div>
       </div>
@@ -224,6 +232,12 @@ export function RosterTable({
                     <span title="Not on the exchange yet. Talentvibes cannot offer this person until you list them."
                       style={sx("padding:1px 6px;border-radius:4px;font-size:8.5px;font-weight:700;letter-spacing:.07em;flex:none", { background: "var(--info-tint)", color: "var(--info)", fontFamily: TOKENS.mono })}>
                       DRAFT
+                    </span>
+                  ) : offBench(r.status) ? (
+                    // Looked exactly like a live profile, with a working "Still available".
+                    <span title="Off the exchange. Talentvibes cannot offer this person."
+                      style={sx("padding:1px 6px;border-radius:4px;font-size:8.5px;font-weight:700;letter-spacing:.07em;flex:none", { background: "var(--surface-3)", color: "var(--t3)", fontFamily: TOKENS.mono })}>
+                      {r.status.toUpperCase()}
                     </span>
                   ) : null}
                 </div>
@@ -279,6 +293,8 @@ export function RosterTable({
                   >
                     List on the exchange
                   </button>
+                ) : offBench(r.status) ? (
+                  <div style={s("padding:6px 10px;font-size:11px;color:var(--t4);text-align:center")}>Off the exchange</div>
                 ) : isConfirmed ? (
                   <div style={s("padding:6px 10px;border-radius:7px;font-size:11px;font-weight:700;background:var(--surface-3);color:var(--t4);text-align:center")}>
                     Confirmed ✓

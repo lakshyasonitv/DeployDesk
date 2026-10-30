@@ -39,19 +39,21 @@ export default async function ClientDashboard() {
     <Shell portal="client" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }} activeKey="overview" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title={`Good morning, ${overview.greetingName}`}
-        subtitle={`${overview.orgName} · ${overview.stats.openRequirements} open requirements · your Talentvibes team replies in ~2h`}
-        actions={<><Button>Ask Talentvibes</Button><Button primary href="/client/requirements/new">Post a requirement</Button></>}
+        // No "replies in ~2h" (a promise nothing measures) and no "Ask Talentvibes" button (it
+        // had no handler; the conversation lives on each shortlist).
+        subtitle={`${overview.orgName} · ${overview.stats.openRequirements} open requirements · your Talentvibes team: ${overview.brokerName}`}
+        actions={<Button primary href="/client/requirements/new">Post a requirement</Button>}
       />
       <Scroll>
         <div style={s("display:grid;grid-template-columns:repeat(4,1fr);gap:12px")}>
           <StatCard label="OPEN REQUIREMENTS" value={overview.stats.openRequirements}
             sub={`${overview.stats.positions} positions in total`} />
-          <StatCard label="AWAITING REVIEW" value={overview.stats.awaitingReview} delta="new" deltaColor="var(--brand)"
+          <StatCard label="AWAITING REVIEW" value={overview.stats.awaitingReview}
             sub={`${overview.stats.maskedProfiles} masked profiles`} />
           <StatCard label="IN INTERVIEW" value={overview.stats.inInterview}
             sub={`${overview.stats.feedbackDue} feedback form${overview.stats.feedbackDue === 1 ? "" : "s"} due`} />
           <StatCard label="ACTIVE ENGAGEMENTS" value={overview.stats.activeEngagements}
-            delta={`${overview.stats.monthlySpendLabel}/mo`} sub="your contracted rate" />
+            delta={`${overview.stats.monthlySpendLabel}/mo`} sub="range of your monthly spend" />
         </div>
 
         <div style={s("display:grid;grid-template-columns:1.55fr 1fr;gap:16px;margin-top:16px;align-items:start")}>
@@ -83,7 +85,7 @@ export default async function ClientDashboard() {
                       {st.label}
                     </span>
                   </div>
-                  <Link href={r.stage === "shortlisted" ? `/client/shortlists/${r.code}` : "/client/requirements"}
+                  <Link href={r.stage === "shortlisted" ? `/client/shortlists/${r.code}` : r.stage === "interviewing" ? "/client/interviews" : "/client/requirements"}
                     style={s("font-size:11.5px;font-weight:700;color:var(--brand)")}>
                     {actionFor(r.stage, r.shortlistCount)}
                   </Link>
@@ -127,7 +129,8 @@ export default async function ClientDashboard() {
             <Card pad="13px">
               <SectionLabel>ACTIVE ENGAGEMENTS</SectionLabel>
               <div style={s("display:flex;flex-direction:column;gap:9px")}>
-                {overview.engagements.map((e) => {
+                {/* A short list; the full set (and the count above) is on People working. */}
+                {overview.engagements.slice(0, 6).map((e) => {
                   const st = ENGAGEMENT_STATUS[e.status] ?? ENGAGEMENT_STATUS.active;
                   return (
                     <div key={e.maskedId} style={s("display:flex;align-items:center;gap:10px")}>
@@ -151,6 +154,10 @@ export default async function ClientDashboard() {
                 })}
                 {overview.engagements.length === 0 ? (
                   <div style={s("font-size:11.5px;color:var(--t4)")}>No active engagements yet.</div>
+                ) : overview.engagements.length > 6 ? (
+                  <Link href="/client/engagements" style={s("font-size:11.5px;font-weight:700;color:var(--brand)")}>
+                    See all {overview.engagements.length} people working
+                  </Link>
                 ) : null}
               </div>
             </Card>

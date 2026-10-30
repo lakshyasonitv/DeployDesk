@@ -210,6 +210,7 @@ export async function getVendorOverview(vendorOrgId: string, viewerName: string)
       .where(and(
         eq(s.invoices.counterpartyOrgId, vendorOrgId),
         eq(s.invoices.direction, "payable"),
+        eq(s.invoices.periodMonth, istMonthStart()), // "this month", as labelled
       )),
   ]);
 
@@ -340,11 +341,19 @@ export async function getVendorAssessments(vendorOrgId: string) {
   /** `null` means no test record at all, which the UI shows as "not tested yet". */
   const effective = (r: (typeof rows)[number]) => r.status ?? "not_started";
 
+  /**
+   * Who can be asked to take a test now: nobody's test is under way and there is no valid
+   * score. Abandoned and expired used to count as "has a test", so after an Undo (which
+   * abandons the request) or an expiry that person could never be requested again.
+   */
+  const requestable = (r: (typeof rows)[number]) =>
+    r.status == null || r.status === "not_started" || r.status === "abandoned" || r.status === "expired";
+
   const summary = {
     scored: people.filter((r) => r.status === "scored").length,
     inProgress: people.filter((r) => r.status === "in_progress" || r.status === "invited").length,
     // People with no usable test, which is what the "Invite N to test" button acts on.
-    notStarted: people.filter((r) => r.status == null || r.status === "not_started").length,
+    notStarted: people.filter((r) => r.status == null || r.status === "not_started" || r.status === "abandoned").length,
     expired: people.filter((r) => r.status === "expired").length,
   };
 
@@ -360,7 +369,7 @@ export async function getVendorAssessments(vendorOrgId: string) {
      * whatever happens to be rendered. Capped at 50 to match the endpoint's own limit.
      */
     untestedMaskedIds: people
-      .filter((r) => r.status == null || r.status === "not_started")
+      .filter((r) => r.status == null || r.status === "not_started" || r.status === "abandoned")
       .slice(0, 50)
       .map((r) => r.maskedId),
     cards: people.slice(0, 24).map((r) => ({
@@ -368,8 +377,8 @@ export async function getVendorAssessments(vendorOrgId: string) {
       fullName: r.fullName,
       track: r.track,
       status: effective(r),
-      /** False when there is no `assessments` row at all, so the card can offer to make one. */
-      hasTest: r.status != null,
+      /** True when a test can be requested now (see `requestable`), so the card offers one. */
+      canRequest: requestable(r),
       /** `draft` here means the person is not on the exchange yet. */
       resourceStatus: r.resourceStatus,
       overall: r.overallScore,
@@ -410,6 +419,7 @@ export async function getVendorEarnings(vendorOrgId: string) {
   const lines = rows.length
     ? await db
         .select({
+          invoiceId: s.invoiceLines.invoiceId,
           engagementId: s.invoiceLines.engagementId,
           amountPaise: s.invoiceLines.amountPaise,
           isProrata: s.invoiceLines.isProrata,
@@ -419,17 +429,24 @@ export async function getVendorEarnings(vendorOrgId: string) {
         .where(and(
           eq(s.invoices.counterpartyOrgId, vendorOrgId),
           eq(s.invoices.direction, "payable"), // the structural guard
+          // THIS month, as the screen says. It summed every payable invoice ever.
+          eq(s.invoices.periodMonth, istMonthStart()),
         ))
     : [];
 
   const lineBy = new Map(lines.map((l) => [l.engagementId, l]));
   const billed = lines.reduce((a, l) => a + l.amountPaise, 0);
+  // Ended and terminated placements are not run-rate.
+  const live = rows.filter((r) => r.status === "onboarding" || r.status === "active" || r.status === "ending");
 
   return {
     stats: {
       billedThisMonthLabel: formatPaiseShort(billed),
+      /** The figure TOTAL DUE shows — computed here, not parsed back out of row labels. */
+      totalDueLabel: formatPaiseExact(billed),
+      invoicesThisMonth: new Set(lines.map((l) => l.invoiceId)).size,
       activePlacements: rows.filter((r) => r.status === "active" || r.status === "onboarding").length,
-      runRateLabel: formatPaiseShort(rows.reduce((a, r) => a + r.vendorRatePaise, 0)),
+      runRateLabel: formatPaiseShort(live.reduce((a, r) => a + r.vendorRatePaise, 0)),
     },
     rows: rows.map((r) => {
       const l = lineBy.get(r.engagementId);
@@ -439,8 +456,10 @@ export async function getVendorEarnings(vendorOrgId: string) {
         roleTitle: r.roleTitle,
         since: r.startDate,
         rateLabel: formatPaiseExact(r.vendorRatePaise),
-        monthLabel: l ? formatPaiseExact(l.amountPaise) : formatPaiseExact(r.vendorRatePaise),
-        status: l?.isProrata ? "PRO-RATA" : "BILLED",
+        // No invoice line this month means nothing was billed — not the full rate labelled
+        // BILLED, which is what an ended placement used to show.
+        monthLabel: l ? formatPaiseExact(l.amountPaise) : "—",
+        status: !l ? "NOT BILLED" : l.isProrata ? "PRO-RATA" : "BILLED",
       };
     }),
     // The copy the design shows. Client identity is never shared (open question Q1,
@@ -496,9 +515,16 @@ export async function getVendorImports(vendorOrgId: string) {
       name: (r.raw as Record<string, string>).name ?? "",
       employeeCode: (r.raw as Record<string, string>).emp_id ?? "",
       skills: (r.raw as Record<string, string>).skills ?? "",
+      /**
+       * Bare minimum (owner, 2026-10-31; Q11). "Already represented on the exchange" told a
+       * vendor that ANOTHER supplier had submitted this person — the existence of a
+       * competitor, which they do not need in order to act. A suspected duplicate now reads
+       * like any row Talentvibes is checking. And only a known error gets a specific label:
+       * anything else used to fall through to the duplicate wording.
+       */
       issue: (r.errors ?? []).includes("missing_rate")
-        ? "Rate missing"
-        : "Already represented on the exchange",
+        ? "Rate missing — add it and re-send the row"
+        : "Being checked by Talentvibes",
       resolution: r.resolution,
     })),
   };
@@ -692,4 +718,10 @@ export async function getVendorBrokerThread(
         senderName: m.senderName,
       })),
   };
+}
+
+/** The first day of the current month in Asia/Kolkata, as `YYYY-MM-01` (invoices are monthly). */
+function istMonthStart(now: Date = new Date()): string {
+  const ym = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit" }).format(now);
+  return `${ym}-01`;
 }

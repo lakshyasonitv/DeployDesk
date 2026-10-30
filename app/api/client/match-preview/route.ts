@@ -22,13 +22,19 @@ import { mayBeOfferedTo } from "@/src/services/matching-eligibility";
 
 const MIN_BUCKET = 5;
 
+/**
+ * No budget, deliberately. A "within budget" bar compared the client's budget with VENDOR
+ * rates and accepted any value, so sweeping the budget stepped the count at each supplier's
+ * rate — the vendor-cost distribution, to the paise. Comparing with the proposed client rate
+ * would leak the same thing scaled by the target margin. The client does not need it.
+ */
 const Body = z.object({
   skills: z.array(z.string().max(60)).max(10).default([]),
   experienceBand: z.enum(["0-3", "3-5", "5-8", "8+"]).optional(),
-  budgetMinPaise: z.number().int().min(0).max(100_000_000).optional(),
-  budgetMaxPaise: z.number().int().min(0).max(100_000_000).optional(),
-  city: z.string().max(60).optional(),
 });
+
+/** Experience bands in months, [from, to). */
+const BAND_MONTHS = { "0-3": [0, 36], "3-5": [36, 60], "5-8": [60, 96], "8+": [96, Infinity] } as const;
 
 /** Below the threshold, say "fewer than N" instead of handing over a precise count. */
 function bucket(n: number): { value: number | null; label: string } {
@@ -42,7 +48,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "invalid_request", issues: parsed.error.flatten().fieldErrors }, { status: 400 });
   }
   const session = await getDemoSession("client"); // portal check; the preview is client-facing
-  const { skills, budgetMinPaise, budgetMaxPaise } = parsed.data;
+  const { skills, experienceBand } = parsed.data;
 
   // Only listed, matchable supply counts. Freshness is applied as a 14-day cutoff here
   // rather than returned — the freshness STATE is supplier information (docs/MASKING.md).
@@ -73,8 +79,7 @@ export async function POST(req: Request) {
   const rows = await db
     .select({
       id: s.benchResources.id,
-      vendorRatePaise: s.benchResources.vendorRatePaise,
-      lastConfirmedAt: s.benchResources.lastConfirmedAt,
+      experienceMonths: s.benchResources.experienceMonths,
       availableFrom: s.benchResources.availableFrom,
     })
     .from(s.benchResources)
@@ -104,34 +109,28 @@ export async function POST(req: Request) {
     .where(and(sql`${s.assessments.status} = 'scored'`, gte(s.assessments.overallScore, 80)));
   const scoredSet = new Set(scored.map((r) => r.resourceId));
 
-  const onBench = rows.length;
-  const skillMatch = skills.length ? rows.filter((r) => skillMatched.has(r.id)).length : onBench;
-  const withinBudget = budgetMaxPaise
-    ? rows.filter((r) => r.vendorRatePaise <= budgetMaxPaise && (!budgetMinPaise || r.vendorRatePaise >= budgetMinPaise * 0.6)).length
-    : onBench;
-  const scoredAbove80 = rows.filter((r) => scoredSet.has(r.id)).length;
-  const startSoon = rows.filter((r) => !r.availableFrom).length;
+  // The headline counts what the client actually chose — skills AND experience band; it used
+  // to ignore the band while saying "match this band". The bars break THAT set down.
+  const [lo, hi] = experienceBand ? BAND_MONTHS[experienceBand] : [0, Infinity];
+  const matched = rows.filter((r) =>
+    (!skills.length || skillMatched.has(r.id)) && r.experienceMonths >= lo && r.experienceMonths < hi);
 
+  /**
+   * Bucketed counts and nothing else. `poolSize` and a per-bar percentage used to go out
+   * too, and with them any count suppressed below MIN_BUCKET could be recomputed exactly.
+   */
   return NextResponse.json({
-    // The headline figure the design shows, as a bucket.
-    matching: bucket(skillMatch),
+    matching: bucket(matched.length),
     bars: [
-      bar("Skill match", skillMatch, onBench),
-      bar("Within budget", withinBudget, onBench),
-      bar("Score ≥ 80", scoredAbove80, onBench),
-      bar("Available now", startSoon, onBench),
+      bar("Score ≥ 80", matched.filter((r) => scoredSet.has(r.id)).length),
+      bar("Available now", matched.filter((r) => !r.availableFrom).length),
     ],
-    poolSize: onBench,
     note: "Counts only. Identities, suppliers and rates stay hidden until your Talentvibes team sends a shortlist.",
   });
 }
 
-function pct(n: number, total: number): number {
-  return total ? Math.round((n / total) * 100) : 0;
-}
-
-/** One preview bar. `count` is suppressed below the threshold; `label` names the bar. */
-function bar(label: string, n: number, total: number) {
+/** One preview bar. The count is suppressed below the threshold; `label` names the bar. */
+function bar(label: string, n: number) {
   const b = bucket(n);
-  return { label, value: b.value, countLabel: b.label, pct: pct(n, total) };
+  return { label, value: b.value, countLabel: b.label };
 }

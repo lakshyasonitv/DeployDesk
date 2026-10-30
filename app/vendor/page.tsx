@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Shell, PageHeader, Scroll, Button, StatCard, Card, SectionLabel, Pill } from "@/src/lib/ui/Shell";
 import { getDemoSession, getShellNav } from "@/src/lib/auth/session";
 import { getVendorOverview } from "@/src/read-models/vendor";
@@ -62,7 +63,7 @@ export default async function VendorDashboard() {
               <div style={s("font-size:27px;font-weight:800;letter-spacing:-1px;line-height:1")}>
                 {o.stats.utilisationPct}%
               </div>
-              <div style={s("font-size:11.5px;font-weight:700;color:var(--brand)")}>deployed + in process</div>
+              <div style={s("font-size:11.5px;font-weight:700;color:var(--brand)")}>listed + in process</div>
             </div>
             <div style={s("display:flex;height:7px;border-radius:4px;overflow:hidden;margin-top:11px;background:var(--border)")}>
               <div style={sx("height:100%", { width: `${pct(o.stats.listed, o.stats.onBench)}%`, background: "var(--brand)" })} />
@@ -78,8 +79,8 @@ export default async function VendorDashboard() {
 
           <StatCard label="PROFILES LISTED" value={o.stats.listed} sub={`of ${o.stats.onBench} on bench`} />
           <StatCard label="IN PROCESS" value={o.stats.inProcess} sub="shortlisted or interviewing" />
-          <StatCard label="PLACEMENTS" value={o.placements} sub="to date, across all our suppliers" />
-          <StatCard label="BILLED THIS MONTH" value={o.stats.billedThisMonthLabel} sub="your contracted rates" />
+          <StatCard label="PLACEMENTS" value={o.placements} sub="yours, to date" />
+          <StatCard label="BILLED THIS MONTH" value={o.stats.billedThisMonthLabel} sub="payable to you this month" />
         </div>
 
         <div style={s("display:grid;grid-template-columns:1.5fr 1fr;gap:16px;margin-top:16px;align-items:start")}>
@@ -150,10 +151,12 @@ export default async function VendorDashboard() {
                   );
                 })}
               </div>
-              <a href="/vendor/roster"
+              {/* It is a link, so it says where it goes: "Confirm all N" confirmed nothing, and its
+                  N disagreed with the roster's own button (expiring + unconfirmed). */}
+              <Link href="/vendor/roster"
                 style={s("display:block;margin-top:10px;padding:9px;border-radius:8px;background:var(--ok);color:var(--surface);font-size:12px;font-weight:700;text-align:center")}>
-                Confirm all {expiring} expiring
-              </a>
+                Confirm on your roster
+              </Link>
             </div>
 
             <Card pad="13px">

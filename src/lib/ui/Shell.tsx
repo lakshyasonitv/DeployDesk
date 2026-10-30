@@ -266,14 +266,19 @@ export function Shell({
       <div style={s("flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden")}>
         {/* ---- top bar, 60px ---- */}
         <div style={s("height:60px;flex:none;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:0 24px")}>
-          {/* breadcrumb: the portal part truncates, the screen name never does */}
-          <div style={s("display:flex;align-items:center;gap:7px;min-width:0;font-size:13px")}>
-            <span style={s("color:var(--t3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
-              {PORTAL_TAG[portal]} · {user.org}
-            </span>
-            <span style={s("color:var(--t4);flex:none")}>›</span>
-            <span style={s("font-weight:700;flex:none;white-space:nowrap")}>{active?.label ?? ""}</span>
-          </div>
+          {/*
+            breadcrumb: the portal part truncates, the screen name never does. They are two
+            items of the top bar rather than one box: as one box with min-width 0, the box
+            shrank under the never-truncating name, which then overprinted the switcher at
+            ~800px. Shrink weight 10 makes the portal part give way before the switcher.
+          */}
+          <span style={s("font-size:13px;color:var(--t3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 10 auto;min-width:0")}>
+            {PORTAL_TAG[portal]} · {user.org}
+          </span>
+          <span style={s("font-size:13px;flex:none;white-space:nowrap;margin-left:-7px")}>
+            <span style={s("color:var(--t4)")}>›</span>{" "}
+            <span style={s("font-weight:700")}>{active?.label ?? ""}</span>
+          </span>
 
           {/*
             Dual-role workspace switcher — a PRODUCTION feature (ADR-012), unlike the demo
@@ -320,12 +325,13 @@ export function Shell({
             workspace tabs above it are a different thing and ARE a production feature.
           */}
           {identities.length > 1 ? (
-            <div style={s("display:flex;align-items:center;gap:8px;flex:none;height:32px;padding:0 10px;border:1px solid var(--border);border-radius:9px;min-width:0")}>
+            // Shrinks rather than the breadcrumb; the names scroll sideways when squeezed.
+            <div style={s("display:flex;align-items:center;gap:8px;flex:0 1 auto;height:32px;padding:0 10px;border:1px solid var(--border);border-radius:9px;min-width:0;overflow:hidden")}>
               <span style={sx("font-size:9.5px;font-weight:700;letter-spacing:.08em;color:var(--t4);border:1px solid var(--border-2);border-radius:4px;padding:1px 4px;flex:none", { fontFamily: TOKENS.mono })}>
                 DEMO
               </span>
-              <span style={s("font-size:12.5px;color:var(--t3);white-space:nowrap;flex:none")}>Acting as</span>
-              <div style={s("display:flex;gap:3px;min-width:0")}>
+              <span style={s("font-size:12.5px;color:var(--t3);white-space:nowrap;flex:0 100 auto;min-width:0;overflow:hidden")}>Acting as</span>
+              <div style={s("display:flex;gap:3px;min-width:0;overflow-x:auto;scrollbar-width:none")}>
                 {identities.map((p) => (
                   /*
                    * A plain <a>, NOT next/link — and this is load-bearing.

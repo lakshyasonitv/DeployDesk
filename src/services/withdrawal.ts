@@ -3,28 +3,26 @@ import { db } from "../db/client";
 import * as s from "../db/schema";
 
 /**
- * Why a person may NOT be withdrawn from the exchange, or nothing if they may.
+ * Who a client is relying on: a live placement, or a shortlist the client has not passed on.
  *
- * Resolving a duplicate flag withdraws the losing submission, and nothing stopped that
- * landing on somebody a client is already relying on. In the seed, DUP-0148's "Keep Orbit"
- * would have withdrawn TV-4821 — on an active placement, and selected by a client. Taking a
- * working person off the exchange is not a broker's tidy-up; it is a conversation with the
- * client first, so the route refuses and the screen says why.
+ * Nobody in that position is taken off offer by a side-action. Resolving a duplicate flag
+ * withdrew the losing submission with no such check — in the seed, DUP-0148's "Keep Orbit"
+ * would have withdrawn TV-4821, on an active placement and selected by a client — and the
+ * vendor's own withdraw and back-to-draft guarded on `in_process` / `deployed`, statuses
+ * nothing in the app ever sets. Taking a working person off the exchange is a conversation
+ * with the client first.
  *
- * One function, so the route that enforces this and the screen that disables the button
- * cannot disagree.
+ * One function, so every route that enforces this and every screen that disables a button
+ * for it cannot disagree.
  *
- * ponytail: read outside the resolving transaction, so a placement created in the same
+ * ponytail: read outside the writing transaction, so a placement created in the same
  * millisecond could slip past. Move the read into the transaction if that ever matters.
  */
-export async function withdrawBlockers(resourceIds: string[]): Promise<Map<string, string>> {
+export async function liveWork(resourceIds: string[]): Promise<Map<string, string>> {
   const out = new Map<string, string>();
   if (!resourceIds.length) return out;
 
-  const [people, working, offered] = await Promise.all([
-    db.select({ id: s.benchResources.id, status: s.benchResources.status })
-      .from(s.benchResources)
-      .where(inArray(s.benchResources.id, resourceIds)),
+  const [working, offered] = await Promise.all([
     db.select({ id: s.engagements.resourceId })
       .from(s.engagements)
       .where(and(
@@ -40,9 +38,27 @@ export async function withdrawBlockers(resourceIds: string[]): Promise<Map<strin
       )),
   ]);
 
-  // Most serious reason wins, so the message names the thing that matters.
-  for (const p of people) if (p.status !== "listed") out.set(p.id, `is ${p.status.replace("_", " ")}, not listed`);
+  // The placement is the more serious reason, so it wins.
   for (const o of offered) out.set(o.id, "is on a shortlist a client has");
   for (const w of working) out.set(w.id, "is on a live placement");
+  return out;
+}
+
+/**
+ * Why a duplicate resolution may NOT withdraw this person, or nothing if it may: live work,
+ * or not being `listed` (a draft is not on offer, and anything else is not this screen's to
+ * change).
+ */
+export async function withdrawBlockers(resourceIds: string[]): Promise<Map<string, string>> {
+  if (!resourceIds.length) return new Map();
+  const [people, live] = await Promise.all([
+    db.select({ id: s.benchResources.id, status: s.benchResources.status })
+      .from(s.benchResources)
+      .where(inArray(s.benchResources.id, resourceIds)),
+    liveWork(resourceIds),
+  ]);
+  const out = new Map<string, string>();
+  for (const p of people) if (p.status !== "listed") out.set(p.id, `is ${p.status.replace("_", " ")}, not listed`);
+  for (const [id, why] of live) out.set(id, why);
   return out;
 }

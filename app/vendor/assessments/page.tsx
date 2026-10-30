@@ -26,10 +26,8 @@ const STATUS_PILL: Record<string, { bg: string; fg: string; label: string }> = {
   abandoned: { bg: "var(--surface-3)", fg: "var(--t4)", label: "ABANDONED" },
 };
 
-const ACTION: Record<string, string> = {
-  scored: "View report", in_progress: "Nudge candidate", invited: "Resend invite",
-  not_started: "Send invite", expired: "Request retake", abandoned: "Resend invite",
-};
+// The per-card "View report" / "Nudge candidate" / "Resend invite" labels were plain text
+// styled as actions, with nothing behind them. Removed; "Request a test" below is real.
 
 export default async function VendorAssessmentsPage() {
   const session = await getDemoSession("vendor");
@@ -128,16 +126,13 @@ export default async function VendorAssessmentsPage() {
                   The reason this screen could not do its job: an untested person was not
                   even listed, let alone actionable.
                 */}
-                {!c.hasTest ? (
+                {c.canRequest ? (
                   <RequestTestButton maskedId={c.maskedId} fullName={c.fullName} />
                 ) : null}
 
                 <div style={s("display:flex;align-items:center;justify-content:space-between;gap:9px;margin-top:12px;padding-top:10px;border-top:1px solid var(--surface-3)")}>
                   <div style={s("font-size:10px;color:var(--t4)")}>
                     {c.validUntil ? `valid until ${fmt(c.validUntil)}` : "attempt " + c.attemptNo}
-                  </div>
-                  <div style={s("font-size:11px;font-weight:700;color:var(--teal)")}>
-                    {ACTION[c.status] ?? "View"}
                   </div>
                 </div>
               </div>
@@ -148,9 +143,9 @@ export default async function VendorAssessmentsPage() {
         <div style={s("margin-top:14px;background:var(--teal-tint);border:1px solid var(--ok-tint);border-radius:12px;padding:13px")}>
           <SectionLabel>WHY SCORES ARE READ-ONLY</SectionLabel>
           <div style={s("font-size:12px;color:var(--teal);line-height:1.6")}>
-            Every score comes from the proctoring provider and is written by a signed webhook.
-            Neither you nor the client can influence it — that independence is what makes the
-            score worth showing on a masked profile.
+            Every score comes from the proctoring provider. No endpoint lets you, the client or
+            Talentvibes write one — that independence is what makes the score worth showing on a
+            masked profile.
           </div>
         </div>
       </Scroll>

@@ -133,7 +133,7 @@ export async function POST(req: Request) {
    * because the writes were not wrapped — `db.transaction` is safe on Supavisor's
    * transaction-mode pooling, since a transaction is the unit it pools.
    */
-  const created = await db.transaction(async (tx) => {
+  await db.transaction(async (tx) => {
     const [row] = await tx
       .insert(s.extensionRequests)
       .values({
@@ -160,7 +160,6 @@ export async function POST(req: Request) {
 
   return NextResponse.json({
     ok: true,
-    id: created.id,
     // The same wording the read model uses, so the toast and the panel agree.
     statusLabel: "Sent to your Talentvibes team",
   });
@@ -194,6 +193,13 @@ export async function DELETE(req: Request) {
   // twice, and the end state is the one the caller wanted either way.
   if (!open) return NextResponse.json({ ok: true, withdrew: null });
 
+  // Once Talentvibes has taken it to the supplier, a request is a conversation in progress,
+  // not the client's to erase with a button — the same rule as a confirmed interview round.
+  // Said without naming who is being asked.
+  if (open.status !== "requested") {
+    return NextResponse.json({ error: "in_progress" }, { status: 409 });
+  }
+
   await db.transaction(async (tx) => {
     await tx
       .update(s.extensionRequests)
@@ -212,5 +218,6 @@ export async function DELETE(req: Request) {
     });
   });
 
-  return NextResponse.json({ ok: true, withdrew: open.id });
+  // `true`, not the row's uuid: an internal id is nothing the client needs.
+  return NextResponse.json({ ok: true, withdrew: true });
 }

@@ -71,9 +71,8 @@ const CONTENT: Record<Portal, { title: string; intro: string; sections: Section[
       },
       {
         heading: "Your Talentvibes team",
-        body: "A named person at Talentvibes owns your account. Anything you ask on a "
-          + "shortlist goes to them and to nobody else — not to the supplier, and never "
-          + "with your name attached.",
+        body: "A named person at Talentvibes owns your account. Your conversation is with "
+          + "them and nobody else — never the supplier, and never with your name attached.",
       },
     ],
   },
@@ -93,7 +92,7 @@ const CONTENT: Record<Portal, { title: string; intro: string; sections: Section[
       {
         heading: "Keep them marked as free",
         body: "A profile has to be confirmed as still available every 10 days. After 14 it "
-          + "stops being offered to anyone. One click on “Still free” is enough, and the "
+          + "stops being offered to anyone. One click on “Still available” is enough, and the "
           + "roster shows you who is due.",
       },
       {

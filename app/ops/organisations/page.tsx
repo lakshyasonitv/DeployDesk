@@ -33,8 +33,10 @@ export default async function OrganisationsPage() {
   const [orgs, aside] = await Promise.all([getOpsOrgDirectory(), OpsAside()]);
 
   const dualRole = orgs.filter((o) => o.isDualRole);
-  const grouped = orgs.filter((o) => o.groupName);
-  const blocked = orgs.filter((o) => o.blockedWith.length);
+  // Counted, not halved: "members ÷ 2" assumed every group has two members and every
+  // blocked org exactly one block, and would have read 1.5 the day either stopped being so.
+  const groups = [...new Set(orgs.map((o) => o.groupName).filter((g): g is string => Boolean(g)))];
+  const blockPairs = orgs.reduce((n, o) => n + o.blockedWith.length, 0) / 2; // each pair is listed on both sides
   const probing = orgs.filter((o) => o.isProbingSuspect);
 
   return (
@@ -56,8 +58,8 @@ export default async function OrganisationsPage() {
         <div style={s("display:grid;grid-template-columns:repeat(auto-fit,minmax(198px,1fr));gap:14px")}>
           <StatCard label="COMPANIES" value={orgs.length} sub={`${orgs.filter((o) => o.canSupply).length} supply · ${orgs.filter((o) => o.canHire).length} hire`} />
           <StatCard label="DUAL ROLE" value={dualRole.length} sub={dualRole.map((o) => o.name).join(", ") || "none"} />
-          <StatCard label="DECLARED GROUPS" value={grouped.length ? grouped.length / 2 : 0} sub={grouped.length ? `${grouped[0].groupName} · self-dealing blocked` : "none declared"} />
-          <StatCard label="BLOCK PAIRS" value={blocked.length ? blocked.length / 2 : 0} sub={blocked.length ? "hidden from each other both ways" : "none"} />
+          <StatCard label="DECLARED GROUPS" value={groups.length} sub={groups.length ? `${groups.join(", ")} · self-dealing blocked` : "none declared"} />
+          <StatCard label="BLOCK PAIRS" value={blockPairs} sub={blockPairs ? "hidden from each other both ways" : "none"} />
         </div>
 
         {/* ---------------- the dual-role callout ---------------- */}
@@ -92,7 +94,7 @@ export default async function OrganisationsPage() {
           <div style={s("overflow-x:auto")}>
             <div style={sx("min-width:940px")}>
               <div style={sx(`display:grid;grid-template-columns:${COLS};gap:10px;padding:11px 18px;background:var(--surface-2);border-bottom:1px solid var(--border)`)}>
-                {["Organisation", "Role", "Fee model", "Group / blocks", "Bench", "Billed as client", "Paid as supplier"].map((h, i) => (
+                {["Organisation", "Role", "Fee model", "Group / blocks", "Bench", "Billed / mo", "Paid / mo"].map((h, i) => (
                   <div key={h} style={sx("font-size:11.5px;font-weight:700;letter-spacing:.04em;color:var(--t3);text-transform:uppercase", { textAlign: i >= 4 ? "right" : "left" })}>
                     {h}
                   </div>

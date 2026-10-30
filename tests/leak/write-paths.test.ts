@@ -43,6 +43,8 @@ import {
   POST as addToRequirementRoute, DELETE as undoAddRoute,
 } from "@/app/api/ops/pool/add-to-requirement/route";
 import { POST as sendShortlist } from "@/app/api/ops/shortlists/send/route";
+import { POST as matchPreview } from "@/app/api/client/match-preview/route";
+import { getClientEngagements } from "../../src/read-models/client";
 import { algoScore as weightedTotal } from "../../src/lib/matching/score";
 import { marginPct, MARGIN_FLOOR_PCT } from "../../src/lib/money/rate-band";
 import { getOpsMatchingWorkspace, recommendKeeper } from "../../src/read-models/ops";
@@ -133,9 +135,9 @@ describe("the proposed client rate is Talentvibes's to set", () => {
       noticeAccepted: ["immediate"], stage: "new",
     }));
     expect(res.status).toBe(201);
-    const { code, matched } = await res.json() as { code: string; matched: number };
-    expect(matched).toBeGreaterThan(1);
+    const { code } = await res.json() as { code: string };
     const view = await getOpsMatchingWorkspace(code);
+    expect(view!.candidates.length).toBeGreaterThan(1);
     return { code, candidates: view!.candidates };
   }
 
@@ -285,10 +287,9 @@ describe("the matching desk saves what a broker arranges", () => {
       noticeAccepted: ["immediate"], stage: "new",
     }));
     expect(res.status).toBe(201);
-    const { code, matched } = await res.json() as { code: string; matched: number };
-    expect(matched, "no pool to reorder").toBeGreaterThan(1);
-
+    const { code } = await res.json() as { code: string };
     const view = await getOpsMatchingWorkspace(code);
+    expect(view!.candidates.length, "no pool to reorder").toBeGreaterThan(1);
     return { code, order: view!.candidates.map((c) => c.maskedId) };
   }
 
@@ -998,19 +999,21 @@ describe("a posted requirement is sourced", () => {
   async function postRole(extra: Record<string, unknown> = {}) {
     const res = await createRequirement(post({ ...ROLE, ...extra }));
     expect(res.status).toBe(201);
-    return await res.json() as { code: string; matched: number };
+    return await res.json() as { code: string; sourced: boolean; matched?: number };
   }
 
   it("has candidates the moment it is posted", async () => {
-    const { code, matched } = await postRole();
-    expect(matched, "posting a requirement sourced nobody").toBeGreaterThan(0);
+    const body = await postRole();
+    expect(body.sourced, "posting a requirement sourced nobody").toBe(true);
+    // The client is told THAT, never how many: an exact count is a market probe.
+    expect(body.matched).toBeUndefined();
 
     const rows = await db
       .select({ algoRank: s.matches.algoRank, algoScore: s.matches.algoScore })
       .from(s.matches)
       .innerJoin(s.requirements, eq(s.requirements.id, s.matches.requirementId))
-      .where(eq(s.requirements.code, code));
-    expect(rows.length).toBe(matched);
+      .where(eq(s.requirements.code, body.code));
+    expect(rows.length).toBeGreaterThan(0);
   });
 
   it("stores algo_score as the weighted blend of its own components (ADR-011)", async () => {
@@ -1070,8 +1073,8 @@ describe("a posted requirement is sourced", () => {
   it("a draft requirement is NOT sourced", async () => {
     // Nothing to source for a role nobody has committed to, and doing it would put work on
     // a broker's desk for something that may never be posted.
-    const { code, matched } = await postRole({ stage: "draft" });
-    expect(matched).toBe(0);
+    const { code, sourced } = await postRole({ stage: "draft" });
+    expect(sourced).toBe(false);
     const rows = await db
       .select({ id: s.matches.id })
       .from(s.matches)
@@ -1159,7 +1162,7 @@ describe("a person added as a draft can be found and acted on", () => {
     const a = await getVendorAssessments(nimbusId);
     const card = a.cards.find((c) => c.maskedId === maskedId);
     expect(card, "an untested person was missing from the skill tests screen").toBeDefined();
-    expect(card!.hasTest).toBe(false);
+    expect(card!.canRequest).toBe(true);
     expect(card!.status).toBe("not_started");
     expect(card!.resourceStatus).toBe("draft");
 
@@ -1391,6 +1394,68 @@ describe("a duplicate flag blocks shortlisting its requirement", () => {
         .where(eq(s.requirements.id, req.id));
       await db.delete(s.requirementStageEvents).where(eq(s.requirementStageEvents.reason, MARK));
       await db.delete(s.auditLog).where(and(eq(s.auditLog.entityId, req.id), gte(s.auditLog.occurredAt, started)));
+    }
+  });
+});
+
+/* ====================================================================== */
+/*  2026-10-31 portal audit                                               */
+/* ====================================================================== */
+
+describe("the client's match preview cannot be used to read vendor rates", () => {
+  it("returns bucketed counts only, and ignores any budget it is sent", async () => {
+    const ask = async (budgetMaxPaise?: number) => {
+      const res = await matchPreview(post({ skills: ["React"], experienceBand: "5-8", budgetMinPaise: 0, budgetMaxPaise }));
+      expect(res.status).toBe(200);
+      return await res.json() as Record<string, unknown>;
+    };
+    const a = await ask(10_000_00);
+    const b = await ask(50_000_000);
+    // Sweeping the budget used to step the count at each supplier's rate.
+    expect(a).toEqual(b);
+    // No pool size or percentage to recompute a suppressed count from.
+    expect(a).not.toHaveProperty("poolSize");
+    expect(JSON.stringify(a)).not.toMatch(/"pct"|budget/i);
+  });
+});
+
+describe("a vendor cannot pull someone a client is relying on", () => {
+  // TV-4821 is Nimbus's, `listed`, and on an active placement in the seed.
+  const statusOf = async () => (await db.select({ status: s.benchResources.status })
+    .from(s.benchResources).where(eq(s.benchResources.maskedId, "TV-4821")))[0].status;
+
+  it("refuses to withdraw them, though their status is only `listed`", async () => {
+    try {
+      const res = await withdrawResource(post({ maskedId: "TV-4821" }, "DELETE"));
+      expect(res.status).toBe(409);
+      expect(await statusOf()).toBe("listed");
+    } finally {
+      await db.update(s.benchResources).set({ status: "listed" }).where(eq(s.benchResources.maskedId, "TV-4821"));
+    }
+  });
+
+  it("refuses to move them back to draft", async () => {
+    const [before] = await db.select({ lastConfirmedAt: s.benchResources.lastConfirmedAt, listedAt: s.benchResources.listedAt })
+      .from(s.benchResources).where(eq(s.benchResources.maskedId, "TV-4821"));
+    try {
+      const res = await listResource(post({ maskedId: "TV-4821", to: "draft" }));
+      expect(res.status).toBe(409);
+      expect(await statusOf()).toBe("listed");
+    } finally {
+      await db.update(s.benchResources)
+        .set({ status: "listed", lastConfirmedAt: before.lastConfirmedAt, listedAt: before.listedAt })
+        .where(eq(s.benchResources.maskedId, "TV-4821"));
+    }
+  });
+});
+
+describe("a client sees a band for its own placements, never the figure", () => {
+  it("bands every placement and sends no raw paise", async () => {
+    const rows = await getClientEngagements(acmeId);
+    expect(rows.length).toBeGreaterThan(0);
+    for (const r of rows) {
+      expect(r.rateLabel).toMatch(/–/);            // a range
+      expect(r).not.toHaveProperty("ratePaise");   // nothing exact reaches the browser
     }
   });
 });

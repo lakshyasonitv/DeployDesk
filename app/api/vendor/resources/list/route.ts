@@ -4,6 +4,7 @@ import { z } from "zod";
 import { db } from "@/src/db/client";
 import * as s from "@/src/db/schema";
 import { getDemoSession } from "@/src/lib/auth/session";
+import { liveWork } from "@/src/services/withdrawal";
 
 /**
  * POST /api/vendor/resources/list — put a draft on the exchange, or pull it back.
@@ -76,6 +77,12 @@ export async function POST(req: Request) {
   // Already where the caller wants it: the end state is what they asked for.
   if (owned.status === to) {
     return NextResponse.json({ ok: true, maskedId, status: to, changed: false });
+  }
+
+  // Back to draft takes a person off offer (and clears their confirmation), so it is refused
+  // for anyone a client is relying on — the same check as withdrawing them.
+  if (to === "draft" && (await liveWork([owned.id])).has(owned.id)) {
+    return NextResponse.json({ error: "in_use" }, { status: 409 });
   }
 
   /**

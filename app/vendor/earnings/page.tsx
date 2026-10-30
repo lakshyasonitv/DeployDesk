@@ -21,6 +21,7 @@ const COLS = "168px 1fr 96px 120px 120px 130px";
 const STATUS_PILL: Record<string, { bg: string; fg: string }> = {
   BILLED: { bg: "var(--ok-tint)", fg: "var(--ok)" },
   "PRO-RATA": { bg: "var(--info-tint)", fg: "var(--info)" },
+  "NOT BILLED": { bg: "var(--surface-3)", fg: "var(--t3)" },
 };
 
 export default async function VendorEarningsPage() {
@@ -31,7 +32,6 @@ export default async function VendorEarningsPage() {
     VendorAside(session.orgId),
   ]);
 
-  const totalDue = e.rows.reduce((a, r) => a + Number(r.monthLabel.replace(/[^\d]/g, "")), 0);
   const ending = e.rows.filter((r) => r.status === "PRO-RATA").length;
 
   return (
@@ -46,8 +46,10 @@ export default async function VendorEarningsPage() {
           <StatCard label="BILLED THIS MONTH" value={e.stats.billedThisMonthLabel}
             sub={`${e.stats.activePlacements} active placements`} />
           <StatCard label="RUN-RATE · MONTHLY" value={e.stats.runRateLabel} sub="at your contracted rates" />
-          <StatCard label="ACTIVE PLACEMENTS" value={e.stats.activePlacements} sub="across all our suppliers" />
-          <StatCard label="INVOICES RAISED" value={e.rows.length} sub="net 30 terms" />
+          {/* Your own placements — "across all our suppliers" was wrong under your numbers. */}
+          <StatCard label="ACTIVE PLACEMENTS" value={e.stats.activePlacements} sub="yours, working now" />
+          {/* Invoices, counted — this was the number of placements, with an invented "net 30". */}
+          <StatCard label="INVOICES RAISED" value={e.stats.invoicesThisMonth} sub="this month" />
         </div>
 
         <div style={s("margin-top:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden")}>
@@ -87,7 +89,7 @@ export default async function VendorEarningsPage() {
               {ending ? ` · ${ending} billed pro-rata this month` : ""}
             </div>
             <div style={sx("font-size:20px;font-weight:800", { fontFamily: TOKENS.mono })}>
-              TOTAL DUE ₹{totalDue.toLocaleString("en-IN")}
+              TOTAL DUE {e.stats.totalDueLabel}
             </div>
           </div>
         </div>

@@ -122,8 +122,9 @@ export default async function ClientInterviewsPage() {
                       {iv.waitingLabel}
                     </div>
                     <div style={s("font-size:11.5px;color:var(--t3);margin-top:4px")}>
-                      You proposed slots{iv.requestedAgo ? ` ${iv.requestedAgo}` : ""}. Your Talentvibes team confirms
-                      release and comes back with a locked slot and a Talentvibes meeting link.
+                      {iv.slots.length ? "You offered times" : "You asked for this interview"}
+                      {iv.requestedAgo ? ` ${iv.requestedAgo}` : ""}. Your Talentvibes team comes back with
+                      a locked slot and a Talentvibes meeting link.
                     </div>
                     <div style={s("margin-top:9px")}>
                       <SlotButton round={{

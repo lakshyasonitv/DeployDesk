@@ -7,7 +7,7 @@
 >
 > 1. every route returns 200 — **cold and warm**, at least twice each
 > 2. `npm run db:verify` → **30/30**
-> 3. `npm test` → **212/212** — the WHOLE suite. `test:leak` runs only `tests/leak` and
+> 3. `npm test` → **216/216** — the WHOLE suite. `test:leak` runs only `tests/leak` and
 >    misses `tests/business-clock.test.ts`, `tests/matching.test.ts` and two others, so
 >    **`npm test` is the gate**. It also loads `.env.local`; bare `npx vitest` does not.
 > 4. `npm run build` → clean (stop `next dev` and delete `.next` first)
@@ -30,8 +30,20 @@
 - [x] **Duplicate checks: audited and fixed** ✅ 2026-10-31. All 8 findings were closed; the owner delegated the calls, and how each was made is in `02-decisions.md` 2026-10-31. One open business question remains: Q11 in `docs/DECISIONS.md`, whether the losing vendor is told "already represented". Details are in
       `journal/2026-10-31.md` Session 4. The urgent one: a second click on a settled flag
       withdraws BOTH people, and settled flags stay on screen with live buttons.
-- [ ] **Header overlap at about 800 px width**: the breadcrumb overprints the "Acting as"
-      switcher. It is fine at 1366 px.
+- [x] **Header overlap at narrow widths** ✅ 2026-10-31. The breadcrumb and screen name are
+      now separate top-bar items, and the demo switcher shrinks instead. Checked at 1366,
+      1024 and 800 px.
+- [x] **Client and vendor portals audited and fixed** ✅ 2026-10-31. Leaks (a vendor-rate
+      probe in the match preview, exact client rates, an exact `matched` count, unordered
+      search, a competitor hint on bulk import), data-safety holes (a vendor could withdraw a
+      placed person; interview Undo un-selected and cascade-deleted) and about 20 dead
+      controls or false figures. Details are in journal Session 9.
+- [ ] **Before launch:** remove the demo org switcher (it lists every org on every page)
+      and stop `/api/search` taking `portal` from the query string.
+- [ ] **Small, recorded:** ambiguous (maskedId, roundNo) round lookup; `roleTitle`
+      identifiability; sequential REQ codes; the `TV-7188-B` suffix in the seed.
+- [x] **Organisations audited** ✅ 2026-10-31. Live-only monthly money, and group and block
+      counts that are counted rather than halved.
 - [ ] **Commit the session-8 Margin removal.** 16 modified/deleted files plus
       `scripts/brain-index.py`, uncommitted since 2026-10-08.
 - [ ] **Apply migration `0006_panel_availability.sql`** — written, not applied; the owner
