@@ -229,11 +229,21 @@ GET  /api/ops/pool/export          CSV — audited, rate-limited
 ```
 
 ### Margin
+
+**There is no margin endpoint, and there is no margin screen.** Both were removed on
+2026-10-08: a client rate is negotiated, and negotiation does not begin until the candidate
+has cleared every round on both sides (`docs/DOMAIN.md` § *When a price becomes negotiable*).
+An endpoint reporting a margin per placement would be reporting a number nobody had agreed.
+
+A margin is still computed where somebody is **choosing** a rate —
+`POST /api/ops/matching/rate` returns the implied margin for the rate being set — and ops
+still sees it on a placed pipeline card.
+
 ```
-GET /api/ops/margin           ?month=&client=&vendor=
-GET /api/ops/margin/export    finance export
 POST /api/ops/engagements/:id/margin-exception  { note }  approve below-floor
 ```
+
+Whether the below-floor exception survives at all is **open**: see the same section.
 
 ### Duplicates
 ```

@@ -2,7 +2,7 @@
 title: Vocabulary — the words the product says out loud
 updated: 2026-10-07
 ---
-
+-
 # Vocabulary
 
 The audit the product owner asked for on 2026-10-07: *"look into all the other words in the
@@ -58,7 +58,7 @@ and were renamed; two show only an identifier and became `REFERENCE` in round 2 
 
 | Screen | First cell renders | Action |
 |---|---|---|
-| `/ops/margin` | `fullName`, with `maskedId · vendorName` beneath | → `NAME` |
+| ~~`/ops/margin`~~ | `fullName`, with `maskedId · vendorName` beneath | → `NAME`, then the whole screen was removed 2026-10-08 |
 | `/vendor/earnings` | `fullName`, with `maskedId` beneath | → `NAME` |
 | `/vendor/roster` | `fullName`, with `maskedId · baseCity` beneath | → `NAME` |
 | `/client/engagements` | **`maskedId` alone — no name exists** | → `REFERENCE` (§1b) |

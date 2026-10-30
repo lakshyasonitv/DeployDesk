@@ -250,9 +250,9 @@ Hard-won surprises and traps. Everything here is non-obvious from reading the co
 
 - **A sidebar can cost more than the page.** `OpsAside()` runs the entire
   `getOpsPipeline()` read model plus `getOpsDuplicates()` to render three badge numbers.
-  On `/ops/margin` that was 9 of the page's 10 queries and 443ms of its 471ms — 94% of the
-  data time spent on the sidebar, not the content. Badge counts want their own `COUNT`
-  query, never a full read model.
+  On the heaviest ops screen of the time (the Margin page, since removed) that was 9 of its
+  10 queries and 443ms of its 471ms — 94% of the data time spent on the sidebar, not the
+  content. Badge counts want their own `COUNT` query, never a full read model.
 
 - **Pages and their sidebar helper used to duplicate the same read model.** `/client`
   called `getClientOverview()` and `ShellAside()` called it again; the vendor pages did the

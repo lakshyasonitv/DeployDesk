@@ -1,7 +1,7 @@
 ---
 project: talentvibes bench
 status: active
-last_log: 2026-10-08
+last_log: 2026-10-31
 ---
 
 # 03 — Progress
@@ -26,7 +26,9 @@ models rather than RLS (ADR-003).
 | `npm run build` | clean |
 | `npx tsc --noEmit` | clean |
 
-**Built and working end to end:** all 16 screens on the v2 design; the dual-role workspace;
+**Built and working end to end:** 15 of the v2 handoff's 16 screens — the **Margin screen
+was removed on purpose** on 2026-10-08, a deliberate deviation from the UI contract — plus
+the extra ops Organisations console; the dual-role workspace;
 search across all three portals; CSV exports; the "How this works" explainer; the client
 placement panel with a working extension request; interview slots (offer times, move a
 round); real talent-pool filters with saved views and a search box; the draft → listed path;
@@ -126,6 +128,15 @@ percent-encoded (`@` becomes `%40`). Ask the owner for credentials; do not guess
 
 ## Start here next time
 
+**0. (2026-10-31) The Supabase project was paused after 23 idle days and the owner has
+restored it, then **reseeded on the owner's OK**: `db:verify` 30/30, `npm test` 207/207, all
+18 pages 200. **The seed ages:** about two weeks after `db:seed`, freshness decays,
+`db:verify` drops to 28/30 and people fall out of matching. Reseeding fixes it, with the
+owner's OK. **A free-tier project pauses when idle**: if the pooler says "tenant not found",
+restore it from the dashboard first. The Supabase MCP here is another account's and cannot see
+it. Separately, **the session-8 Margin removal is still uncommitted**. Details are in
+`journal/2026-10-31.md`.
+
 **1. Two migrations are waiting on the owner — `0006` and `0007`.** Once `0006` is applied,
 wire panel availability: a read model, a `POST /api/client/interviews/availability`, and the
 "Set panel availability" drawer back on the interviews header. It is **advisory, not a gate**
@@ -134,17 +145,22 @@ with the constants as its fallback, an ops-only settings control, and an audit r
 (changing the FLOOR re-derives which past placements count as exceptions, because margin is
 never stored).
 
-**2. Continue the page-by-page audit.** The owner's pattern is: status first, questions
-second, fixes third. **Role pipeline**, **Matching desk**, **Margin** and **Talent pool**
-are done. Not yet audited: **Duplicate checks** and **Organisations** on the ops side, and
-the whole client and vendor sides.
+**2. Two questions are waiting on the owner,** both from removing the Margin screen and
+neither guessed at: does the **18% margin floor** and its required written reason survive now
+that the client rate is negotiated, and is **`0007_margin_policy.sql`** still wanted at all.
+Recorded in `docs/DOMAIN.md` and `04-tasks.md`; left exactly as they are until answered.
+
+**3. Continue the page-by-page audit.** The owner's pattern is: status first, questions
+second, fixes third. **Role pipeline**, **Matching desk**, **Margin** (audited, then removed
+on the owner's call) and **Talent pool** are done. Not yet audited: **Duplicate checks** and
+**Organisations** on the ops side, and the whole client and vendor sides.
 
 The two audits so far both found the same shape of defect — a control that *looked* like it
 worked. The pipeline's due dates referred to a stage the role had left; the matching desk's
 drag-to-reorder saved nothing and its reset toasted a lie. **Check persistence by reloading,
 not by watching the screen update.**
 
-**3. Standing items, none urgent:** the drizzle-orm 0.44.7 advisory (GHSA-gpj5-g38j-94v9 —
+**4. Standing items, none urgent:** the drizzle-orm 0.44.7 advisory (GHSA-gpj5-g38j-94v9 —
 low exposure, no `sql.raw` or `sql.identifier` anywhere, but 0.45.x is breaking so it wants
 its own pass), `rate_changes` is never written, and the stray `deploydesk` project on the
 `vaibhavalteryx-1351` Vercel account for its owner to delete.

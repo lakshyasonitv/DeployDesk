@@ -2,7 +2,6 @@ import { z } from "zod";
 import { getDemoSession } from "@/src/lib/auth/session";
 import { getVendorEarnings } from "@/src/read-models/vendor";
 import { getClientOverview } from "@/src/read-models/client";
-import { getOpsMargin } from "@/src/read-models/ops";
 
 /**
  * GET /api/export?kind=vendor-earnings  → a CSV download.
@@ -29,7 +28,7 @@ import { getOpsMargin } from "@/src/read-models/ops";
  */
 
 const Query = z.object({
-  kind: z.enum(["vendor-earnings", "client-engagements", "ops-margin"]),
+  kind: z.enum(["vendor-earnings", "client-engagements"]),
 });
 
 /**
@@ -115,28 +114,17 @@ export async function GET(req: Request) {
     return csvResponse(`deploydesk-people-working-${today()}.csv`, csv);
   }
 
-  /* ----------------------------------------------------- ops: margin ---- */
-
   /**
-   * Resolving the ops session IS the guard: `getDemoSession("ops")` throws unless the
-   * caller's organisation is the broker, so this line is why a client cannot fetch the
-   * margin export by guessing the URL. It is not an unused variable.
+   * Unreachable — Zod rejected anything that is not one of the two kinds above.
+   *
+   * Spelled out as a `never` rather than left to fall off the end of the function, so adding
+   * a third kind to the enum fails the typecheck HERE. That matters more than it looks:
+   * **no export in this file may contain a spread.** The ops margin export did, and it was
+   * removed with the Margin screen on 2026-10-08 — a client rate is negotiated, so a file
+   * asserting a margin per placement was asserting something nobody had agreed. Both
+   * remaining exports are structurally unable to carry one, because neither read model can
+   * return both rates.
    */
-  await getDemoSession("ops");
-  const m = await getOpsMargin();
-
-  /**
-   * The only export that contains a spread, and the only one whose route is gated on the
-   * ops portal. If this file ever grows a fourth export, check which session it resolves
-   * before deciding what it may include.
-   */
-  const csv = toCsv(
-    ["Reference", "Name", "Role", "Employer", "Vendor rate", "Client rate", "Spread", "Margin %", "Status", "Below floor"],
-    m.rows.map((r) => [
-      r.maskedId, r.fullName, r.roleTitle, r.vendorName,
-      r.vendorRateLabel, r.clientRateLabel, r.spreadLabel, r.pctLabel,
-      r.status, r.exception ? "yes" : "no",
-    ]),
-  );
-  return csvResponse(`deploydesk-margin-${today()}.csv`, csv);
+  const unreachable: never = parsed.data.kind;
+  return Response.json({ error: "invalid_request", kind: unreachable }, { status: 400 });
 }

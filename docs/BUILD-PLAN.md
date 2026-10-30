@@ -150,7 +150,9 @@ suite proves it.
 
 - [ ] `engagements`, `rate_changes`
 - [ ] `v_engagement_margin`; margin floor guardrail and exception approval
-- [ ] Ops margin screen endpoints
+- [x] ~~Ops margin screen endpoints~~ — **dropped 2026-10-08.** The screen was removed; a
+      client rate is negotiated, so a report of margin per placement states as settled
+      something nobody has agreed. See `docs/DOMAIN.md` § *When a price becomes negotiable*.
 - [ ] `invoices` / `invoice_lines`, receivable and payable, with pro-rata
 - [ ] Monthly billing job
 - [ ] Vendor earnings endpoints — payable only, structurally unable to join receivable

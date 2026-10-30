@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import {
   LayoutGrid, FileText, Users, Calendar, Briefcase,
   Upload, List, ClipboardCheck, Wallet,
-  Columns3, Target, Database, BarChart2, AlertTriangle,
+  Columns3, Target, Database, AlertTriangle,
   MoreHorizontal, ChevronDown, Building2, Briefcase as BriefcaseIcon,
 } from "lucide-react";
 import { s, sx, TOKENS, PORTAL_TAG, GROUP_LABEL, BRAND } from "./style";
@@ -74,7 +74,6 @@ const NAV: Record<
     { href: "/ops", label: "Role pipeline", key: "pipeline", Icon: Columns3 },
     { href: "/ops/matching", label: "Matching desk", key: "matching", Icon: Target },
     { href: "/ops/pool", label: "Talent pool", key: "pool", Icon: Database },
-    { href: "/ops/margin", label: "Margin", key: "margin", Icon: BarChart2 },
     { href: "/ops/duplicates", label: "Duplicate checks", key: "duplicates", Icon: AlertTriangle },
     // Beyond v2's five ops screens, and deliberately: the dual-role brief asks for
     // capability, group, fee-model and block-list visibility, and v2's SCREENS.md has no

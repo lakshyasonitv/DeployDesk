@@ -33,6 +33,8 @@
 
 **2026-10-08**
 
+- [The Margin screen is removed, because it reported a number nobody had agreed](#2026-10-08-the-margin-screen-is-removed-because-it-reported-a-number-nobody-had-agreed)
+- [A price is only negotiated after every round is cleared](#2026-10-08-a-price-is-only-negotiated-after-every-round-is-cleared)
 - [A manual add records the gate it failed, and does not enforce it](#2026-10-08-a-manual-add-records-the-gate-it-failed-and-does-not-enforce-it)
 - [The talent pool's search was built and unreachable](#2026-10-08-the-talent-pools-search-was-built-and-unreachable)
 - [Talentvibes sets the price, and a sent candidate cannot be re-priced](#2026-10-08-talentvibes-sets-the-price-and-a-sent-candidate-cannot-be-re-priced)
@@ -80,6 +82,80 @@
 - [Inline styles copied from the prototype via a parser helper](#2026-10-06-inline-styles-copied-from-the-prototype-via-a-parser-helper)
 - [Database changes are file-first and approval-gated](#2026-10-06-database-changes-are-file-first-and-approval-gated)
 - [Dual-role organisations: three decisions taken before building](#2026-10-06-dual-role-organisations-three-decisions-taken-before-building)
+
+## 2026-10-08 — The Margin screen is removed, because it reported a number nobody had agreed
+
+- **Decision.** Delete `/ops/margin` entirely: the page, its sidebar entry, the
+  `getOpsMargin()` read model and the "Export to finance" CSV. **Scope was the owner's
+  explicit choice — the page only.** Margin stays where somebody is *choosing* a rate (the
+  matching desk's rate editor) and on a placed pipeline card.
+
+- **Why.** The owner: *"the rate can be negotiated and is not that defined"*, and *"in this
+  portal the only price that is necessary is for the talent/resource that is provided by the
+  vendor only, as the client price can be negotiated."* Combined with the same day's ruling
+  that negotiation starts only after every round is cleared — see
+  [the entry below](#2026-10-08-a-price-is-only-negotiated-after-every-round-is-cleared) — a
+  screen tabulating a margin per placement was presenting a **starting figure as a settled
+  fact**, across the whole exchange, with footer totals summing it. The page was correct about
+  its own arithmetic and wrong about what the numbers were.
+
+- **Rejected.**
+  - *Keeping the CSV export without the page.* Offered; the owner chose to remove it with the
+    screen. A file asserting "Margin %" per placement makes the same claim a page would, and
+    finance would have kept quoting it.
+  - *Stripping margin from the matching desk too.* Offered as the widest scope and not taken.
+    Correctly: a margin shown while you type a rate is arithmetic on a number you are
+    choosing, not a claim about a concluded deal. It is also the control the owner asked for
+    one session earlier.
+  - *Leaving the page and relabelling it "indicative".* A caveat on a dashboard does not stop
+    anyone reading the number off it.
+
+- **Impact.** A **deliberate deviation from the v2 UI contract**, which specifies a Margin
+  screen in `SCREENS.md` — CLAUDE.md names that handoff as the contract, so this is recorded
+  rather than quietly done. 19 pages now, from 20. `MARGIN_TARGET_PCT` and `MARGIN_FLOOR_PCT`
+  stay in `rate-band.ts`: the proposed client rate is computed from the target, and 14% of the
+  ranking score is `scoreRate`. **No remaining CSV export can carry a spread**, and
+  `/api/export` now ends in a `never` so adding a third kind fails the typecheck where that
+  rule is written down.
+
+- **Still open**, all three asked and none guessed at:
+  1. The **18% floor** and its required written reason.
+  2. Whether **`0007_margin_policy.sql`** is wanted at all — the target % must live somewhere
+     because the proposed rate is computed from it, but a screen for editing it is harder to
+     justify with no margin report.
+  3. The talent pool's **`CLIENT RATE` column**, raised after the removal and not part of it.
+     It renders the proposed rate, or "not priced", as read-only context — which is the same
+     category as the page just deleted: a client-side figure shown as fact with nobody
+     choosing anything. Untouched, because the owner scoped this to the page only.
+
+- **A gap this exposed.** Nothing in the running product writes
+  `engagements.client_rate_paise`; `src/db/seed/ops-extras.ts` holds the only insert. So the
+  rule that a price is negotiated after every round has **no step in the app that records the
+  negotiated figure** — the column exists, the flow does not. Worth a decision before anything
+  else is built on top of a placed engagement's rates.
+
+## 2026-10-08 — A price is only negotiated after every round is cleared
+
+- **Owner's ruling, quoted.** *"The price negotiation starts only when the talent has cleared
+  all the rounds of both the Talentvibes as well as the rounds of the client."*
+
+- **Why it matters here.** It settles what the numbers in this product actually are. The
+  **vendor rate is the only price that is agreed** early — it is what the supplier asks for
+  their engineer. Everything on the client side is a **starting figure** until both sets of
+  rounds are behind the candidate: Talentvibes's own screening, then the client's interview
+  rounds.
+
+- **Impact.** Written up in `docs/DOMAIN.md` § *When a price becomes negotiable*, which is the
+  authority for business rules — not restated here. Two consequences worth holding:
+
+  1. The **proposed client rate** on the matching desk is indicative. It exists so a shortlist
+     can carry a band and the ranking has something to score.
+  2. **A report that treats it as settled is wrong**, which is the reason the ops Margin screen
+     came out the same day. A live margin shown while somebody *chooses* a rate is a different
+     thing and stays — arithmetic on a number being typed, not a claim about a concluded deal.
+
+- **Still open.** Whether the 18% floor and its required written reason survive, given the
+  client rate is negotiated. Asked; not yet answered. Left exactly as it is in the meantime.
 
 ## 2026-10-08 — A manual add records the gate it failed, and does not enforce it
 

@@ -173,11 +173,51 @@ holiday calendar. Put the calendar in a table, not in code.
    never relayed verbatim; a "pass" reaches the vendor as a neutral outcome with the
    commercial and identity context removed.
 
+## When a price becomes negotiable
+
+**Stated by the owner, 2026-10-08.**
+
+> Price negotiation starts only once the talent has cleared **all** the rounds — both
+> Talentvibes's own rounds and the client's rounds.
+
+Nothing before that point is a price. It is a **starting figure**, and the only number in the
+exchange that is actually settled beforehand is the **vendor rate** — what the supplier wants
+for their engineer. The client rate is negotiated, and it is negotiated last.
+
+In the model, "cleared all the rounds" means both of:
+
+| Whose rounds | Cleared when |
+|---|---|
+| **Talentvibes's** | the resource holds a `passed` assessment that is still inside its `valid_until` |
+| **The client's** | every `interviews` round for that resource has concluded and the client has selected them (`shortlist_items.client_decision = 'selected'`) |
+
+*The mapping above is an interpretation of the rule and has not been confirmed line by line;
+the sentence quoted from the owner is the authority.*
+
+### What follows from it
+
+- The **proposed client rate** on the matching desk is indicative. It exists so a shortlist
+  can carry a band and so the ranking has something to score, not because it is agreed.
+- **Any report that treats it as settled is wrong**, which is why the ops Margin screen was
+  removed on 2026-10-08 — it presented a margin per placement as a fact across the whole
+  exchange. See `project-brain/02-decisions.md`.
+- A margin shown **while somebody is choosing a rate** is a different thing and stays: it is
+  arithmetic on a number being typed, not a claim about a concluded deal.
+
 ## Margin rules
 
-- Target margin: **≥ 22%**.
+**There is no margin screen.** It was removed on 2026-10-08 — see § *When a price becomes
+negotiable* above. What remains is margin computed **at the point somebody chooses a rate**,
+never a report of margin across placements.
+
+- Target margin: **≥ 22%**. This is the figure the **proposed client rate** is computed from,
+  so it cannot simply be deleted: it is the default a negotiation starts at.
 - Floor: **18%**. Below the floor an engagement requires an explicit approval
-  (`margin_approved_by`) plus a note, and appears on the ops margin screen's guardrail panel.
+  (`margin_approved_by`) plus a note. The guardrail panel that used to list the exceptions
+  went with the screen; the approval and the note are still columns on `engagements`, still
+  seeded, and still checked by `db:verify`. **Whether the floor survives is an open question**
+  put to the owner on 2026-10-08 and not yet answered — if a client rate is negotiated, a hard
+  threshold requiring written justification may be the wrong shape. Unchanged until they say.
 - Margin is computed at the **proposed client rate** during matching, and at the
   **contracted rates** once an engagement exists. Show ops both; never conflate them.
 - Colour thresholds (presentation, but keep the boundaries in one shared constant so the

@@ -22,6 +22,12 @@
 
 ## NOW
 
+- [x] **Restore the paused Supabase project** ✅ 2026-10-31 (owner). All pages 200.
+- [x] **Reseed** ✅ 2026-10-31 (owner approved). `db:verify` 30/30, `npm test` 207/207.
+- [ ] **Header overlap at about 800 px width**: the breadcrumb overprints the "Acting as"
+      switcher. It is fine at 1366 px.
+- [ ] **Commit the session-8 Margin removal.** 16 modified/deleted files plus
+      `scripts/brain-index.py`, uncommitted since 2026-10-08.
 - [ ] **Apply migration `0006_panel_availability.sql`** — written, not applied; the owner
       runs migrations. Nothing queries the table yet, so the deployed site is safe until
       then.
@@ -29,13 +35,22 @@
       and the "Set panel availability" drawer back on the interviews header. **Advisory, not
       a gate** — a slot outside those windows is flagged and still sent.
 - [ ] **Continue the page-by-page audit.** Status first, questions second, fixes third.
-      Done: **Role pipeline**, **Matching desk**, **Margin**, **Talent pool**. Not yet:
+      Done: **Role pipeline**, **Matching desk**, **Margin** (audited, then the screen was
+      removed entirely on the owner's call), **Talent pool**. Not yet:
       **Duplicate checks**, **Organisations**, and the whole client and vendor sides.
 
       Both audits so far found the same shape of defect — a control that *looked* like it
       worked. **Check persistence by reloading, not by watching the screen update.**
 
-- [ ] **Apply migration `0007_margin_policy.sql`** — one row holding the target and floor
+- [ ] **Decide whether `0007_margin_policy.sql` is still wanted at all.** Asked on
+      2026-10-08 alongside removing the Margin screen; not answered. The target % still has
+      to exist somewhere because the proposed client rate is computed from it, but a SCREEN
+      for editing it is harder to justify now that there is no margin report. **The file is
+      left in the repo, unapplied** — nothing queries it, so the deployed site is unaffected
+      either way, and deleting a written migration on a guess is not a call to make alone.
+      Also open: whether the 18% floor and its required written reason survive.
+
+      ~~Original note:~~ one row holding the target and floor
       margin, so Talentvibes can change them without a deploy. Written, not applied. Once
       applied: a reader with the constants as the fallback, an ops-only settings control, and
       an audit row per change (the FLOOR re-derives which past placements are exceptions).

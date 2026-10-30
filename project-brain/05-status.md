@@ -5,7 +5,7 @@
 > it: the commands are at the bottom.
 >
 > Gates at the time of writing, commit `ec4ebd3` plus the working tree:
-> **20 pages + 20 API routes · 39 base tables · `db:verify` 30/30 · `npm test` 207/207 ·
+> **19 pages + 20 API routes · 39 base tables · `db:verify` 30/30 · `npm test` 207/207 ·
 > build + typecheck clean**
 >
 > `npm test` is the gate, not `npm run test:leak` — the latter only runs `tests/leak` and
@@ -32,7 +32,7 @@ These persist to Supabase, write an audit row, and are covered by tests.
 | **Light / dark theme** | everywhere | persists in `localStorage`, applied before first paint so there is no flash |
 | **Search** | sidebar, all three portals | server-backed, grouped by type, **masking per portal** — client sees `TV-####` + a band, vendor sees its own people's names, ops sees everything. 17 leak tests |
 | **"How this works" explainer** | `?` in the top bar, all portals | per-portal plain English; the `?` was a div that did nothing |
-| **CSV exports** | client People working · vendor Your earnings · ops Margin | built from the SAME read model the screen uses, so file and screen cannot disagree. UTF-8 BOM for the rupee sign, and a formula-injection guard |
+| **CSV exports** | client People working · vendor Your earnings | built from the SAME read model the screen uses, so file and screen cannot disagree. UTF-8 BOM for the rupee sign, and a formula-injection guard. The ops Margin export went with the Margin screen on 2026-10-08 — **no remaining export can carry a spread**, and `/api/export` now fails the typecheck if a third kind is added without that being considered |
 | **Act as another organisation** | top bar | demo affordance; the dual-role org is reachable this way |
 | **Hiring | Bench switcher** | top bar, dual-role orgs only | a single-sided org sees **nothing** — verified in markup |
 
@@ -182,7 +182,7 @@ npx next start -p 3000 # then click through; judge speed here, never on `npm run
 Inventory commands that produced the tables above:
 
 ```
-find app -name page.tsx                      # 20 pages
+find app -name page.tsx                      # 19 pages
 find app/api -name route.ts                  # 9 endpoints
 grep -rl "use client" app --include=*.tsx    # which components can write
 grep -rn "<Button" app --include=*.tsx | grep -v "href=\|onClick"   # dead controls
