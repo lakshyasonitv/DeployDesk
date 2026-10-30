@@ -7,7 +7,7 @@
 >
 > 1. every route returns 200 — **cold and warm**, at least twice each
 > 2. `npm run db:verify` → **30/30**
-> 3. `npm test` → **207/207** — the WHOLE suite. `test:leak` runs only `tests/leak` and
+> 3. `npm test` → **208/208** — the WHOLE suite. `test:leak` runs only `tests/leak` and
 >    misses `tests/business-clock.test.ts`, `tests/matching.test.ts` and two others, so
 >    **`npm test` is the gate**. It also loads `.env.local`; bare `npx vitest` does not.
 > 4. `npm run build` → clean (stop `next dev` and delete `.next` first)
@@ -27,7 +27,7 @@
 - [x] **Code audit** ✅ 2026-10-31: the logo-kit duplicate and three dead exports removed,
       `/client/interviews` 489 → 282 ms, `/ops` 488 → 421 ms. What was deliberately kept, and
       why, is in `journal/2026-10-31.md` Session 5. Not committed yet.
-- [ ] **Duplicate checks: audited 2026-10-31, 8 findings, none fixed yet.** Details are in
+- [ ] **Duplicate checks: audited 2026-10-31, 8 findings; 1 and 2 FIXED the same day** (a flag is settled once, and settled flags lose their buttons). 3–8 are open. Details are in
       `journal/2026-10-31.md` Session 4. The urgent one: a second click on a settled flag
       withdraws BOTH people, and settled flags stay on screen with live buttons.
 - [ ] **Header overlap at about 800 px width**: the breadcrumb overprints the "Acting as"

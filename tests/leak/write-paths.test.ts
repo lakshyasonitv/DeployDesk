@@ -23,7 +23,7 @@
  * it asserts the seeded fixture counts, so leftover rows from a test fail it loudly.
  */
 import { describe, expect, it, beforeAll, afterAll } from "vitest";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, gte, inArray } from "drizzle-orm";
 import { db } from "../../src/db/client";
 import * as s from "../../src/db/schema";
 
@@ -1259,6 +1259,65 @@ describe("a person added as a draft can be found and acted on", () => {
 /* ====================================================================== */
 /*  Zod at the boundary: a malformed body never reaches the database       */
 /* ====================================================================== */
+
+/* ====================================================================== */
+/*  A duplicate flag is settled once                                      */
+/* ====================================================================== */
+
+/**
+ * A settled flag kept its buttons and the route had no status guard, so "Keep A" then
+ * "Keep B" withdrew BOTH submissions — the person was off the exchange entirely. Found by
+ * clicking it on 2026-10-31, and confirmed in the database.
+ */
+describe("a duplicate flag is settled once", () => {
+  const CODE = "DUP-0148"; // TV-4821 (Nimbus) vs TV-7188-B (Orbit), both listed in the seed
+
+  const sides = async () => Object.fromEntries((await db
+    .select({ maskedId: s.benchResources.maskedId, status: s.benchResources.status })
+    .from(s.benchResources)
+    .where(inArray(s.benchResources.maskedId, ["TV-4821", "TV-7188-B"])))
+    .map((r) => [r.maskedId, r.status]));
+
+  it("refuses a second settle, and only re-opens what is settled", async () => {
+    const started = new Date();
+    const [flag] = await db
+      .select({ id: s.duplicateFlags.id, status: s.duplicateFlags.status })
+      .from(s.duplicateFlags)
+      .where(eq(s.duplicateFlags.code, CODE));
+    expect(flag.status).toBe("open");
+    expect(await sides()).toEqual({ "TV-4821": "listed", "TV-7188-B": "listed" });
+
+    try {
+      const first = await resolveDuplicate(post({ code: CODE, resolution: "kept_a" }));
+      expect(first.status).toBe(200);
+      expect(await sides()).toEqual({ "TV-4821": "listed", "TV-7188-B": "withdrawn" });
+
+      // The defect: this used to return 200 and withdraw TV-4821 as well.
+      const second = await resolveDuplicate(post({ code: CODE, resolution: "kept_b" }));
+      expect(second.status).toBe(409);
+      expect(await sides()).toEqual({ "TV-4821": "listed", "TV-7188-B": "withdrawn" });
+
+      const reopen = await resolveDuplicate(post({ code: CODE, resolution: "open" }));
+      expect(reopen.status).toBe(200);
+      expect(await sides()).toEqual({ "TV-4821": "listed", "TV-7188-B": "listed" });
+
+      // Re-opening an open flag would relist anybody withdrawn for an unrelated reason.
+      const again = await resolveDuplicate(post({ code: CODE, resolution: "open" }));
+      expect(again.status).toBe(409);
+    } finally {
+      // Back to the seed whatever happened above, and only this test's audit rows removed.
+      await db.update(s.duplicateFlags)
+        .set({ status: "open", resolvedBy: null, resolvedAt: null, resolutionNote: null })
+        .where(eq(s.duplicateFlags.id, flag.id));
+      await db.update(s.benchResources).set({ status: "listed" })
+        .where(inArray(s.benchResources.maskedId, ["TV-4821", "TV-7188-B"]));
+      await db.delete(s.auditLog).where(and(
+        eq(s.auditLog.entityId, flag.id),
+        gte(s.auditLog.occurredAt, started),
+      ));
+    }
+  });
+});
 
 describe("every write endpoint validates its input", () => {
   const cases: Array<[string, (r: Request) => Promise<Response>, unknown]> = [

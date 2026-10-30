@@ -111,25 +111,29 @@ export default async function DuplicatesPage() {
           );
         })}
 
-        {secondary.map((f) => (
-          <div key={f.code} style={s("background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 15px;display:flex;align-items:center;gap:12px;margin-bottom:10px")}>
-            <span style={s("width:8px;height:8px;border-radius:50%;background:var(--warn);flex:none")} />
-            <div style={s("flex:1;min-width:0")}>
-              <div style={s("font-size:12.5px;font-weight:700")}>
-                {f.sides[0]?.fullName} ({f.sides[0]?.vendorName}) vs {f.sides[1]?.fullName} ({f.sides[1]?.vendorName})
+        {secondary.map((f) => {
+          const settled = settledAs(f.status, f.sides[0]?.vendorName, f.sides[1]?.vendorName);
+          return (
+            <div key={f.code} style={s("background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 15px;display:flex;align-items:center;gap:12px;margin-bottom:10px")}>
+              <span style={sx("width:8px;height:8px;border-radius:50%;flex:none", { background: settled ? "var(--ok)" : "var(--warn)" })} />
+              <div style={s("flex:1;min-width:0")}>
+                <div style={s("font-size:12.5px;font-weight:700")}>
+                  {f.sides[0]?.fullName} ({f.sides[0]?.vendorName}) vs {f.sides[1]?.fullName} ({f.sides[1]?.vendorName})
+                </div>
+                <div style={s("font-size:11.5px;color:var(--t3);margin-top:3px")}>
+                  {f.signals.map((x) => x.verdict === "DIFFERENT" ? `different ${x.label.toLowerCase()}` : x.label.toLowerCase()).join(", ")}.{" "}
+                  {settled ?? "Needs a human call."}
+                </div>
               </div>
-              <div style={s("font-size:11.5px;color:var(--t3);margin-top:3px")}>
-                {f.signals.map((x) => x.verdict === "DIFFERENT" ? `different ${x.label.toLowerCase()}` : x.label.toLowerCase()).join(", ")}. Needs a human call.
+              <div style={s("text-align:right;flex:none")}>
+                <div style={sx("font-size:11px;font-weight:700", { fontFamily: TOKENS.mono })}>{f.code} · {f.confidence}%</div>
+                <div style={s("font-size:10.5px;color:var(--t4);margin-top:2px")}>
+                  assigned to {f.assignedName ?? "unassigned"} · {settled ? "settled" : "open"}
+                </div>
               </div>
             </div>
-            <div style={s("text-align:right;flex:none")}>
-              <div style={sx("font-size:11px;font-weight:700", { fontFamily: TOKENS.mono })}>{f.code} · {f.confidence}%</div>
-              <div style={s("font-size:10.5px;color:var(--t4);margin-top:2px")}>
-                assigned to {f.assignedName ?? "unassigned"} · {f.status}
-              </div>
-            </div>
-          </div>
-        ))}
+          );
+        })}
 
         {flags.length === 0 ? (
           <div style={s("background:var(--surface);border:1px dashed var(--border-2);border-radius:12px;padding:34px;text-align:center;color:var(--t4);font-size:12.5px")}>
@@ -139,6 +143,14 @@ export default async function DuplicatesPage() {
       </Scroll>
     </Shell>
   );
+}
+
+/** What a settled flag decided, in words. `null` while the flag is still open. */
+function settledAs(status: string, vendorA?: string, vendorB?: string): string | null {
+  if (status === "kept_a") return `Settled: kept ${vendorA ?? "submission A"}.`;
+  if (status === "kept_b") return `Settled: kept ${vendorB ?? "submission B"}.`;
+  if (status === "not_duplicate") return "Settled: two different people.";
+  return null;
 }
 
 function SidePanel({ side }: { side: Side }) {

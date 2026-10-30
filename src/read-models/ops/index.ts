@@ -966,8 +966,10 @@ export async function getOpsDuplicates() {
       status: f.status,
       detectedAt: f.detectedAt.toISOString(),
       assignedName: f.assignedName,
-      // >= 85 blocks both resources; 60-84 flags without blocking.
-      blocks: f.confidence >= 85,
+      // >= 85 blocks both resources; 60-84 flags without blocking. Only while OPEN — the
+      // matcher and shortlist-send use the same rule, and a settled flag that still read as
+      // blocking kept its resolve buttons, which is how a second click withdrew both sides.
+      blocks: f.confidence >= 85 && f.status === "open",
       blockedRequirementCount: (f.blocksRequirements ?? []).length,
       signals: f.signals as Array<{ key: string; label: string; verdict: string; severity: string; detail?: string }>,
       sides: [a, b].filter(Boolean),

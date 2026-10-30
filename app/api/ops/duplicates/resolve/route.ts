@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/src/db/client";
 import * as s from "@/src/db/schema";
@@ -76,8 +76,19 @@ export async function POST(req: Request) {
   // The submission that loses, if any. `not_duplicate` and `open` withdraw nobody.
   const loser = resolution === "kept_a" ? sideB : resolution === "kept_b" ? sideA : null;
 
-  await db.transaction(async (tx) => {
-    await tx.update(s.duplicateFlags)
+  /**
+   * A flag is settled ONCE, and only a settled flag can be re-opened.
+   *
+   * There was no such check, and a settled flag still showed its buttons: "Keep A" then
+   * "Keep B" withdrew BOTH submissions, taking the person off the exchange entirely.
+   * Re-opening an already-open flag was the mirror defect — it relists any side that is
+   * withdrawn, including one withdrawn for a reason that has nothing to do with this flag.
+   *
+   * The condition is on the UPDATE rather than a read beforehand, so two brokers clicking at
+   * once cannot both pass it: the second update matches no row and the whole call refuses.
+   */
+  const settled = await db.transaction(async (tx) => {
+    const [updated] = await tx.update(s.duplicateFlags)
       .set({
         status: resolution,
         resolvedBy: resolution === "open" ? null : session.userId,
@@ -85,7 +96,14 @@ export async function POST(req: Request) {
         resolutionNote: note ?? null,
         updatedAt: now,
       })
-      .where(eq(s.duplicateFlags.id, flag.id));
+      .where(and(
+        eq(s.duplicateFlags.id, flag.id),
+        resolution === "open"
+          ? ne(s.duplicateFlags.status, "open")
+          : eq(s.duplicateFlags.status, "open"),
+      ))
+      .returning({ id: s.duplicateFlags.id });
+    if (!updated) return false;
 
     if (loser) {
       await tx.update(s.benchResources)
@@ -129,7 +147,15 @@ export async function POST(req: Request) {
       context: { source: "ops_console", code, reason: resolution === "open" ? "undo" : undefined },
       occurredAt: now,
     });
+    return true;
   });
+
+  if (!settled) {
+    return NextResponse.json(
+      { error: resolution === "open" ? "already_open" : "already_settled", status: flag.status },
+      { status: 409 },
+    );
+  }
 
   return NextResponse.json({
     code,

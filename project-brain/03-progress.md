@@ -17,11 +17,11 @@ last_log: 2026-10-31
 (`client`, `vendor`, `ops`) over one database, with masking enforced in portal-specific read
 models rather than RLS (ADR-003).
 
-**Gates, as of 2026-10-08:**
+**Gates, as of 2026-10-31:**
 
 | Gate | State |
 |---|---|
-| `npm test` | **207 passing**, 10 files |
+| `npm test` | **208 passing**, 10 files (as of 2026-10-31) |
 | `npm run db:verify` | **30/30** |
 | `npm run build` | clean |
 | `npx tsc --noEmit` | clean |
@@ -88,7 +88,7 @@ percent-encoded (`@` becomes `%40`). Ask the owner for credentials; do not guess
 | `npm run dev` | dev server; **slow by design**, judge speed on `next start` instead |
 | `npm run build` | production build — **stop `next dev` and `rm -rf .next` first**, or it fails with `Cannot find module for page` |
 | `npx next start -p 3000` | production server, what to measure |
-| `npm test` | **the gate** — 207 tests. It loads `.env.local`; bare `npx vitest` does not |
+| `npm test` | **the gate** — 208 tests. It loads `.env.local`; bare `npx vitest` does not |
 | `npm run db:verify` | 30 assertions over the seeded data |
 | `npm run db:seed` | reseed (~4s) |
 | `npm run db:apply -- --dry` | list pending hand-written SQL migrations, touch nothing |
