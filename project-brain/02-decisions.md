@@ -4,7 +4,7 @@
 > reversed, add a new entry linking back.
 >
 > **Scope of this file.** Architectural decisions live in `../docs/DECISIONS.md` as numbered
-> ADRs (ADR-001 … ADR-010, plus ten open questions Q1–Q10). That file is the authority and
+> ADRs (ADR-001 … ADR-010, plus eleven open questions Q1–Q11). That file is the authority and
 > has its own supersede protocol — do **not** copy ADRs here or they will drift the first
 > time one is superseded.
 >
@@ -30,6 +30,11 @@
 
 > Newest first, which is also the order of the entries below. Generated from the headings — regenerate it rather than editing by hand.
 
+
+**2026-10-31**
+
+- [Talentvibes sees everything; the client and the vendor see the bare minimum](#2026-10-31-talentvibes-sees-everything-the-client-and-the-vendor-see-the-bare-minimum)
+- [Duplicate checks: the owner delegated six calls; how each was made](#2026-10-31-duplicate-checks-the-owner-delegated-six-calls-how-each-was-made)
 
 **2026-10-08**
 
@@ -82,6 +87,61 @@
 - [Inline styles copied from the prototype via a parser helper](#2026-10-06-inline-styles-copied-from-the-prototype-via-a-parser-helper)
 - [Database changes are file-first and approval-gated](#2026-10-06-database-changes-are-file-first-and-approval-gated)
 - [Dual-role organisations: three decisions taken before building](#2026-10-06-dual-role-organisations-three-decisions-taken-before-building)
+
+## 2026-10-31 — Talentvibes sees everything; the client and the vendor see the bare minimum
+
+- **Decision:** the owner's rule, in their words: *"only talentvibes should have all the info
+  and other two vendor and client should have the bare minimum info."* It is the test for
+  every screen in the remaining audit. Ops screens may show every detail and get every tool;
+  a client or vendor screen shows only what that side needs to act, and nothing about the
+  other side.
+- **Why:** it restates CLAUDE.md's one rule as a design default. Masking stops the leak, and
+  this goes further: if a field is not needed, don't show it.
+- **Rejected:** treating each portal's visibility as a per-screen negotiation. That is how
+  "it's only a count" or "it's only a status" leaks accumulate.
+- **Impact:** the client and vendor audits are judged against this. First application: a
+  vendor whose submission loses a duplicate check sees only "withdrawn". No reason is given
+  and no other supplier is named. That is less than DOMAIN's "already represented" message,
+  which is now an open question (Q11 in `docs/DECISIONS.md`).
+
+## 2026-10-31 — Duplicate checks: the owner delegated six calls; how each was made
+
+- **Decision**, on "you decide":
+  1. **No one with live work is withdrawn.** If a person has an onboarding, active or ending
+     placement, or sits on a shortlist a client has not passed on, a Keep that would withdraw
+     them is refused (409 `cannot_withdraw`). The button is disabled and the reason is shown.
+     The check lives in one place, `src/services/withdrawal.ts`, used by both the route and
+     the screen.
+  2. **60–84% flags get the same three buttons.** "Needs a human call" with no way to make
+     one was a dead end.
+  3. **The recommendation follows DOMAIN's order:** submitted first, then confirmed more
+     recently, then the more reliable supplier. Each rule only breaks a tie in the one
+     before, and the screen states the rule that decided it. EARLIER/LATER comes from the
+     timestamps and is left off when they are equal.
+  4. **"N open flags" is plain text, and "Detection rules" is removed.** This follows the
+     Panel-availability precedent: an inert control is removed, not left. There are 5 inert
+     controls now, down from 6.
+  5. **Undo relists only the person that decision withdrew**: B after `kept_a`, A after
+     `kept_b`, nobody after `not_duplicate`.
+  6. **DOMAIN's `→ shortlisted` block is enforced** in the stage route (409
+     `blocked_duplicate`). The pipeline board now rolls a refused move back and says why;
+     it used to ignore the response altogether.
+  7. **The copy is honest.** "Notify the other supplier" was removed, because nothing
+     notifies anyone.
+- **Why:** each choice reveals less or does less harm when unsure (working agreement 8).
+  Withdrawing a working person is a client conversation, not a broker tidy-up. In the seed,
+  "Keep Orbit" would have withdrawn TV-4821, who is on an active placement and was
+  selected by a client.
+- **Rejected:**
+  - **Allowing the withdrawal with a warning.** A warning still lets one click remove a
+    working person.
+  - **Checking only `status = 'listed'`.** TV-4821 and TV-4488 are `listed` AND on live
+    placements, so that check would not have caught either.
+  - **Building the vendor notification.** It needs the broker-thread write path, and it
+    reveals more than the minimum.
+- **Impact:** a person with live work can only leave a duplicate pair via "Two different
+  people", or after the client is spoken to. Tests: three new refusals, each watched failing
+  on the old code, plus a pure test of the recommendation order. 212 tests.
 
 ## 2026-10-08 — The Margin screen is removed, because it reported a number nobody had agreed
 

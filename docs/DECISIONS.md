@@ -227,6 +227,7 @@ Resolve these with the business before the affected code ships. Until then, take
 | Q8 | Does a client ever get the assessment report file, or only the summary? | Summary only. |
 | Q9 | Vendor reliability formula weights — the design shows scores (4.6, 3.1) but no derivation. | Use the formula in `docs/DOMAIN.md`, version it, revisit after 90 days of real outcomes. |
 | Q10 | Is the exchange exclusive — can a client contract a vendor directly after meeting them at an interview? | Contractual, not technical. Ensure the audit log can evidence introduction dates. |
+| Q11 | `docs/DOMAIN.md` says the vendor that loses a duplicate check "is told only that the profile is already represented on the exchange." Nothing tells them today; the broker-thread write path that would carry it does not exist. Should they be told, and through what? | **They see only `withdrawn`, with no reason.** That reveals the least — not even that a second supplier exists — and matches the owner's 2026-10-31 rule that a vendor sees the bare minimum. The ops screen no longer claims the supplier is notified. |
 
 ---
 

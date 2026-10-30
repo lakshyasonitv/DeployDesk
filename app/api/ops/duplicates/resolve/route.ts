@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { and, eq, ne } from "drizzle-orm";
+import { and, eq, inArray, ne } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/src/db/client";
 import * as s from "@/src/db/schema";
 import { getDemoSession } from "@/src/lib/auth/session";
+import { withdrawBlockers } from "@/src/services/withdrawal";
 
 /**
  * POST /api/ops/duplicates/resolve — settle a duplicate flag.
@@ -26,8 +27,11 @@ import { getDemoSession } from "@/src/lib/auth/session";
  * client through two suppliers is how a brokered marketplace loses a client's trust, and
  * it is also how two suppliers discover each other.
  *
- * Undo re-opens the flag and relists whatever was withdrawn, which is why `before` records
- * the previous status of both resources rather than only the flag.
+ * Undo re-opens the flag and relists the person that decision withdrew. `before` records the
+ * previous status of both resources rather than only the flag, so the audit row is complete.
+ *
+ * Nobody with live work — a placement, or a shortlist a client holds — is withdrawn from
+ * here: that is a 409 naming the reason, and the screen disables the button to match.
  */
 
 const Body = z.object({
@@ -61,20 +65,38 @@ export async function POST(req: Request) {
 
   if (!flag) return NextResponse.json({ error: "not_found" }, { status: 404 });
 
-  // Both sides' current status, so Undo can put them back exactly as they were rather
-  // than guessing at "listed".
+  // Both sides' current status, for the audit row and for Undo.
   const sides = await db
     .select({ id: s.benchResources.id, maskedId: s.benchResources.maskedId, status: s.benchResources.status })
     .from(s.benchResources)
-    .where(eq(s.benchResources.id, flag.resourceAId));
-  const [sideB] = await db
-    .select({ id: s.benchResources.id, maskedId: s.benchResources.maskedId, status: s.benchResources.status })
-    .from(s.benchResources)
-    .where(eq(s.benchResources.id, flag.resourceBId));
-  const sideA = sides[0];
+    .where(inArray(s.benchResources.id, [flag.resourceAId, flag.resourceBId]));
+  const sideA = sides.find((x) => x.id === flag.resourceAId);
+  const sideB = sides.find((x) => x.id === flag.resourceBId);
 
   // The submission that loses, if any. `not_duplicate` and `open` withdraw nobody.
   const loser = resolution === "kept_a" ? sideB : resolution === "kept_b" ? sideA : null;
+
+  // Nobody a client is relying on is withdrawn from here (src/services/withdrawal.ts).
+  if (loser) {
+    const why = (await withdrawBlockers([loser.id])).get(loser.id);
+    if (why) {
+      return NextResponse.json(
+        { error: "cannot_withdraw", maskedId: loser.maskedId, reason: `${loser.maskedId} ${why}` },
+        { status: 409 },
+      );
+    }
+  }
+
+  /**
+   * Undo relists exactly the person the previous decision withdrew — B after `kept_a`, A
+   * after `kept_b`, nobody after `not_duplicate` — and only if they are still withdrawn.
+   * It used to relist ANY withdrawn side, including one withdrawn for an unrelated reason.
+   * `listed` is right by construction: only a listed person can be withdrawn here.
+   */
+  const relist = resolution !== "open" ? null
+    : flag.status === "kept_a" ? sideB
+    : flag.status === "kept_b" ? sideA
+    : null;
 
   /**
    * A flag is settled ONCE, and only a settled flag can be re-opened.
@@ -111,22 +133,10 @@ export async function POST(req: Request) {
         .where(eq(s.benchResources.id, loser.id));
     }
 
-    /**
-     * Re-opening relists both sides.
-     *
-     * `listed` rather than their exact previous status, deliberately: a resource that was
-     * `withdrawn` only because this flag resolved against it belongs back on the bench,
-     * and one that was already `in_process` is not reachable here because resolving never
-     * touched it. The audit row carries the real previous values either way.
-     */
-    if (resolution === "open") {
-      for (const side of [sideA, sideB]) {
-        if (side?.status === "withdrawn") {
-          await tx.update(s.benchResources)
-            .set({ status: "listed", updatedAt: now })
-            .where(eq(s.benchResources.id, side.id));
-        }
-      }
+    if (relist?.status === "withdrawn") {
+      await tx.update(s.benchResources)
+        .set({ status: "listed", updatedAt: now })
+        .where(eq(s.benchResources.id, relist.id));
     }
 
     await tx.insert(s.auditLog).values({

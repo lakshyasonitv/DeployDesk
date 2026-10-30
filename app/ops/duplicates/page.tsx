@@ -1,4 +1,4 @@
-import { Shell, PageHeader, Scroll, Button, SectionLabel } from "@/src/lib/ui/Shell";
+import { Shell, PageHeader, Scroll, SectionLabel } from "@/src/lib/ui/Shell";
 import { getDemoSession, getShellNav } from "@/src/lib/auth/session";
 import { getOpsDuplicates } from "@/src/read-models/ops";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
@@ -45,11 +45,20 @@ export default async function DuplicatesPage() {
       <PageHeader
         title="Duplicate checks"
         subtitle="Same person submitted by two suppliers · resolve before a shortlist goes out"
-        actions={<><Button>Detection rules</Button><Button primary accent="var(--t1)">{open.length} open flags</Button></>}
+        /*
+          "Detection rules" is gone: it opened nothing, and no agreed thresholds exist to put
+          behind it (working agreement 8). "N open flags" was a primary button that did
+          nothing; it is a count, so it reads as one.
+        */
+        actions={
+          <span style={s("font-size:12.5px;font-weight:700;color:var(--t2)")}>
+            {open.length} open {open.length === 1 ? "flag" : "flags"}
+          </span>
+        }
       />
       <Scroll>
         {blocking.map((f) => {
-          const keeper = f.sides.find((x) => x && x.maskedId === f.recommendation);
+          const keeper = f.recommendation === "b" ? f.sides[1] : f.sides[0];
           return (
             <div key={f.code} style={s("background:var(--surface);border:1px solid var(--danger-tint);border-radius:12px;overflow:hidden;margin-bottom:14px")}>
               <div style={s("background:var(--danger-tint);border-bottom:1px solid var(--danger-tint);padding:11px 15px;display:flex;align-items:center;justify-content:space-between;gap:12px")}>
@@ -68,7 +77,7 @@ export default async function DuplicatesPage() {
               </div>
 
               <div style={s("display:grid;grid-template-columns:1fr 200px 1fr")}>
-                {f.sides[0] ? <SidePanel side={f.sides[0]} /> : <div />}
+                {f.sides[0] ? <SidePanel side={f.sides[0]} letter="A" /> : <div />}
 
                 <div style={s("background:var(--surface-2);border-left:1px solid var(--surface-3);border-right:1px solid var(--surface-3);padding:13px")}>
                   <SectionLabel>MATCH SIGNALS</SectionLabel>
@@ -85,27 +94,18 @@ export default async function DuplicatesPage() {
                   </div>
                 </div>
 
-                {f.sides[1] ? <SidePanel side={f.sides[1]} /> : <div />}
+                {f.sides[1] ? <SidePanel side={f.sides[1]} letter="B" /> : <div />}
               </div>
 
               <div style={s("background:var(--surface-2);border-top:1px solid var(--surface-3);padding:13px 15px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap")}>
                 <div style={s("font-size:12px;color:var(--t2);line-height:1.6;flex:1;min-width:260px")}>
                   <strong style={s("font-weight:700")}>Recommended:</strong> keep the{" "}
-                  <strong style={s("font-weight:700")}>{keeper?.vendorName ?? "earlier"}</strong>{" "}
-                  submission — earlier, confirmed availability and the higher reliability score.
-                  Notify the other supplier that the profile is already represented; neither the
-                  client nor the candidate is told.
+                  <strong style={s("font-weight:700")}>{keeper?.vendorName ?? "first"}</strong>{" "}
+                  submission, because {f.recommendationReason ?? "it was submitted first"}. The other
+                  submission is withdrawn. Its supplier sees only that it was withdrawn, never who
+                  else submitted it, and neither the client nor the candidate is told.
                 </div>
-                {/*
-                  These were <Button> elements with no handler while
-                  /api/ops/duplicates/resolve already existed and was tested. The page is a
-                  server component, so the buttons live in a client island.
-                */}
-                <ResolveActions
-                  code={f.code}
-                  keepALabel={f.sides[0]?.vendorName.split(" ")[0] ?? "A"}
-                  keepBLabel={f.sides[1]?.vendorName.split(" ")[0] ?? "B"}
-                />
+                <Resolve f={f} />
               </div>
             </div>
           );
@@ -114,7 +114,7 @@ export default async function DuplicatesPage() {
         {secondary.map((f) => {
           const settled = settledAs(f.status, f.sides[0]?.vendorName, f.sides[1]?.vendorName);
           return (
-            <div key={f.code} style={s("background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 15px;display:flex;align-items:center;gap:12px;margin-bottom:10px")}>
+            <div key={f.code} style={s("background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 15px;display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap")}>
               <span style={sx("width:8px;height:8px;border-radius:50%;flex:none", { background: settled ? "var(--ok)" : "var(--warn)" })} />
               <div style={s("flex:1;min-width:0")}>
                 <div style={s("font-size:12.5px;font-weight:700")}>
@@ -131,6 +131,12 @@ export default async function DuplicatesPage() {
                   assigned to {f.assignedName ?? "unassigned"} · {settled ? "settled" : "open"}
                 </div>
               </div>
+              {/* "Needs a human call" used to come with no way to make one. */}
+              {settled ? null : (
+                <div style={s("flex-basis:100%;display:flex;justify-content:flex-end")}>
+                  <Resolve f={f} />
+                </div>
+              )}
             </div>
           );
         })}
@@ -145,6 +151,24 @@ export default async function DuplicatesPage() {
   );
 }
 
+/**
+ * The three resolve buttons for one flag. "Keep A" withdraws B, so it is disabled by B's
+ * blocker, and vice versa — the same check the route enforces (src/services/withdrawal.ts).
+ */
+function Resolve({ f }: { f: Flags[number] }) {
+  const [a, b] = f.sides;
+  return (
+    <ResolveActions
+      code={f.code}
+      keepALabel={a?.vendorName.split(" ")[0] ?? "A"}
+      keepBLabel={b?.vendorName.split(" ")[0] ?? "B"}
+      keepABlockedBy={b?.withdrawBlocker ? `${b.maskedId} ${b.withdrawBlocker}` : null}
+      keepBBlockedBy={a?.withdrawBlocker ? `${a.maskedId} ${a.withdrawBlocker}` : null}
+      recommended={f.recommendation}
+    />
+  );
+}
+
 /** What a settled flag decided, in words. `null` while the flag is still open. */
 function settledAs(status: string, vendorA?: string, vendorB?: string): string | null {
   if (status === "kept_a") return `Settled: kept ${vendorA ?? "submission A"}.`;
@@ -153,16 +177,18 @@ function settledAs(status: string, vendorA?: string, vendorB?: string): string |
   return null;
 }
 
-function SidePanel({ side }: { side: Side }) {
+function SidePanel({ side, letter }: { side: Side; letter: "A" | "B" }) {
+  // EARLIER / LATER comes from the timestamps, and is left off when they are equal.
+  const tone = side.order === "earlier" ? "ok" : side.order === "later" ? "warn" : null;
   return (
     <div style={s("padding:13px 15px")}>
       <div style={s("display:flex;align-items:center;gap:8px;flex-wrap:wrap")}>
         <span style={sx("padding:2px 7px;border-radius:4px;font-size:8.5px;font-weight:700;letter-spacing:.08em", {
-          background: side.isFirst ? "var(--ok-tint)" : "var(--warn-tint)",
-          color: side.isFirst ? "var(--ok)" : "var(--warn)",
+          background: tone ? `var(--${tone}-tint)` : "var(--surface-3)",
+          color: tone ? `var(--${tone})` : "var(--t2)",
           fontFamily: TOKENS.mono,
         })}>
-          {side.isFirst ? "SUBMISSION A · EARLIER" : "SUBMISSION B · LATER"}
+          SUBMISSION {letter}{side.order ? ` · ${side.order.toUpperCase()}` : ""}
         </span>
         <span style={sx("font-size:9.5px;color:var(--t4)", { fontFamily: TOKENS.mono })}>
           {stamp(side.submittedAt).toUpperCase()}

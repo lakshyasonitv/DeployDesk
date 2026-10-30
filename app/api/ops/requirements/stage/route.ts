@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
+import { and, eq, gte, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/src/db/client";
 import * as s from "@/src/db/schema";
@@ -81,6 +81,30 @@ export async function POST(req: Request) {
     .from(s.requirements).where(eq(s.requirements.code, code)).limit(1);
   if (!req0) return NextResponse.json({ error: "not_found" }, { status: 404 });
   if (req0.stage === toStage) return NextResponse.json({ code, stage: toStage, unchanged: true });
+
+  /**
+   * docs/DOMAIN.md: `→ shortlisted` is blocked while an open duplicate flag lists this
+   * requirement. The rule was written down and nothing enforced it — only shortlist-send
+   * checked duplicates, and by person, so a drag on the pipeline walked straight past it.
+   * Same threshold as everywhere else: open and >= 85.
+   */
+  if (toStage === "shortlisted") {
+    const [blocker] = await db
+      .select({ code: s.duplicateFlags.code, confidence: s.duplicateFlags.confidence })
+      .from(s.duplicateFlags)
+      .where(and(
+        eq(s.duplicateFlags.status, "open"),
+        gte(s.duplicateFlags.confidence, 85),
+        sql`${req0.id} = any(${s.duplicateFlags.blocksRequirements})`,
+      ))
+      .limit(1);
+    if (blocker) {
+      return NextResponse.json(
+        { error: "blocked_duplicate", flag: `${blocker.code} (${blocker.confidence}%)` },
+        { status: 409 },
+      );
+    }
+  }
 
   const now = new Date();
 

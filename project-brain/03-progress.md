@@ -21,7 +21,7 @@ models rather than RLS (ADR-003).
 
 | Gate | State |
 |---|---|
-| `npm test` | **208 passing**, 10 files (as of 2026-10-31) |
+| `npm test` | **212 passing**, 10 files (as of 2026-10-31) |
 | `npm run db:verify` | **30/30** |
 | `npm run build` | clean |
 | `npx tsc --noEmit` | clean |
@@ -36,7 +36,7 @@ round); real talent-pool filters with saved views and a search box; the draft �
 **the matching engine** — `docs/MATCHING.md`'s six components and five gates, so a posted
 requirement is sourced automatically instead of dead-ending on an empty desk.
 
-**`05-status.md` is the authoritative list** of what works, what is half-built and the **6**
+**`05-status.md` is the authoritative list** of what works, what is half-built and the **5**
 controls that still do nothing, each with a note on whether it needs a data model, an
 external system, or just work.
 
@@ -88,7 +88,7 @@ percent-encoded (`@` becomes `%40`). Ask the owner for credentials; do not guess
 | `npm run dev` | dev server; **slow by design**, judge speed on `next start` instead |
 | `npm run build` | production build — **stop `next dev` and `rm -rf .next` first**, or it fails with `Cannot find module for page` |
 | `npx next start -p 3000` | production server, what to measure |
-| `npm test` | **the gate** — 208 tests. It loads `.env.local`; bare `npx vitest` does not |
+| `npm test` | **the gate** — 212 tests. It loads `.env.local`; bare `npx vitest` does not |
 | `npm run db:verify` | 30 assertions over the seeded data |
 | `npm run db:seed` | reseed (~4s) |
 | `npm run db:apply -- --dry` | list pending hand-written SQL migrations, touch nothing |
@@ -152,8 +152,10 @@ Recorded in `docs/DOMAIN.md` and `04-tasks.md`; left exactly as they are until a
 
 **3. Continue the page-by-page audit.** The owner's pattern is: status first, questions
 second, fixes third. **Role pipeline**, **Matching desk**, **Margin** (audited, then removed
-on the owner's call) and **Talent pool** are done. Not yet audited: **Duplicate checks** and
-**Organisations** on the ops side, and the whole client and vendor sides.
+on the owner's call), **Talent pool** and **Duplicate checks** (2026-10-31, all 8 findings
+fixed) are done. Not yet audited: **Organisations** on the ops side, and the whole client and
+vendor sides — judge those against the owner's 2026-10-31 rule: Talentvibes sees everything,
+the client and vendor see the bare minimum (`02-decisions.md`).
 
 The two audits so far both found the same shape of defect — a control that *looked* like it
 worked. The pipeline's due dates referred to a stage the role had left; the matching desk's

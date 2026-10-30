@@ -32,7 +32,7 @@ export function PipelineBoard({
   const [atRisk, setAtRisk] = useState(false);
   const [needsSourcing, setNeedsSourcing] = useState(false);
   const [stageOverride, setStageOverride] = useState<Record<string, string>>({});
-  const [toast, setToast] = useState<{ msg: string; code: string; prev: string } | null>(null);
+  const [toast, setToast] = useState<{ msg: string; code: string; prev: string; refused?: boolean } | null>(null);
   const [dragging, setDragging] = useState<string | null>(null);
 
   const rows = useMemo(
@@ -64,12 +64,30 @@ export function PipelineBoard({
     setStageOverride((p) => ({ ...p, [code]: toStage }));
     setDragging(null);
     setToast({ msg: `${code} · ${row.roleTitle} moved to ${stageMeta(toStage).label.toLowerCase()}`, code, prev });
+    /**
+     * Optimistic, but not blind. The response used to be ignored entirely, so a move the
+     * server refused still showed as moved — with a toast saying so — until a reload put
+     * the card back. A refusal now puts it back at once and says why.
+     */
+    let refusedWith: string | null = null;
     try {
-      await fetch("/api/ops/requirements/stage", {
+      const res = await fetch("/api/ops/requirements/stage", {
         method: "POST", headers: { "content-type": "application/json" },
         body: JSON.stringify({ code, toStage, reason: "pipeline_drag" }),
       });
-    } catch { /* optimistic; the next load reflects server truth */ }
+      if (!res.ok) {
+        const body = await res.json().catch(() => null) as { error?: string; flag?: string } | null;
+        refusedWith = body?.error === "blocked_duplicate"
+          ? `${code} can't be shortlisted while duplicate flag ${body.flag} is open. Settle it on Duplicate checks first.`
+          : `${code} did not move. The change was refused.`;
+      }
+    } catch {
+      refusedWith = `${code} did not move. The connection failed.`;
+    }
+    if (refusedWith) {
+      setStageOverride((p) => ({ ...p, [code]: prev }));
+      setToast({ msg: refusedWith, code, prev, refused: true });
+    }
   };
 
   const step = (code: string, dir: 1 | -1) => {
@@ -164,12 +182,14 @@ export function PipelineBoard({
       {/* ---------------- toast ---------------- */}
       {toast ? (
         <div style={s("background:var(--t1);color:var(--surface);padding:10px 26px;display:flex;align-items:center;gap:11px;flex:none")}>
-          <span style={s("width:7px;height:7px;border-radius:50%;background:var(--ok);flex:none")} />
+          <span style={sx("width:7px;height:7px;border-radius:50%;flex:none", { background: toast.refused ? "var(--danger)" : "var(--ok)" })} />
           <span style={s("font-size:12.5px;flex:1")}>{toast.msg}</span>
-          <button onClick={undo}
-            style={sx("border:0;background:transparent;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit", { color: "var(--brand)" })}>
-            Undo
-          </button>
+          {toast.refused ? null : (
+            <button onClick={undo}
+              style={sx("border:0;background:transparent;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit", { color: "var(--brand)" })}>
+              Undo
+            </button>
+          )}
           <button onClick={() => setToast(null)}
             style={s("border:0;background:transparent;font-size:12px;color:var(--t4);cursor:pointer;font-family:inherit")}>
             Dismiss

@@ -45,7 +45,7 @@ import {
 import { POST as sendShortlist } from "@/app/api/ops/shortlists/send/route";
 import { algoScore as weightedTotal } from "../../src/lib/matching/score";
 import { marginPct, MARGIN_FLOOR_PCT } from "../../src/lib/money/rate-band";
-import { getOpsMatchingWorkspace } from "../../src/read-models/ops";
+import { getOpsMatchingWorkspace, recommendKeeper } from "../../src/read-models/ops";
 import { algoScore } from "../../src/lib/matching/score";
 import { getVendorAssessments, getVendorRoster } from "../../src/read-models/vendor";
 import {
@@ -1278,7 +1278,8 @@ describe("a duplicate flag is settled once", () => {
     .where(inArray(s.benchResources.maskedId, ["TV-4821", "TV-7188-B"])))
     .map((r) => [r.maskedId, r.status]));
 
-  it("refuses a second settle, and only re-opens what is settled", async () => {
+  /** Run `body` against the seeded flag, then put the seed back whatever happened. */
+  async function onSeededFlag(body: () => Promise<void>) {
     const started = new Date();
     const [flag] = await db
       .select({ id: s.duplicateFlags.id, status: s.duplicateFlags.status })
@@ -1286,26 +1287,9 @@ describe("a duplicate flag is settled once", () => {
       .where(eq(s.duplicateFlags.code, CODE));
     expect(flag.status).toBe("open");
     expect(await sides()).toEqual({ "TV-4821": "listed", "TV-7188-B": "listed" });
-
     try {
-      const first = await resolveDuplicate(post({ code: CODE, resolution: "kept_a" }));
-      expect(first.status).toBe(200);
-      expect(await sides()).toEqual({ "TV-4821": "listed", "TV-7188-B": "withdrawn" });
-
-      // The defect: this used to return 200 and withdraw TV-4821 as well.
-      const second = await resolveDuplicate(post({ code: CODE, resolution: "kept_b" }));
-      expect(second.status).toBe(409);
-      expect(await sides()).toEqual({ "TV-4821": "listed", "TV-7188-B": "withdrawn" });
-
-      const reopen = await resolveDuplicate(post({ code: CODE, resolution: "open" }));
-      expect(reopen.status).toBe(200);
-      expect(await sides()).toEqual({ "TV-4821": "listed", "TV-7188-B": "listed" });
-
-      // Re-opening an open flag would relist anybody withdrawn for an unrelated reason.
-      const again = await resolveDuplicate(post({ code: CODE, resolution: "open" }));
-      expect(again.status).toBe(409);
+      await body();
     } finally {
-      // Back to the seed whatever happened above, and only this test's audit rows removed.
       await db.update(s.duplicateFlags)
         .set({ status: "open", resolvedBy: null, resolvedAt: null, resolutionNote: null })
         .where(eq(s.duplicateFlags.id, flag.id));
@@ -1315,6 +1299,98 @@ describe("a duplicate flag is settled once", () => {
         eq(s.auditLog.entityId, flag.id),
         gte(s.auditLog.occurredAt, started),
       ));
+    }
+  }
+
+  const resolve = async (resolution: string) => {
+    const res = await resolveDuplicate(post({ code: CODE, resolution }));
+    return { status: res.status, body: await res.json() as { error?: string } };
+  };
+
+  it("refuses a second settle, and only re-opens what is settled", () => onSeededFlag(async () => {
+    expect((await resolve("kept_a")).status).toBe(200);
+    expect(await sides()).toEqual({ "TV-4821": "listed", "TV-7188-B": "withdrawn" });
+
+    // "Two different people" withdraws nobody, so only the settle-once guard can stop it.
+    expect(await resolve("not_duplicate")).toEqual({ status: 409, body: expect.objectContaining({ error: "already_settled" }) });
+    expect(await sides()).toEqual({ "TV-4821": "listed", "TV-7188-B": "withdrawn" });
+
+    expect((await resolve("open")).status).toBe(200);
+    expect(await sides()).toEqual({ "TV-4821": "listed", "TV-7188-B": "listed" });
+
+    // Re-opening an open flag would relist anybody withdrawn for an unrelated reason.
+    expect(await resolve("open")).toEqual({ status: 409, body: expect.objectContaining({ error: "already_open" }) });
+  }));
+
+  it("never withdraws somebody a client is relying on", () => onSeededFlag(async () => {
+    // "Keep Orbit" would withdraw TV-4821 — on an active placement, and selected by a client.
+    expect(await resolve("kept_b")).toEqual({ status: 409, body: expect.objectContaining({ error: "cannot_withdraw" }) });
+    expect(await sides()).toEqual({ "TV-4821": "listed", "TV-7188-B": "listed" });
+    const [flag] = await db.select({ status: s.duplicateFlags.status })
+      .from(s.duplicateFlags).where(eq(s.duplicateFlags.code, CODE));
+    expect(flag.status).toBe("open");
+  }));
+
+  it("Undo relists only the person that decision withdrew", () => onSeededFlag(async () => {
+    expect((await resolve("kept_a")).status).toBe(200); // withdraws TV-7188-B
+    // TV-4821 withdrawn afterwards for a reason that has nothing to do with this flag.
+    await db.update(s.benchResources).set({ status: "withdrawn" })
+      .where(eq(s.benchResources.maskedId, "TV-4821"));
+
+    expect((await resolve("open")).status).toBe(200);
+    expect(await sides()).toEqual({ "TV-4821": "withdrawn", "TV-7188-B": "listed" });
+  }));
+
+  it("recommends in DOMAIN's order: first submitted, then fresher, then more reliable", () => {
+    const t = (iso: string) => new Date(iso);
+    const base = { createdAt: t("2026-10-01"), lastConfirmedAt: t("2026-10-10"), vendorReliability: "4.0" };
+    // Submitted first wins even against fresher and more reliable.
+    expect(recommendKeeper(
+      { ...base, createdAt: t("2026-10-02"), lastConfirmedAt: t("2026-10-20"), vendorReliability: "4.9" },
+      base,
+    ).keep).toBe("b");
+    // Same moment: the more recently confirmed wins, whatever the reliability.
+    expect(recommendKeeper(base, { ...base, lastConfirmedAt: t("2026-10-12"), vendorReliability: "3.0" }).keep).toBe("b");
+    // Same moment and same confirmation: reliability decides.
+    expect(recommendKeeper(base, { ...base, vendorReliability: "4.5" }).keep).toBe("b");
+    // The seed's DUP-0148 is that middle case: confirmed 2d vs 6d ago, so Nimbus (A).
+  });
+});
+
+/**
+ * DOMAIN: `→ shortlisted` is blocked while an open duplicate flag lists the requirement.
+ * Written down, never enforced — a pipeline drag walked past it.
+ */
+describe("a duplicate flag blocks shortlisting its requirement", () => {
+  it("refuses → shortlisted while an open flag lists the role", async () => {
+    const [flag] = await db
+      .select({ id: s.duplicateFlags.id, blocks: s.duplicateFlags.blocksRequirements })
+      .from(s.duplicateFlags).where(eq(s.duplicateFlags.code, "DUP-0148"));
+    const [req] = await db
+      .select({ id: s.requirements.id, stage: s.requirements.stage, slaDueAt: s.requirements.slaDueAt, slaWindowHours: s.requirements.slaWindowHours })
+      .from(s.requirements).where(eq(s.requirements.code, "REQ-2302"));
+    expect(req.stage).not.toBe("shortlisted");
+    const started = new Date();
+
+    await db.update(s.duplicateFlags)
+      .set({ blocksRequirements: [...(flag.blocks ?? []), req.id] })
+      .where(eq(s.duplicateFlags.id, flag.id));
+    try {
+      const res = await changeStage(post({ code: "REQ-2302", toStage: "shortlisted", reason: MARK }));
+      expect(res.status).toBe(409);
+      expect((await res.json() as { error: string }).error).toBe("blocked_duplicate");
+      const [after] = await db.select({ stage: s.requirements.stage })
+        .from(s.requirements).where(eq(s.requirements.id, req.id));
+      expect(after.stage).toBe(req.stage);
+    } finally {
+      await db.update(s.duplicateFlags).set({ blocksRequirements: flag.blocks })
+        .where(eq(s.duplicateFlags.id, flag.id));
+      // Only matters if the guard failed and the move went through.
+      await db.update(s.requirements)
+        .set({ stage: req.stage, slaDueAt: req.slaDueAt, slaWindowHours: req.slaWindowHours })
+        .where(eq(s.requirements.id, req.id));
+      await db.delete(s.requirementStageEvents).where(eq(s.requirementStageEvents.reason, MARK));
+      await db.delete(s.auditLog).where(and(eq(s.auditLog.entityId, req.id), gte(s.auditLog.occurredAt, started)));
     }
   });
 });

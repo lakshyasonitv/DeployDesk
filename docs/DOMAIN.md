@@ -245,7 +245,9 @@ Thresholds: ≥ 85 auto-flag and **block** any shortlist containing either resou
 Resolution: ops keeps one submission and rejects the other. The recommendation favours the
 **earlier submission** with the better freshness and higher vendor reliability. The losing
 vendor is told only that the profile is already represented on the exchange. **Neither the
-client nor the candidate is informed.**
+client nor the candidate is informed.** (Not built: today the losing vendor sees only
+`withdrawn`, with no reason — see Q11 in `docs/DECISIONS.md`. Nobody with live work — a
+placement, or a shortlist a client holds — is withdrawn by a resolution.)
 
 Note the real-world case the design hints at (`TV-3964` vs `TV-6104`): the same person may
 genuinely have moved between vendors. A differing PAN with a matching phone is "needs a

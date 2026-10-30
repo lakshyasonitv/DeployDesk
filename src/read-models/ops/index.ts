@@ -15,6 +15,7 @@ import { formatPaiseExact, formatPaiseShort } from "../../lib/money/paise";
 import { marginBand, marginPct } from "../../lib/money/rate-band";
 import { MATCHING_COMPONENTS } from "../../lib/matching/score";
 import { OPEN_STAGES } from "../../lib/matching/run";
+import { withdrawBlockers } from "../../services/withdrawal";
 import {
   SLA_WINDOW_HOURS, ageLabel, formatExperience, freshnessFor, slaFor, type SlaState, istFormat } from "../../lib/derived";
 
@@ -924,14 +925,17 @@ export async function getOpsDuplicates() {
     : [];
   const assessBy = new Map(assessRows.map((a) => [a.resourceId, a]));
   const byId = new Map(resources.map((r) => [r.id, r]));
+  const blockers = await withdrawBlockers(resourceIds);
 
-  const side = (id: string, isFirst: boolean) => {
+  const side = (id: string, order: "earlier" | "later" | null) => {
     const r = byId.get(id);
     if (!r) return null;
     const a = assessBy.get(id);
     const f = freshnessFor(r.lastConfirmedAt);
     return {
-      isFirst,
+      order,
+      /** Why this person cannot be withdrawn — which disables "Keep" on the OTHER side. */
+      withdrawBlocker: blockers.get(id) ?? null,
       maskedId: r.maskedId,
       fullName: r.fullName,
       vendorName: r.vendorName,
@@ -952,14 +956,12 @@ export async function getOpsDuplicates() {
   };
 
   return flags.map((f) => {
-    const a = side(f.resourceAId, true);
-    const b = side(f.resourceBId, false);
-    // Recommendation: keep the earlier submission with the better freshness and higher
-    // vendor reliability (docs/DOMAIN.md).
-    const recommendation = a && b
-      ? (Number(byId.get(f.resourceAId)?.vendorReliability ?? 0) >= Number(byId.get(f.resourceBId)?.vendorReliability ?? 0)
-          ? a.maskedId : b.maskedId)
-      : null;
+    const ra = byId.get(f.resourceAId);
+    const rb = byId.get(f.resourceBId);
+    const gap = ra && rb ? ra.createdAt.getTime() - rb.createdAt.getTime() : 0;
+    const a = side(f.resourceAId, gap < 0 ? "earlier" : gap > 0 ? "later" : null);
+    const b = side(f.resourceBId, gap > 0 ? "earlier" : gap < 0 ? "later" : null);
+    const rec = ra && rb ? recommendKeeper(ra, rb) : null;
     return {
       code: f.code,
       confidence: f.confidence,
@@ -973,9 +975,36 @@ export async function getOpsDuplicates() {
       blockedRequirementCount: (f.blocksRequirements ?? []).length,
       signals: f.signals as Array<{ key: string; label: string; verdict: string; severity: string; detail?: string }>,
       sides: [a, b].filter(Boolean),
-      recommendation,
+      /** "a" or "b": which submission to keep, and the rule that decided it. */
+      recommendation: rec?.keep ?? null,
+      recommendationReason: rec?.reason ?? null,
     };
   });
+}
+
+type Submission = { createdAt: Date; lastConfirmedAt: Date | null; vendorReliability: string | number | null };
+
+/**
+ * Which duplicate submission to keep, in docs/DOMAIN.md's order: the EARLIER submission,
+ * then the more recently confirmed availability, then the more reliable supplier. Each
+ * rule only breaks a tie in the one before, and the reason names the rule that decided it.
+ *
+ * It used to compare reliability alone while the screen claimed all three.
+ */
+export function recommendKeeper(a: Submission, b: Submission): { keep: "a" | "b"; reason: string } {
+  const submitted = a.createdAt.getTime() - b.createdAt.getTime();
+  if (submitted) return { keep: submitted < 0 ? "a" : "b", reason: "it was submitted first" };
+
+  const confirmed = (a.lastConfirmedAt?.getTime() ?? 0) - (b.lastConfirmedAt?.getTime() ?? 0);
+  if (confirmed) {
+    return { keep: confirmed > 0 ? "a" : "b", reason: "both arrived together, and its availability was confirmed more recently" };
+  }
+
+  const reliability = Number(a.vendorReliability ?? 0) - Number(b.vendorReliability ?? 0);
+  if (reliability) {
+    return { keep: reliability > 0 ? "a" : "b", reason: "both arrived and were confirmed together, and its supplier is more reliable" };
+  }
+  return { keep: "a", reason: "nothing separates the two, so the first-flagged side" };
 }
 
 /* ----------------------------------------------------------------- utils */

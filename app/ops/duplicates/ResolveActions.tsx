@@ -17,23 +17,47 @@ import { useToast } from "@/src/lib/ui/Toast";
  * "are you sure?" before every one would slow down a desk that clears these in batches,
  * and it still would not help the case that matters — realising thirty seconds later that
  * you kept the wrong side. Undo re-opens the flag and relists what was withdrawn.
+ *
+ * "Keep A" withdraws B. When B cannot be withdrawn — a live placement, a shortlist a client
+ * holds — that button is disabled and the reason is shown, rather than offering a click
+ * the route will refuse.
  */
+
+type Resolution = "kept_a" | "kept_b" | "not_duplicate";
+
+/** Each refusal the route can give, in words a broker can act on. */
+function refusal(code: string, body: { error?: string; reason?: string } | null): string {
+  switch (body?.error) {
+    case "already_settled": return `${code} was already settled. Showing the current state.`;
+    case "already_open": return `${code} is already open.`;
+    case "cannot_withdraw": return `Not settled: ${body.reason ?? "that person cannot be withdrawn"}.`;
+    default: return `Could not settle ${code}.`;
+  }
+}
 
 export function ResolveActions({
   code,
   keepALabel,
   keepBLabel,
+  keepABlockedBy,
+  keepBBlockedBy,
+  recommended,
 }: {
   code: string;
   /** The supplier whose submission "Keep A" keeps, for a button that names it. */
   keepALabel: string;
   keepBLabel: string;
+  /** Why "Keep A" cannot be used (it would withdraw B), or null. */
+  keepABlockedBy: string | null;
+  keepBBlockedBy: string | null;
+  /** Which "Keep" the recommendation favours; that one is the primary button. */
+  recommended: "a" | "b" | null;
 }) {
   const router = useRouter();
   const toast = useToast();
-  const [busy, setBusy] = useState<string | null>(null);
+  const [busy, setBusy] = useState<Resolution | null>(null);
 
-  async function resolve(resolution: "kept_a" | "kept_b" | "not_duplicate") {
+  async function resolve(resolution: Resolution) {
     if (busy) return;
     setBusy(resolution);
     try {
@@ -42,14 +66,18 @@ export function ResolveActions({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ code, resolution }),
       });
-      if (!res.ok) throw new Error("resolve failed");
+      if (!res.ok) {
+        toast({ tone: "error", message: refusal(code, await res.json().catch(() => null)) });
+        router.refresh();
+        return;
+      }
       const out = await res.json() as { withdrew: string | null };
 
       toast({
         message: out.withdrew
           ? `${code} settled. ${out.withdrew} withdrawn, so they cannot be offered twice.`
           : `${code} marked as two different people. Neither submission was withdrawn.`,
-        // Re-opens the flag and relists whatever was withdrawn.
+        // Re-opens the flag and relists the person this withdrew.
         undo: async () => {
           const r = await fetch("/api/ops/duplicates/resolve", {
             method: "POST",
@@ -69,46 +97,48 @@ export function ResolveActions({
   }
 
   const base = "padding:0 13px;height:34px;display:inline-flex;align-items:center;border-radius:9px;font-size:12.5px;font-weight:700;font-family:inherit;white-space:nowrap";
+  const look = (primary: boolean, blocked: boolean) => sx(base, {
+    background: primary ? "var(--t1)" : "var(--surface)",
+    color: primary ? "var(--surface)" : "var(--t1)",
+    border: primary ? 0 : "1px solid var(--border-2)",
+    cursor: busy || blocked ? "default" : "pointer",
+    opacity: busy || blocked ? 0.45 : 1,
+  });
+
+  const keep = (side: "a" | "b", label: string, blockedBy: string | null) => (
+    <button
+      type="button"
+      onClick={() => resolve(side === "a" ? "kept_a" : "kept_b")}
+      disabled={busy !== null || blockedBy !== null}
+      title={blockedBy ? `Can't: ${blockedBy}` : undefined}
+      style={look(recommended === side && !blockedBy, blockedBy !== null)}
+    >
+      {busy === `kept_${side}` ? "Settling…" : `Keep ${label}`}
+    </button>
+  );
+
+  const blocked = [keepABlockedBy, keepBBlockedBy].filter(Boolean);
 
   return (
-    <div style={s("display:flex;gap:8px;flex:none;flex-wrap:wrap")}>
-      <button
-        type="button"
-        onClick={() => resolve("kept_a")}
-        disabled={busy !== null}
-        style={sx(base, {
-          background: "var(--t1)", color: "var(--surface)", border: 0,
-          cursor: busy ? "default" : "pointer", opacity: busy ? 0.6 : 1,
-        })}
-      >
-        {busy === "kept_a" ? "Settling…" : `Keep ${keepALabel}`}
-      </button>
-
-      <button
-        type="button"
-        onClick={() => resolve("kept_b")}
-        disabled={busy !== null}
-        style={sx(base, {
-          background: "var(--surface)", color: "var(--t1)",
-          border: "1px solid var(--border-2)",
-          cursor: busy ? "default" : "pointer", opacity: busy ? 0.6 : 1,
-        })}
-      >
-        {busy === "kept_b" ? "Settling…" : `Keep ${keepBLabel}`}
-      </button>
-
-      <button
-        type="button"
-        onClick={() => resolve("not_duplicate")}
-        disabled={busy !== null}
-        style={sx(base, {
-          background: "var(--surface)", color: "var(--t2)",
-          border: "1px solid var(--border-2)",
-          cursor: busy ? "default" : "pointer", opacity: busy ? 0.6 : 1,
-        })}
-      >
-        {busy === "not_duplicate" ? "Saving…" : "Two different people"}
-      </button>
+    <div style={s("display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex:none")}>
+      <div style={s("display:flex;gap:8px;flex-wrap:wrap")}>
+        {keep("a", keepALabel, keepABlockedBy)}
+        {keep("b", keepBLabel, keepBBlockedBy)}
+        <button
+          type="button"
+          onClick={() => resolve("not_duplicate")}
+          disabled={busy !== null}
+          style={sx(look(false, false), { color: "var(--t2)" })}
+        >
+          {busy === "not_duplicate" ? "Saving…" : "Two different people"}
+        </button>
+      </div>
+      {/* Said on screen, not only in a tooltip: a greyed button with no reason is a dead end. */}
+      {blocked.length ? (
+        <div style={s("font-size:10.5px;color:var(--t4);text-align:right;max-width:420px")}>
+          Can&apos;t withdraw: {blocked.join("; ")}. Talk to the client first.
+        </div>
+      ) : null}
     </div>
   );
 }

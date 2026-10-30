@@ -98,7 +98,7 @@ header link hardcoded to `REQ-2291` was removed.
 requirement check names fixture codes instead of counting rows. Nothing was loosened; the
 code check is stricter than the count was.
 
-## 3. Visible but inert — 6 controls that do nothing
+## 3. Visible but inert — 5 controls that do nothing
 
 Each needs a decision, not just wiring. Grouped by what they actually need.
 
@@ -110,7 +110,7 @@ Each needs a decision, not just wiring. Grouped by what they actually need.
   under the database-safety rule. Deliberately not faked with a read-only list behind a
   button that says "set".
 - **Save draft** (`/client/interviews`) — feedback drafts have no column; the endpoint supports a null outcome, so this is close
-- **Detection rules** (`/ops/duplicates`) — a settings screen that does not exist
+- ~~**Detection rules** (`/ops/duplicates`)~~ — **REMOVED from the screen 2026-10-31**, the same call as Panel availability: no agreed thresholds exist to put behind it (working agreement 8)
 
 **Needs an external system**
 - **Raise invoice** (`/vendor/earnings`) — billing integration
