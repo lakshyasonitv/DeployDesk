@@ -55,7 +55,8 @@ const mono = IBM_Plex_Mono({
 });
 
 /**
- * Icons and manifest come from deploydesk-logo-kit/, installed into /public per its README.
+ * Icons and manifest live in /public (from the DeployDesk logo kit; the kit's folder itself
+ * was removed as a byte-identical duplicate on 2026-10-31 and is in git history).
  *
  * Declared through the `metadata` export rather than hand-written <link> tags, which is
  * what the App Router wants — Next emits the tags and dedupes them. `themeColor` lives in

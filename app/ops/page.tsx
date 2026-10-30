@@ -10,16 +10,19 @@ export const metadata = { title: "Role pipeline · DeployDesk" };
 
 export default async function OpsPipelinePage() {
   const session = await getDemoSession("ops");
-  const nav = await getShellNav(session);
-  const aside = await OpsAside();
+  // Independent reads, so one round trip instead of four sequential ones.
   // The board needs the full pipeline; the sidebar no longer fetches it.
-  const pipeline = await getOpsPipeline();
-
-  const [counts] = await db.execute<{ clients: number; vendors: number }>(sql`
-    select
-      (select count(*) from organizations where org_type = 'client')::int as clients,
-      (select count(*) from organizations where org_type = 'vendor')::int as vendors
-  `) as unknown as Array<{ clients: number; vendors: number }>;
+  const [nav, aside, pipeline, countRows] = await Promise.all([
+    getShellNav(session),
+    OpsAside(),
+    getOpsPipeline(),
+    db.execute(sql`
+      select
+        (select count(*) from organizations where org_type = 'client')::int as clients,
+        (select count(*) from organizations where org_type = 'vendor')::int as vendors
+    `),
+  ]);
+  const [counts] = countRows as unknown as Array<{ clients: number; vendors: number }>;
 
   return (
     <Shell portal="ops" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }} activeKey="pipeline" asideTitle="TODAY'S QUEUE"

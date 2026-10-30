@@ -34,8 +34,3 @@ export async function getHolidaySet(region?: string): Promise<ReadonlySet<string
   cache = { at: Date.now(), set };
   return set;
 }
-
-/** For tests and the seed, which must not read a stale cache. */
-export function clearHolidayCache() {
-  cache = null;
-}

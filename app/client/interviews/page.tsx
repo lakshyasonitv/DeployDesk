@@ -18,10 +18,12 @@ export const metadata = { title: "Interviews · DeployDesk" };
 
 export default async function ClientInterviewsPage() {
   const session = await getDemoSession("client");
-  const nav = await getShellNav(session);
-  const interviews = await getClientInterviews(session.orgId);
-  const feedback = await getClientFeedbackDue(session.orgId);
-  const aside = await ShellAside(session.orgId);
+  const [nav, interviews, feedback, aside] = await Promise.all([
+    getShellNav(session),
+    getClientInterviews(session.orgId),
+    getClientFeedbackDue(session.orgId),
+    ShellAside(session.orgId),
+  ]);
 
   const scheduled = interviews.filter((i) => i.scheduledAt);
   const waiting = interviews.filter((i) => i.waitingLabel);

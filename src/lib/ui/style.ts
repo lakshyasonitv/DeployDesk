@@ -112,13 +112,6 @@ export const TOKENS = {
  */
 export const ACCENT = { client: "var(--brand)", vendor: "var(--brand)", ops: "var(--brand)" } as const;
 
-/** The logo tile is flat brand blue in v2, not a gradient. Kept for call-site shape. */
-export const ACCENT_GRADIENT = {
-  client: "var(--brand)",
-  vendor: "var(--brand)",
-  ops: "var(--brand)",
-} as const;
-
 /* ----------------------------------------------------------------- brand */
 
 /**
@@ -162,13 +155,6 @@ export const STAGES = [
 
 export const SLA_COLOR = {
   ok: "var(--ok)", warn: "var(--warn)", late: "var(--danger)", idle: "var(--t4)",
-} as const;
-
-/** Margin colour thresholds, shared so the API and UI cannot disagree. */
-export const MARGIN_COLOR = {
-  green: { bg: "var(--ok-tint)", fg: "var(--ok)" },
-  amber: { bg: "var(--warn-tint)", fg: "var(--warn)" },
-  red: { bg: "var(--danger-tint)", fg: "var(--danger)" },
 } as const;
 
 export function stageMeta(key: string) {

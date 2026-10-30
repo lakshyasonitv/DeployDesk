@@ -161,7 +161,7 @@ export function Shell({
         {/* logo lockup — 30x30 brand tile, name and byline, never wrapping */}
         <div style={s("padding:0 16px 14px;display:flex;align-items:center;gap:10px")}>
           {/*
-            The Bridge mark from deploydesk-logo-kit. Cool strokes are the suppliers, warm
+            The Bridge mark from the DeployDesk logo kit. Cool strokes are the suppliers, warm
             strokes the clients, and they both point at one blue centre — Talentvibes. The
             two sides never touch, which is the product's promise, so the kit's rules say
             not to recolour individual strokes or swap the halves.

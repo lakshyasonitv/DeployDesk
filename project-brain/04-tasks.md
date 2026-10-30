@@ -24,6 +24,12 @@
 
 - [x] **Restore the paused Supabase project** ✅ 2026-10-31 (owner). All pages 200.
 - [x] **Reseed** ✅ 2026-10-31 (owner approved). `db:verify` 30/30, `npm test` 207/207.
+- [x] **Code audit** ✅ 2026-10-31: the logo-kit duplicate and three dead exports removed,
+      `/client/interviews` 489 → 282 ms, `/ops` 488 → 421 ms. What was deliberately kept, and
+      why, is in `journal/2026-10-31.md` Session 5. Not committed yet.
+- [ ] **Duplicate checks: audited 2026-10-31, 8 findings, none fixed yet.** Details are in
+      `journal/2026-10-31.md` Session 4. The urgent one: a second click on a settled flag
+      withdraws BOTH people, and settled flags stay on screen with live buttons.
 - [ ] **Header overlap at about 800 px width**: the breadcrumb overprints the "Acting as"
       switcher. It is fine at 1366 px.
 - [ ] **Commit the session-8 Margin removal.** 16 modified/deleted files plus
