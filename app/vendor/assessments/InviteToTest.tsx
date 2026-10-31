@@ -1,8 +1,9 @@
 "use client";
 
+import { Button } from "@/src/lib/ui/Button";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { s, sx } from "@/src/lib/ui/style";
+import { s } from "@/src/lib/ui/style";
 import { useToast } from "@/src/lib/ui/Toast";
 
 /**
@@ -97,31 +98,19 @@ export function InviteAllButton({ maskedIds }: { maskedIds: string[] }) {
   }
 
   return (
-    <button
-      type="button"
-      onClick={() => run(maskedIds, (q) => `Requested a test for ${q} ${q === 1 ? "person" : "people"}.`)}
-      disabled={busy}
-      style={sx("padding:0 14px;height:34px;display:inline-flex;align-items:center;border:0;border-radius:9px;font-size:var(--fs-4);font-weight:700;color:#fff;background:var(--teal);font-family:inherit;white-space:nowrap", {
-        cursor: busy ? "default" : "pointer", opacity: busy ? 0.6 : 1,
-      })}
-    >
+    <Button primary onClick={() => run(maskedIds, (q) => `Requested a test for ${q} ${q === 1 ? "person" : "people"}.`)} disabled={busy}>
       {busy ? "Requesting…" : `Request a test for ${n}`}
-    </button>
+    </Button>
   );
 }
 
 export function RequestTestButton({ maskedId, fullName }: { maskedId: string; fullName: string }) {
   const { run, busy } = useRequest();
   return (
-    <button
-      type="button"
-      onClick={() => run([maskedId], () => `Requested a test for ${fullName}.`)}
-      disabled={busy}
-      style={sx("margin-top:11px;width:100%;padding:7px;border:1px solid var(--teal);border-radius:8px;font-size:var(--fs-2);font-weight:700;background:transparent;color:var(--teal);font-family:inherit", {
-        cursor: busy ? "default" : "pointer", opacity: busy ? 0.6 : 1,
-      })}
-    >
-      {busy ? "Requesting…" : "Request a test"}
-    </button>
+    <div style={s("margin-top:11px")}>
+      <Button size="sm" full onClick={() => run([maskedId], () => `Requested a test for ${fullName}.`)} disabled={busy}>
+        {busy ? "Requesting…" : "Request a test"}
+      </Button>
+    </div>
   );
 }

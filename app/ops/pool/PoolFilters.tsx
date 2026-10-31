@@ -318,7 +318,7 @@ export function PoolFilters({
               </button>
               <button type="button" onClick={() => forgetView(v.name)}
                 aria-label={`Forget ${v.name}`} title="Forget this view"
-                style={s("padding:4px 8px;border:1px solid var(--brand-tint-2);border-radius:0 999px 999px 0;font-size:var(--fs-1);font-weight:700;background:var(--brand-tint);color:var(--brand);cursor:pointer;font-family:inherit;line-height:1")}>
+                style={s("padding:4px 8px;border:1px solid var(--brand-tint-2);border-radius:0 999px 999px 0;font-size:var(--fs-1);font-weight:700;background:var(--brand-tint);color:var(--brand-ink);cursor:pointer;font-family:inherit;line-height:1")}>
                 ×
               </button>
             </span>
@@ -334,10 +334,10 @@ export function PoolFilters({
             onChange={(e) => setViewName(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") saveView(); if (e.key === "Escape") setNaming(false); }}
             placeholder="Name this view"
-            style={s("padding:4px 9px;border:1px solid var(--border-2);border-radius:999px;font-size:var(--fs-1);font-family:inherit;outline:none;width:150px")}
+            style={s("padding:4px 9px;border:1px solid var(--border-2);border-radius:999px;font-size:var(--fs-1);font-family:inherit;outline:none;width:150px;background:var(--surface-2);color:var(--t1)")}
           />
           <button type="button" onClick={saveView} disabled={busy}
-            style={sx("padding:4px 10px;border:0;border-radius:999px;font-size:var(--fs-1);font-weight:700;background:var(--brand);color:#fff;font-family:inherit", { cursor: busy ? "default" : "pointer", opacity: busy ? 0.6 : 1 })}>
+            style={sx("padding:4px 10px;border:0;border-radius:999px;font-size:var(--fs-1);font-weight:700;background:var(--brand);color:var(--on-accent);font-family:inherit", { cursor: busy ? "default" : "pointer", opacity: busy ? 0.6 : 1 })}>
             {busy ? "Saving…" : "Save"}
           </button>
           <button type="button" onClick={() => setNaming(false)}

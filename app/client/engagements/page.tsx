@@ -45,7 +45,7 @@ export default async function ClientEngagementsPage() {
         actions={<Button href="/api/export?kind=client-engagements" download>Download statement</Button>}
       />
       <Scroll>
-        <div style={s("display:grid;grid-template-columns:repeat(4,1fr);gap:12px")}>
+        <div style={s("display:grid;grid-template-columns:repeat(auto-fit,minmax(198px,1fr));gap:12px")}>
           <StatCard label="PEOPLE WORKING" value={engagements.length} sub="across your requirements" />
           <StatCard label="TOTAL PER MONTH" value={totalBand} sub="range of what you pay Talentvibes" />
           <StatCard

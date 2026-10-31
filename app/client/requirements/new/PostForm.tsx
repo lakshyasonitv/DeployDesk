@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/src/lib/ui/Button";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/src/lib/ui/Toast";
@@ -177,20 +178,20 @@ export function PostForm({ availableSkills }: { availableSkills: string[] }) {
   return (
     <div style={s("display:grid;grid-template-columns:1.6fr 1fr;gap:18px;align-items:start")}>
       {/* ---------------- form ---------------- */}
-      <div style={s("background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px")}>
+      <div style={s("background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px")}>
         <Group label="ROLE">
           <Field label="What is the role called?">
-            <input
+            <input className="tv-field"
               value={roleTitle}
               onChange={(e) => setRoleTitle(e.target.value)}
               placeholder="e.g. Senior React Engineer"
-              style={s("width:100%;padding:8px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-4);font-family:inherit;outline:none")}
+              style={s("width:100%;padding:8px 11px;border:1px solid var(--border-2);border-radius:9px;font-size:var(--fs-4);font-family:inherit;outline:none")}
             />
           </Field>
           <Field label="Primary skills">
             <div style={s("display:flex;flex-wrap:wrap;gap:5px;align-items:center")}>
               {skills.map((sk) => (
-                <span key={sk} style={s("display:inline-flex;align-items:center;gap:6px;padding:4px 9px;background:var(--brand-tint);border-radius:6px;font-size:var(--fs-2);font-weight:600;color:var(--brand)")}>
+                <span key={sk} style={s("display:inline-flex;align-items:center;gap:6px;padding:4px 9px;background:var(--brand-tint);border-radius:6px;font-size:var(--fs-2);font-weight:600;color:var(--brand-ink)")}>
                   {sk}
                   <button onClick={() => setSkills((p) => p.filter((x) => x !== sk))}
                     style={s("border:0;background:transparent;color:var(--brand);cursor:pointer;font-size:var(--fs-3);line-height:1;padding:0;font-family:inherit")}>×</button>
@@ -202,7 +203,7 @@ export function PostForm({ availableSkills }: { availableSkills: string[] }) {
                 onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSkill(draft); } }}
                 placeholder="Add a skill…"
                 list="skill-options"
-                style={s("border:0;outline:none;font-size:var(--fs-2);padding:4px;min-width:110px;font-family:inherit")}
+                style={s("border:0;outline:none;font-size:var(--fs-2);padding:4px;min-width:110px;font-family:inherit;background:transparent;color:inherit")}
               />
               <datalist id="skill-options">
                 {availableSkills.map((sk) => <option key={sk} value={sk} />)}
@@ -242,7 +243,7 @@ export function PostForm({ availableSkills }: { availableSkills: string[] }) {
               <Slider label="Ceiling" value={maxL} min={0.6} max={3} onChange={(v) => setMaxL(Math.max(v, minL + 0.1))} />
             </div>
             <div style={sx("display:flex;justify-content:space-between;font-size:var(--fs-1);color:var(--t4);margin-top:5px", { fontFamily: TOKENS.mono })}>
-              <span>₹60K</span><span>₹3L</span>
+              <span>₹60,000</span><span>₹3L</span>
             </div>
             {preview ? (
               <div style={s("margin-top:10px;background:var(--brand-tint);border-radius:8px;padding:10px;font-size:var(--fs-2);font-weight:600;color:var(--brand-h);line-height:1.5")}>
@@ -260,17 +261,17 @@ export function PostForm({ availableSkills }: { availableSkills: string[] }) {
           </Field>
 
           <Field label="Duration">
-            <input value={duration} onChange={(e) => setDuration(e.target.value)}
+            <input className="tv-field" value={duration} onChange={(e) => setDuration(e.target.value)}
               placeholder="e.g. 6 months, extendable"
-              style={s("width:100%;padding:8px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-4);font-family:inherit;outline:none")} />
+              style={s("width:100%;padding:8px 11px;border:1px solid var(--border-2);border-radius:9px;font-size:var(--fs-4);font-family:inherit;outline:none")} />
           </Field>
         </Group>
 
         <Group label="LOGISTICS">
           <Field label="Location">
-            <input value={location} onChange={(e) => setLocation(e.target.value)}
+            <input className="tv-field" value={location} onChange={(e) => setLocation(e.target.value)}
               placeholder="e.g. Bangalore"
-              style={s("width:100%;padding:8px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-4);font-family:inherit;outline:none")} />
+              style={s("width:100%;padding:8px 11px;border:1px solid var(--border-2);border-radius:9px;font-size:var(--fs-4);font-family:inherit;outline:none")} />
           </Field>
           <Field label="Work mode">
             <Segments
@@ -279,8 +280,8 @@ export function PostForm({ availableSkills }: { availableSkills: string[] }) {
             />
           </Field>
           <Field label="Start date">
-            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)}
-              style={s("padding:8px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-4);font-family:inherit;outline:none")} />
+            <input className="tv-field" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)}
+              style={s("padding:8px 11px;border:1px solid var(--border-2);border-radius:9px;font-size:var(--fs-4);font-family:inherit;outline:none")} />
           </Field>
           <Field label="Notice period accepted">
             <div style={s("display:flex;gap:6px;flex-wrap:wrap")}>
@@ -300,12 +301,12 @@ export function PostForm({ availableSkills }: { availableSkills: string[] }) {
             </div>
           </Field>
           <Field label="Note for your Talentvibes team">
-            <textarea
+            <textarea className="tv-field"
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="Anything that would help us pick the right people. Only your Talentvibes team sees this."
               rows={3}
-              style={s("width:100%;padding:9px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-3);font-family:inherit;outline:none;resize:vertical;line-height:1.5")}
+              style={s("width:100%;padding:9px 11px;border:1px solid var(--border-2);border-radius:9px;font-size:var(--fs-3);font-family:inherit;outline:none;resize:vertical;line-height:1.5")}
             />
             <div style={s("font-size:var(--fs-1);color:var(--t4);margin-top:5px")}>
               Shared with your Talentvibes team only. Never passed to a supplier.
@@ -320,26 +321,12 @@ export function PostForm({ availableSkills }: { availableSkills: string[] }) {
         ) : null}
 
         <div style={s("display:flex;align-items:center;gap:9px;padding-top:15px;border-top:1px solid var(--border);flex-wrap:wrap")}>
-          <button
-            type="button"
-            onClick={() => submit("new")}
-            disabled={busy !== null}
-            style={sx("padding:9px 15px;border:0;border-radius:8px;font-size:var(--fs-4);font-weight:700;background:var(--brand);color:#fff;font-family:inherit", {
-              cursor: busy ? "default" : "pointer", opacity: busy ? 0.6 : 1,
-            })}
-          >
+          <Button primary onClick={() => submit("new")} disabled={busy !== null}>
             {busy === "new" ? "Sending\u2026" : "Send to Talentvibes"}
-          </button>
-          <button
-            type="button"
-            onClick={() => submit("draft")}
-            disabled={busy !== null}
-            style={sx("padding:9px 15px;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-4);font-weight:600;background:var(--surface);font-family:inherit", {
-              cursor: busy ? "default" : "pointer", opacity: busy ? 0.6 : 1,
-            })}
-          >
+          </Button>
+          <Button onClick={() => submit("draft")} disabled={busy !== null}>
             {busy === "draft" ? "Saving\u2026" : "Save draft"}
-          </button>
+          </Button>
           <div style={s("margin-left:auto;font-size:var(--fs-2);color:var(--t3)")}>
             Typical first shortlist: <strong style={s("font-weight:700")}>36 hours</strong>
           </div>
@@ -349,7 +336,7 @@ export function PostForm({ availableSkills }: { availableSkills: string[] }) {
       {/* ---------------- right rail ---------------- */}
       <div style={s("display:flex;flex-direction:column;gap:14px")}>
         <div style={s("background:var(--t1);border-radius:12px;padding:16px;color:var(--surface)")}>
-          <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.14em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
+          <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.14em;color:var(--inv-3)", { fontFamily: TOKENS.mono })}>
             HOW BROKERING WORKS
           </div>
           <div style={s("display:flex;flex-direction:column;gap:11px;margin-top:12px")}>
@@ -365,14 +352,14 @@ export function PostForm({ availableSkills }: { availableSkills: string[] }) {
                 </div>
                 <div>
                   <div style={s("font-size:var(--fs-3);font-weight:700")}>{title}</div>
-                  <div style={s("font-size:var(--fs-1);color:var(--t2);margin-top:2px;line-height:1.5")}>{body}</div>
+                  <div style={s("font-size:var(--fs-1);color:var(--inv-2);margin-top:2px;line-height:1.5")}>{body}</div>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        <div style={s("background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:15px")}>
+        <div style={s("background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:15px")}>
           <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.14em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
             LIVE MATCH PREVIEW
           </div>

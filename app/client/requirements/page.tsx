@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Shell, PageHeader, Scroll, Button, SectionLabel } from "@/src/lib/ui/Shell";
+import { Shell, PageHeader, Scroll, Button, SectionLabel, HeadCell, EmptyState, Pill } from "@/src/lib/ui/Shell";
 import { getDemoSession, getShellNav } from "@/src/lib/auth/session";
 import { getClientRequirements } from "@/src/read-models/client";
 import { s, sx, TOKENS, stageMeta } from "@/src/lib/ui/style";
@@ -9,7 +9,7 @@ import { ShellAside } from "../aside";
 export const metadata = { title: "Open roles · DeployDesk" };
 
 // The flexible column has a floor: as a bare 1fr it collapsed to 0px on narrower screens.
-const COLS = "96px minmax(140px, 1fr) 60px 128px 118px 124px 86px";
+const COLS = "96px minmax(140px, 1fr) 74px 128px 118px 124px 86px";
 
 export default async function ClientRequirementsPage() {
   const session = await getDemoSession("client");
@@ -40,12 +40,10 @@ export default async function ClientRequirementsPage() {
             {r.promiseLabel ? ` · ${r.promiseLabel}` : ""}
           </div>
         </div>
-        <div style={sx("font-size:var(--fs-2);font-weight:700", { fontFamily: TOKENS.mono })}>×{r.quantity}</div>
-        <div style={sx("font-size:var(--fs-2);font-weight:600", { fontFamily: TOKENS.mono })}>{r.budgetLabel}</div>
+        <div style={sx("text-align:right;padding-right:8px;font-size:var(--fs-2);font-weight:700", { fontFamily: TOKENS.mono })}>×{r.quantity}</div>
+        <div style={sx("text-align:right;padding-right:8px;font-size:var(--fs-2);font-weight:600", { fontFamily: TOKENS.mono })}>{r.budgetLabel}</div>
         <div>
-          <span style={sx("display:inline-block;padding:3px 8px;border-radius:5px;font-size:var(--fs-1);font-weight:700;letter-spacing:.08em", { background: st.bg, color: st.fg, fontFamily: TOKENS.mono })}>
-            {st.label}
-          </span>
+          <Pill bg={st.bg} fg={st.fg}>{st.label}</Pill>
         </div>
         <div style={s("font-size:var(--fs-1);color:var(--t4)")}>{r.postedAgo}</div>
         <div>
@@ -66,22 +64,27 @@ export default async function ClientRequirementsPage() {
       <PageHeader
         title="Open roles"
         subtitle={`${openCount} open${past.length ? ` · ${past.length} placed or closed` : ""} · Talentvibes sources from every supplier bench on the exchange`}
-        actions={<Button primary href="/client/requirements/new">Post a requirement</Button>}
+        actions={<Button primary href="/client/requirements/new">Post a new role</Button>}
       />
       <Scroll>
-        <div style={s("background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow-x:auto")}>
+        <div style={s("background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow-x:auto")}>
           <div style={sx("display:grid;padding:9px 15px;background:var(--surface-2);border-bottom:1px solid var(--border)", { gridTemplateColumns: COLS, gap: "10px" })}>
             {["REQ", "ROLE", "HOW MANY", "BUDGET / MONTH", "STAGE", "POSTED", "ACTION"].map((h) => (
-              <div key={h} style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.08em;color:var(--t3);line-height:1.3", { fontFamily: TOKENS.mono })}>{h}</div>
+              <HeadCell key={h}>{h}</HeadCell>
             ))}
           </div>
+          {rows.length === 0 ? (
+            <EmptyState inline title="No open requirements">
+              Post one and your Talentvibes team starts sourcing.
+            </EmptyState>
+          ) : null}
           {rows.map(row)}
         </div>
 
         {past.length ? (
           <div style={s("margin-top:14px")}>
             <SectionLabel>PLACED AND CLOSED</SectionLabel>
-            <div style={s("background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow-x:auto")}>
+            <div style={s("background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow-x:auto")}>
               {past.map(row)}
             </div>
           </div>

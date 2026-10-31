@@ -126,7 +126,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         <div
           role="status"
           aria-live="polite"
-          style={s("position:fixed;left:0;right:0;bottom:24px;display:flex;justify-content:center;pointer-events:none;z-index:200;padding:0 16px")}
+          style={s("position:fixed;left:0;right:0;bottom:24px;display:flex;justify-content:center;pointer-events:none;z-index:400;padding:0 16px")}
         >
           <div
             style={sx(
@@ -155,7 +155,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 onClick={runUndo}
                 disabled={toast.undoing}
                 style={sx("display:flex;align-items:center;gap:5px;border:0;background:transparent;font-size:var(--fs-5);font-weight:700;cursor:pointer;font-family:inherit;flex:none;padding:2px 4px", {
-                  color: "var(--brand)",
+                  color: "var(--brand-on-ink)",
                   opacity: toast.undoing ? 0.6 : 1,
                   cursor: toast.undoing ? "default" : "pointer",
                 })}

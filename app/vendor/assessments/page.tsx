@@ -1,4 +1,4 @@
-import { Shell, PageHeader, Scroll, SectionLabel } from "@/src/lib/ui/Shell";
+import { Shell, StatCard, PageHeader, Scroll, SectionLabel, EmptyState } from "@/src/lib/ui/Shell";
 import { getDemoSession, getShellNav } from "@/src/lib/auth/session";
 import { getVendorAssessments } from "@/src/read-models/vendor";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
@@ -45,29 +45,29 @@ export default async function VendorAssessmentsPage() {
         actions={<InviteAllButton maskedIds={a.untestedMaskedIds} />}
       />
       <Scroll>
-        <div style={s("display:grid;grid-template-columns:repeat(4,1fr);gap:12px")}>
+        <div style={s("display:grid;grid-template-columns:repeat(auto-fit,minmax(198px,1fr));gap:12px")}>
           {[
             ["Scored", a.summary.scored, "var(--ok)"],
             ["In progress", a.summary.inProgress, "var(--warn)"],
             ["Not started", a.summary.notStarted, "var(--t4)"],
             ["Expired", a.summary.expired, "var(--danger)"],
           ].map(([label, n, color]) => (
-            <div key={label as string} style={s("background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px")}>
-              <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.12em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
-                {(label as string).toUpperCase()}
-              </div>
-              <div style={sx("font-size:24px;font-weight:800;letter-spacing:-.7px;margin-top:6px;line-height:1", { color: color as string })}>
-                {n as number}
-              </div>
-            </div>
+            <StatCard key={label as string} label={label as string} value={n as number} valueColor={color as string} />
           ))}
         </div>
 
-        <div style={s("margin-top:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px")}>
+        {a.cards.length === 0 ? (
+          <div style={s("margin-top:16px")}>
+            <EmptyState title="No one on your bench has a skill test yet">
+              Add people to your bench, then request a proctored test for them.
+            </EmptyState>
+          </div>
+        ) : null}
+        <div style={s("margin-top:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px")}>
           {a.cards.map((c) => {
             const pill = STATUS_PILL[c.status] ?? STATUS_PILL.not_started;
             return (
-              <div key={c.maskedId} style={s("background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px")}>
+              <div key={c.maskedId} style={s("background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px")}>
                 <div style={s("display:flex;align-items:flex-start;justify-content:space-between;gap:9px")}>
                   <div style={s("min-width:0")}>
                     <div style={s("font-size:var(--fs-4);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
@@ -142,7 +142,7 @@ export default async function VendorAssessmentsPage() {
 
         <div style={s("margin-top:14px;background:var(--teal-tint);border:1px solid var(--ok-tint);border-radius:12px;padding:13px")}>
           <SectionLabel>WHY SCORES ARE READ-ONLY</SectionLabel>
-          <div style={s("font-size:var(--fs-3);color:var(--teal);line-height:1.6")}>
+          <div style={s("font-size:var(--fs-3);color:var(--teal-ink);line-height:1.6")}>
             Every score comes from the proctoring provider. No endpoint lets you, the client or
             Talentvibes write one. That independence is why the score is worth showing on a
             masked profile.

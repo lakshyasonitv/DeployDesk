@@ -1,5 +1,7 @@
 "use client";
 
+import { Drawer } from "@/src/lib/ui/Drawer";
+import { Button } from "@/src/lib/ui/Button";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
@@ -69,13 +71,9 @@ export function SlotButton({ round }: { round: Round }) {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        style={s("padding:0 13px;height:32px;display:inline-flex;align-items:center;border:1px solid var(--border-2);border-radius:9px;font-size:var(--fs-3);font-weight:600;background:var(--surface);cursor:pointer;font-family:inherit;white-space:nowrap")}
-      >
+      <Button size="sm" onClick={() => setOpen(true)}>
         {isMove ? "Move this" : "Offer times"}
-      </button>
+      </Button>
       {open ? <SlotDrawer round={round} isMove={Boolean(isMove)} onClose={() => setOpen(false)} /> : null}
     </>
   );
@@ -93,9 +91,13 @@ function SlotDrawer({
   const [times, setTimes] = useState<string[]>([defaultSlotValue()]);
   const [duration, setDuration] = useState(60);
   const [busy, setBusy] = useState(false);
+  // Set by any edit, so Escape or a stray click cannot throw the times away.
+  const [touched, setTouched] = useState(false);
 
-  const setAt = (i: number, v: string) =>
+  const setAt = (i: number, v: string) => {
+    setTouched(true);
     setTimes((prev) => prev.map((t, j) => (j === i ? v : t)));
+  };
 
   async function send() {
     if (busy) return;
@@ -159,14 +161,7 @@ function SlotDrawer({
   }
 
   return (
-    <div
-      style={s("position:fixed;inset:0;background:rgba(16,16,20,.34);display:flex;justify-content:flex-end;z-index:50")}
-      onClick={onClose}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={s("width:420px;max-width:100%;background:var(--surface);height:100%;display:flex;flex-direction:column;box-shadow:-18px 0 44px rgba(16,16,20,.18)")}
-      >
+    <Drawer label="Plan interview times" onClose={onClose} dirty={touched || busy}>
         <div style={s("padding:15px 17px;border-bottom:1px solid var(--border);flex:none;display:flex;align-items:flex-start;justify-content:space-between;gap:10px")}>
           <div>
             <div style={s("font-size:var(--fs-6);font-weight:800")}>
@@ -236,17 +231,17 @@ function SlotDrawer({
             <div style={s("display:flex;flex-direction:column;gap:7px")}>
               {times.map((t, i) => (
                 <div key={i} style={s("display:flex;align-items:center;gap:7px")}>
-                  <input
+                  <input className="tv-field"
                     type="datetime-local"
                     value={t}
                     onChange={(e) => setAt(i, e.target.value)}
-                    style={s("flex:1;padding:9px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-4);font-family:inherit;outline:none")}
+                    style={s("flex:1;padding:9px 11px;border:1px solid var(--border-2);border-radius:9px;font-size:var(--fs-4);font-family:inherit;outline:none")}
                   />
                   {times.length > 1 ? (
                     <button
-                      onClick={() => setTimes((prev) => prev.filter((_, j) => j !== i))}
+                      onClick={() => { setTouched(true); setTimes((prev) => prev.filter((_, j) => j !== i)); }}
                       aria-label="Remove this time"
-                      style={s("border:1px solid var(--border-2);background:var(--surface);border-radius:8px;width:32px;height:34px;cursor:pointer;color:var(--t4);font-size:15px;line-height:1;font-family:inherit")}
+                      style={s("border:1px solid var(--border-2);background:var(--surface);border-radius:9px;width:40px;height:40px;cursor:pointer;color:var(--t4);font-size:15px;line-height:1;font-family:inherit")}
                     >
                       ×
                     </button>
@@ -256,7 +251,7 @@ function SlotDrawer({
             </div>
             {times.length < 5 ? (
               <button
-                onClick={() => setTimes((prev) => [...prev, defaultSlotValue()])}
+                onClick={() => { setTouched(true); setTimes((prev) => [...prev, defaultSlotValue()]); }}
                 style={s("margin-top:8px;padding:6px 11px;border:1px dashed var(--border-2);border-radius:8px;font-size:var(--fs-2);font-weight:600;background:transparent;cursor:pointer;color:var(--t3);font-family:inherit")}
               >
                 + Another time
@@ -276,10 +271,10 @@ function SlotDrawer({
               {[30, 45, 60, 90].map((m) => (
                 <button
                   key={m}
-                  onClick={() => setDuration(m)}
+                  onClick={() => { setTouched(true); setDuration(m); }}
                   style={sx("padding:6px 12px;border-radius:8px;font-size:var(--fs-2);font-weight:700;cursor:pointer;font-family:inherit", {
                     background: duration === m ? "var(--brand)" : "var(--surface)",
-                    color: duration === m ? "#fff" : "var(--t2)",
+                    color: duration === m ? "var(--on-accent)" : "var(--t2)",
                     border: `1px solid ${duration === m ? "var(--brand)" : "var(--border-2)"}`,
                   })}
                 >
@@ -291,24 +286,13 @@ function SlotDrawer({
         </div>
 
         <div style={s("flex:none;padding:13px 17px;border-top:1px solid var(--border);display:flex;gap:7px")}>
-          <button
-            onClick={send}
-            disabled={busy}
-            style={sx("padding:0 14px;height:34px;display:inline-flex;align-items:center;border:0;border-radius:9px;font-size:var(--fs-4);font-weight:700;color:#fff;background:var(--brand);font-family:inherit", {
-              cursor: busy ? "default" : "pointer", opacity: busy ? 0.6 : 1,
-            })}
-          >
+          <Button primary size="sm" onClick={send} disabled={busy}>
             {busy ? "Sending…" : isMove ? "Ask to move it" : "Send these times"}
-          </button>
-          <button
-            onClick={onClose}
-            disabled={busy}
-            style={s("padding:0 14px;height:34px;display:inline-flex;align-items:center;border:1px solid var(--border-2);border-radius:9px;font-size:var(--fs-4);font-weight:600;background:var(--surface);cursor:pointer;font-family:inherit")}
-          >
+          </Button>
+          <Button size="sm" onClick={onClose} disabled={busy}>
             Cancel
-          </button>
+          </Button>
         </div>
-      </div>
-    </div>
+      </Drawer>
   );
 }

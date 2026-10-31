@@ -1,4 +1,4 @@
-import { Shell, PageHeader, Scroll, StatCard, SectionLabel, Pill } from "@/src/lib/ui/Shell";
+import { Shell, PageHeader, Scroll, StatCard, SectionLabel, Pill, HeadCell, EmptyState } from "@/src/lib/ui/Shell";
 import { getDemoSession, getShellNav } from "@/src/lib/auth/session";
 import { getOpsOrgDirectory } from "@/src/read-models/ops";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
@@ -94,13 +94,12 @@ export default async function OrganisationsPage() {
           <div style={s("overflow-x:auto")}>
             <div style={sx("min-width:940px")}>
               <div style={sx(`display:grid;grid-template-columns:${COLS};gap:10px;padding:11px 18px;background:var(--surface-2);border-bottom:1px solid var(--border)`)}>
-                {["Organisation", "Role", "Fee model", "Group / blocks", "Bench", "Billed / mo", "Paid / mo"].map((h, i) => (
-                  <div key={h} style={sx("font-size:var(--fs-2);font-weight:700;letter-spacing:.04em;color:var(--t3);text-transform:uppercase", { textAlign: i >= 4 ? "right" : "left" })}>
-                    {h}
-                  </div>
+                {["ORGANISATION", "ROLE", "FEE MODEL", "GROUP / BLOCKS", "BENCH", "BILLED / MONTH", "PAID / MONTH"].map((h) => (
+                  <HeadCell key={h}>{h}</HeadCell>
                 ))}
               </div>
 
+              {orgs.length === 0 ? <EmptyState inline title="No organisations yet" /> : null}
               {orgs.map((o, i) => (
                 <div
                   key={o.orgId}
@@ -147,13 +146,13 @@ export default async function OrganisationsPage() {
                     ) : null}
                   </div>
 
-                  <div style={sx("font-size:var(--fs-5);text-align:right", { fontFamily: TOKENS.mono, color: o.benchCount ? "var(--t1)" : "var(--t4)" })}>
+                  <div style={sx("font-size:var(--fs-5);text-align:right;padding-right:8px", { fontFamily: TOKENS.mono, color: o.benchCount ? "var(--t1)" : "var(--t4)" })}>
                     {o.benchCount || "—"}
                   </div>
-                  <div style={sx("font-size:var(--fs-5);text-align:right", { fontFamily: TOKENS.mono, color: o.billedAsClientLabel === "—" ? "var(--t4)" : "var(--t1)" })}>
+                  <div style={sx("font-size:var(--fs-5);text-align:right;padding-right:8px", { fontFamily: TOKENS.mono, color: o.billedAsClientLabel === "—" ? "var(--t4)" : "var(--t1)" })}>
                     {o.billedAsClientLabel}
                   </div>
-                  <div style={sx("font-size:var(--fs-5);text-align:right", { fontFamily: TOKENS.mono, color: o.paidAsSupplierLabel === "—" ? "var(--t4)" : "var(--t1)" })}>
+                  <div style={sx("font-size:var(--fs-5);text-align:right;padding-right:8px", { fontFamily: TOKENS.mono, color: o.paidAsSupplierLabel === "—" ? "var(--t4)" : "var(--t1)" })}>
                     {o.paidAsSupplierLabel}
                   </div>
                 </div>
@@ -169,10 +168,8 @@ export default async function OrganisationsPage() {
         <div style={s("background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--sh);padding:18px")}>
           <div style={s("font-size:var(--fs-4);color:var(--t2);line-height:1.6;margin-bottom:10px")}>
             A client that posts roles, collects masked shortlists and never requests an
-            interview may be mapping the market rather than hiring.{" "}
-            <code style={sx("font-size:var(--fs-2);color:var(--t3)", { fontFamily: TOKENS.mono })}>v_requirement_probing</code>{" "}
-            counts a role as a suspect once a shortlist has sat five days without an
-            interview request.
+            interview may be mapping the market rather than hiring. A role counts as a suspect once
+            a shortlist has sat five days without an interview request.
           </div>
           {probing.length ? (
             <div style={s("display:flex;flex-direction:column;gap:8px")}>

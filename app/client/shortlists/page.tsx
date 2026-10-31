@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Shell, PageHeader, Scroll, Pill } from "@/src/lib/ui/Shell";
+import { Shell, PageHeader, Scroll, Pill, EmptyState } from "@/src/lib/ui/Shell";
 import { getDemoSession, getShellNav } from "@/src/lib/auth/session";
 import { getClientOverview } from "@/src/read-models/client";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
@@ -23,13 +23,13 @@ export default async function ShortlistsIndex() {
         subtitle="Masked profiles sent to you by your Talentvibes team. You see skills, scores and a rate range. Names, photos and supplier companies stay hidden."
       />
       <Scroll>
-        <div style={s("display:grid;grid-template-columns:repeat(2,1fr);gap:12px")}>
+        <div style={s("display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px")}>
           {overview.awaitingReview.map((a) => (
-            <Link key={a.code} href={`/client/shortlists/${a.code}`}
-              style={s("background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:15px;color:var(--t1)")}>
+            <Link key={a.code} href={`/client/shortlists/${a.code}`} className="tv-card"
+              style={s("background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:15px;color:var(--t1)")}>
               <div style={s("display:flex;align-items:center;justify-content:space-between;gap:9px")}>
                 <div style={s("display:flex;align-items:center;gap:8px")}>
-                  <Pill bg="var(--brand-tint)" fg="var(--brand)">SHORTLIST READY</Pill>
+                  <Pill bg="var(--brand-tint)" fg="var(--brand-ink)">SHORTLIST READY</Pill>
                   <span style={sx("font-size:var(--fs-1);font-weight:600;color:var(--t4)", { fontFamily: TOKENS.mono })}>{a.code}</span>
                 </div>
                 <span style={s("font-size:var(--fs-1);color:var(--t4)")}>{a.sentAgo}</span>
@@ -59,10 +59,10 @@ export default async function ShortlistsIndex() {
         </div>
 
         {overview.awaitingReview.length === 0 ? (
-          <div style={s("background:var(--surface);border:1px dashed var(--border-2);border-radius:12px;padding:34px;text-align:center;color:var(--t4);font-size:var(--fs-4)")}>
-            No shortlists waiting. Your Talentvibes team delivers masked profiles here, typically within 36
-            hours of posting a requirement.
-          </div>
+          <EmptyState title="No shortlists waiting">
+            Your Talentvibes team delivers masked profiles here, typically within 36 hours of posting
+            a requirement.
+          </EmptyState>
         ) : null}
       </Scroll>
     </Shell>

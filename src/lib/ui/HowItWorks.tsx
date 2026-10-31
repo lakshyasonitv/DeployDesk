@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { HelpCircle, X } from "lucide-react";
 import { s, sx } from "./style";
 import type { Portal } from "./Shell";
+import { Button } from "./Button";
 
 /**
  * "How this works", behind the `?` button.
@@ -256,13 +257,9 @@ export function HowItWorks({ portal }: { portal: Portal }) {
               <div style={s("font-size:var(--fs-3);color:var(--t4)")}>
                 Reopen this any time from the <strong style={s("font-weight:700")}>?</strong> button.
               </div>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                style={s("padding:0 14px;height:34px;border:0;border-radius:9px;font-size:var(--fs-5);font-weight:700;background:var(--brand);color:#fff;cursor:pointer;font-family:inherit")}
-              >
+              <Button primary size="sm" onClick={() => setOpen(false)}>
                 Got it
-              </button>
+              </Button>
             </div>
           </div>
         </div>

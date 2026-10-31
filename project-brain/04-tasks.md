@@ -47,8 +47,11 @@
       "running late".
 - [x] **UI phase 1: accessibility floor** ✅ 2026-10-31. Contrast, type scale, focus ring and
       hit areas. Journal Session 15.
-- [ ] **UI phase 2: polish**, with before-and-after screenshots for the owner: tabular numbers
-      in money columns, consistent headers and empty states, page hierarchy.
+- [x] **UI phases 2 to 5** ✅ 2026-10-31, not yet committed. Numbers right-aligned, contract
+      headers, titles, radii, field heights and grids, one empty state, dark-mode contrast,
+      shared Button and Drawer, three audits. Journal Session 16.
+- [ ] **UI, the owner's calls:** mono section labels against the contract's sans label, the
+      matching desk's mono tags, a dot on status pills, and the copy renames.
 - [ ] **Before launch:** remove the demo org switcher (it lists every org on every page)
       and stop `/api/search` taking `portal` from the query string.
 - [ ] **Small, recorded:** ambiguous (maskedId, roundNo) round lookup; `roleTitle`

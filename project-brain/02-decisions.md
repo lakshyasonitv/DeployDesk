@@ -33,6 +33,8 @@
 
 **2026-10-31**
 
+- [Text on filled colours has its own token, and teal text is darkened](#2026-10-31-text-on-filled-colours-has-its-own-token-and-teal-text-is-darkened)
+- [Labels follow SCREENS.md where they had drifted](#2026-10-31-labels-follow-screensmd-where-they-had-drifted)
 - [Two v2 colour tokens darkened, and every small size on one scale](#2026-10-31-two-v2-colour-tokens-darkened-and-every-small-size-on-one-scale)
 - [The owner's "unslop" rules are the house style for all writing](#2026-10-31-the-owners-unslop-rules-are-the-house-style-for-all-writing)
 - [The client's match preview has no budget dimension, and returns only buckets](#2026-10-31-the-clients-match-preview-has-no-budget-dimension-and-returns-only-buckets)
@@ -90,6 +92,41 @@
 - [Inline styles copied from the prototype via a parser helper](#2026-10-06-inline-styles-copied-from-the-prototype-via-a-parser-helper)
 - [Database changes are file-first and approval-gated](#2026-10-06-database-changes-are-file-first-and-approval-gated)
 - [Dual-role organisations: three decisions taken before building](#2026-10-06-dual-role-organisations-three-decisions-taken-before-building)
+
+## 2026-10-31 — Text on filled colours has its own token, and teal text is darkened
+
+- **Decision:** two tokens are added to `globals.css`, both outside the v2 token list.
+  - `--on-accent` is the text colour on a filled brand, teal, green or red surface. It is
+    white in light mode and #0b1016 in dark mode.
+  - `--teal-ink` is the colour for teal text. In light mode it is teal mixed 70% with black.
+    In dark mode it is plain teal.
+- **Why:** in dark mode the accents turn light, so white text on a primary button fell under
+  3:1. Teal text on its own tint was 3.4:1 in light mode, against a 4.5:1 floor.
+- **Rejected:**
+  - Darker accents in dark mode, which would change every chart, pill and bar.
+  - Per-button fixes, which is how the 17 white-text buttons drifted in the first place.
+- **Later the same day:** three more tokens follow the same idea. `--inv-2` and `--inv-3` are
+  secondary text on an ink (`--t1`) fill, mixed from the fill and its text colour so they work
+  in both themes. `--brand-on-ink` is a link on that fill, such as Undo on a toast.
+- **Impact:** new filled controls use `--on-accent`, or better, the shared `Button`. Vendor
+  primary buttons are brand blue like the other portals, because teal is not in
+  DESIGN_TOKENS.md.
+
+## 2026-10-31 — Labels follow SCREENS.md where they had drifted
+
+- **Decision:**
+  - "Post a requirement" becomes "Post a new role".
+  - The vendor overview title becomes "Your bench", with the supplier line under it.
+  - "Add bench resource" becomes "Add people".
+  - The duplicates subtitle uses the contract's two sentences.
+- **Why:** SCREENS.md says its copy is final. These labels predate the v2 handoff.
+- **Also:** the vendor overview link "Review assessments" became "Review skill tests", so it
+  names the page it opens, as the side nav does. SCREENS.md does not mention this link.
+- **Rejected:** the audit's other renames ("requirement" against "role" in stat labels, the
+  ASSESSMENT column against "Skill tests"). They are not clear contract conflicts. Each one is
+  a copy decision for the owner.
+- **Impact:** before renaming a label, grep SCREENS.md and match it, with the house style
+  applied (no em dashes).
 
 ## 2026-10-31 — Two v2 colour tokens darkened, and every small size on one scale
 

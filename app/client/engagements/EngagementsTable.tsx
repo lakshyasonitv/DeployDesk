@@ -1,9 +1,11 @@
 "use client";
 
+import { Drawer } from "@/src/lib/ui/Drawer";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
-import { Pill, ScoreBars } from "@/src/lib/ui/Shell";
+import { Pill, ScoreBars, HeadCell, EmptyState } from "@/src/lib/ui/Shell";
+import { Button } from "@/src/lib/ui/Button";
 import { useToast } from "@/src/lib/ui/Toast";
 import type { ClientEngagement } from "@/src/read-models/client";
 
@@ -62,12 +64,12 @@ export function EngagementsTable({ engagements }: { engagements: ClientEngagemen
 
   return (
     <>
-      <div style={s("background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden")}>
+      <div style={s("background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden")}>
         <div style={s("overflow-x:auto")}>
           <div style={s("min-width:730px")}>
             <div style={sx("display:grid;padding:9px 15px;background:var(--surface-2);border-bottom:1px solid var(--border)", { gridTemplateColumns: COLS, gap: "10px" })}>
               {["REFERENCE", "ROLE", "WORKING SINCE", "ENDS", "YOUR MONTHLY RATE", "STATUS"].map((h) => (
-                <div key={h} style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.08em;color:var(--t3);line-height:1.3", { fontFamily: TOKENS.mono })}>{h}</div>
+                <HeadCell key={h}>{h}</HeadCell>
               ))}
             </div>
 
@@ -97,20 +99,16 @@ export function EngagementsTable({ engagements }: { engagements: ClientEngagemen
                   })}>
                     {e.endsOn ?? "open-ended"}
                   </div>
-                  <div style={sx("font-size:var(--fs-3);font-weight:700", { fontFamily: TOKENS.mono })}>{e.rateLabel}</div>
+                  <div style={sx("text-align:right;padding-right:8px;font-size:var(--fs-3);font-weight:700", { fontFamily: TOKENS.mono })}>{e.rateLabel}</div>
                   <div>
-                    <span style={sx("display:inline-block;padding:3px 8px;border-radius:5px;font-size:var(--fs-1);font-weight:700;letter-spacing:.08em;white-space:nowrap", { background: st.bg, color: st.fg, fontFamily: TOKENS.mono })}>
-                      {st.label}
-                    </span>
+                    <Pill bg={st.bg} fg={st.fg}>{st.label}</Pill>
                   </div>
                 </div>
               );
             })}
 
             {engagements.length === 0 ? (
-              <div style={s("padding:28px;text-align:center;color:var(--t4);font-size:var(--fs-4)")}>
-                Nobody is working for you through Talentvibes yet.
-              </div>
+              <EmptyState inline title="Nobody is working for you through Talentvibes yet" />
             ) : null}
           </div>
         </div>
@@ -208,14 +206,7 @@ function PlacementPanel({ e, onClose }: { e: ClientEngagement; onClose: () => vo
   }
 
   return (
-    <div
-      style={s("position:fixed;inset:0;background:rgba(16,16,20,.34);display:flex;justify-content:flex-end;z-index:50")}
-      onClick={onClose}
-    >
-      <div
-        onClick={(ev) => ev.stopPropagation()}
-        style={s("width:430px;max-width:100%;background:var(--surface);height:100%;display:flex;flex-direction:column;box-shadow:-18px 0 44px rgba(16,16,20,.18)")}
-      >
+    <Drawer label="Engagement details" onClose={onClose} dirty={busy || (asking && (note.trim() !== "" || until !== defaultUntil))}>
         {/* ---------------------------------------------------------- header */}
         <div style={s("padding:15px 17px;border-bottom:1px solid var(--border);flex:none")}>
           <div style={s("display:flex;align-items:flex-start;justify-content:space-between;gap:10px")}>
@@ -338,40 +329,30 @@ function PlacementPanel({ e, onClose }: { e: ClientEngagement; onClose: () => vo
                 <label style={s("display:block;font-size:var(--fs-2);color:var(--t2);margin-bottom:5px")}>
                   Keep them until
                 </label>
-                <input
+                <input className="tv-field"
                   type="date"
                   value={until}
                   min={minUntil}
                   onChange={(ev) => setUntil(ev.target.value)}
-                  style={s("width:100%;padding:9px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-4);font-family:inherit;outline:none")}
+                  style={s("width:100%;padding:9px 11px;border:1px solid var(--border-2);border-radius:9px;font-size:var(--fs-4);font-family:inherit;outline:none")}
                 />
-                <textarea
+                <textarea className="tv-field"
                   value={note}
                   onChange={(ev) => setNote(ev.target.value)}
                   rows={3}
                   placeholder="Anything that would help, such as a project date or a phase that slipped."
-                  style={s("width:100%;margin-top:9px;padding:9px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-3);font-family:inherit;outline:none;resize:vertical;line-height:1.5")}
+                  style={s("width:100%;margin-top:9px;padding:9px 11px;border:1px solid var(--border-2);border-radius:9px;font-size:var(--fs-3);font-family:inherit;outline:none;resize:vertical;line-height:1.5")}
                 />
                 <div style={s("font-size:var(--fs-1);color:var(--t4);margin-top:5px;line-height:1.5")}>
                   Your note goes to your Talentvibes team only. It is never passed on word for word.
                 </div>
                 <div style={s("display:flex;gap:7px;margin-top:11px")}>
-                  <button
-                    onClick={request}
-                    disabled={busy}
-                    style={sx("padding:0 14px;height:34px;display:inline-flex;align-items:center;border:0;border-radius:9px;font-size:var(--fs-4);font-weight:700;color:#fff;background:var(--brand);font-family:inherit", {
-                      cursor: busy ? "default" : "pointer", opacity: busy ? 0.6 : 1,
-                    })}
-                  >
+                  <Button primary size="sm" onClick={request} disabled={busy}>
                     {busy ? "Sending…" : "Send the request"}
-                  </button>
-                  <button
-                    onClick={() => setAsking(false)}
-                    disabled={busy}
-                    style={s("padding:0 14px;height:34px;display:inline-flex;align-items:center;border:1px solid var(--border-2);border-radius:9px;font-size:var(--fs-4);font-weight:600;background:var(--surface);cursor:pointer;font-family:inherit")}
-                  >
+                  </Button>
+                  <Button size="sm" onClick={() => setAsking(false)} disabled={busy}>
                     Cancel
-                  </button>
+                  </Button>
                 </div>
               </>
             ) : (
@@ -388,12 +369,9 @@ function PlacementPanel({ e, onClose }: { e: ClientEngagement; onClose: () => vo
                       : "There is no agreed end date. You can still fix one further out if you want certainty."}
                   </div>
                 )}
-                <button
-                  onClick={() => setAsking(true)}
-                  style={s("padding:0 14px;height:34px;display:inline-flex;align-items:center;border:0;border-radius:9px;font-size:var(--fs-4);font-weight:700;color:#fff;background:var(--brand);cursor:pointer;font-family:inherit")}
-                >
+                <Button primary size="sm" onClick={() => setAsking(true)}>
                   Request an extension
-                </button>
+                </Button>
               </>
             )}
           </div>
@@ -409,7 +387,6 @@ function PlacementPanel({ e, onClose }: { e: ClientEngagement; onClose: () => vo
             alone, which is what keeps that true.
           </div>
         </div>
-      </div>
-    </div>
+      </Drawer>
   );
 }

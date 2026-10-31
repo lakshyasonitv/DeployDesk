@@ -56,7 +56,7 @@ export default async function AddResourcePage() {
 
           <div style={css("display:flex;flex-direction:column;gap:14px")}>
             {/* bulk upload */}
-            <div style={css("background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:15px")}>
+            <div style={css("background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:15px")}>
               <div style={css("display:flex;align-items:center;justify-content:space-between;gap:9px;margin-bottom:10px")}>
                 <SectionLabel>BULK UPLOAD</SectionLabel>
                 <span style={sx("font-size:var(--fs-1);font-weight:700;color:var(--t4)", { fontFamily: TOKENS.mono })}>CSV · XLSX</span>
@@ -124,7 +124,7 @@ export default async function AddResourcePage() {
 
             {/* what the client sees */}
             <div style={css("background:var(--t1);border-radius:12px;padding:15px;color:var(--surface)")}>
-              <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.14em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
+              <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.14em;color:var(--inv-3)", { fontFamily: TOKENS.mono })}>
                 WHAT THE CLIENT SEES
               </div>
 
@@ -134,11 +134,11 @@ export default async function AddResourcePage() {
                     <div style={sx("font-size:var(--fs-7);font-weight:700;letter-spacing:-.4px", { fontFamily: TOKENS.mono })}>
                       TV-####
                     </div>
-                    <div style={css("font-size:var(--fs-1);color:var(--t4);margin-top:2px")}>6.3y · Pune</div>
+                    <div style={css("font-size:var(--fs-1);color:var(--inv-3);margin-top:2px")}>6.3y · Pune</div>
                   </div>
                   <div style={css("text-align:right")}>
-                    <div style={css("font-size:17px;font-weight:800;color:var(--t4);line-height:1")}>—</div>
-                    <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.1em;color:var(--t4);margin-top:3px", { fontFamily: TOKENS.mono })}>
+                    <div style={css("font-size:17px;font-weight:800;color:var(--inv-3);line-height:1")}>—</div>
+                    <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.1em;color:var(--inv-3);margin-top:3px", { fontFamily: TOKENS.mono })}>
                       PENDING TEST
                     </div>
                   </div>
@@ -150,12 +150,12 @@ export default async function AddResourcePage() {
                     </span>
                   ))}
                 </div>
-                <div style={css("margin-top:10px;padding-top:9px;border-top:1px dashed var(--border);font-size:var(--fs-1);color:var(--t4);line-height:1.6")}>
+                <div style={css("margin-top:10px;padding-top:9px;border-top:1px dashed var(--border);font-size:var(--fs-1);color:var(--inv-3);line-height:1.6")}>
                   Rate shown to the client is a band set by Talentvibes.
                 </div>
               </div>
 
-              <div style={css("font-size:var(--fs-1);color:var(--t4);margin-top:11px;line-height:1.6")}>
+              <div style={css("font-size:var(--fs-1);color:var(--inv-3);margin-top:11px;line-height:1.6")}>
                 Withheld from the client: the name, any photo, and {vendorName}. The exact rate you
                 set is never shown either. The client sees a coarse band derived from the price
                 Talentvibes quotes them, not from your cost.

@@ -1,8 +1,9 @@
 "use client";
 
+import { Button } from "@/src/lib/ui/Button";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { s, sx } from "@/src/lib/ui/style";
+import { s } from "@/src/lib/ui/style";
 import { useToast } from "@/src/lib/ui/Toast";
 
 /**
@@ -96,25 +97,16 @@ export function ResolveActions({
     }
   }
 
-  const base = "padding:0 13px;height:34px;display:inline-flex;align-items:center;border-radius:9px;font-size:var(--fs-4);font-weight:700;font-family:inherit;white-space:nowrap";
-  const look = (primary: boolean, blocked: boolean) => sx(base, {
-    background: primary ? "var(--t1)" : "var(--surface)",
-    color: primary ? "var(--surface)" : "var(--t1)",
-    border: primary ? 0 : "1px solid var(--border-2)",
-    cursor: busy || blocked ? "default" : "pointer",
-    opacity: busy || blocked ? 0.45 : 1,
-  });
-
   const keep = (side: "a" | "b", label: string, blockedBy: string | null) => (
-    <button
-      type="button"
+    <Button
+      size="sm"
+      variant={recommended === side && !blockedBy ? "dark" : "secondary"}
       onClick={() => resolve(side === "a" ? "kept_a" : "kept_b")}
       disabled={busy !== null || blockedBy !== null}
       title={blockedBy ? `Can't: ${blockedBy}` : undefined}
-      style={look(recommended === side && !blockedBy, blockedBy !== null)}
     >
       {busy === `kept_${side}` ? "Settling…" : `Keep ${label}`}
-    </button>
+    </Button>
   );
 
   const blocked = [keepABlockedBy, keepBBlockedBy].filter(Boolean);
@@ -124,14 +116,9 @@ export function ResolveActions({
       <div style={s("display:flex;gap:8px;flex-wrap:wrap")}>
         {keep("a", keepALabel, keepABlockedBy)}
         {keep("b", keepBLabel, keepBBlockedBy)}
-        <button
-          type="button"
-          onClick={() => resolve("not_duplicate")}
-          disabled={busy !== null}
-          style={sx(look(false, false), { color: "var(--t2)" })}
-        >
+        <Button size="sm" onClick={() => resolve("not_duplicate")} disabled={busy !== null}>
           {busy === "not_duplicate" ? "Saving…" : "Two different people"}
-        </button>
+        </Button>
       </div>
       {/* Said on screen, not only in a tooltip: a greyed button with no reason is a dead end. */}
       {blocked.length ? (

@@ -1,5 +1,8 @@
 "use client";
 
+import Link from "next/link";
+import { Pill, EmptyState } from "@/src/lib/ui/Shell";
+import { Button } from "@/src/lib/ui/Button";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { s, sx, TOKENS, SLA_COLOR, stageMeta } from "@/src/lib/ui/style";
@@ -319,15 +322,13 @@ export function Workspace({
         <div style={s("display:flex;align-items:flex-end;justify-content:space-between;gap:16px")}>
           <div style={s("min-width:0")}>
             <div style={s("display:flex;align-items:center;gap:9px;margin-bottom:6px")}>
-              <span style={sx("padding:3px 8px;border-radius:5px;font-size:var(--fs-1);font-weight:700;letter-spacing:.08em", { background: st.bg, color: st.fg, fontFamily: TOKENS.mono })}>
-                {st.label}
-              </span>
+              <Pill bg={st.bg} fg={st.fg}>{st.label}</Pill>
               <span style={s("font-size:var(--fs-2);color:var(--t4)")}>
                 {requirement.clientName} · owner {requirement.ownerShort}
               </span>
             </div>
             <div style={s("display:flex;align-items:center;gap:10px")}>
-              <div style={s("font-size:22px;font-weight:800;letter-spacing:-.6px")}>Matching workspace</div>
+              <div style={s("font-size:24px;font-weight:800;letter-spacing:-.6px")}>Matching workspace</div>
               <button onClick={() => setPickerOpen((v) => !v)}
                 style={sx("display:flex;align-items:center;gap:7px;padding:5px 10px;border-radius:8px;font-size:var(--fs-2);cursor:pointer;font-family:inherit", {
                   background: pickerOpen ? "var(--warn-tint)" : "var(--surface)",
@@ -347,24 +348,15 @@ export function Workspace({
             </div>
           </div>
           <div style={s("display:flex;gap:8px;flex:none")}>
-            <button onClick={sourceCandidates} disabled={sourcing}
-              title="Score every eligible person on the exchange against this role"
-              style={sx("padding:8px 13px;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-4);font-weight:600;background:var(--surface);font-family:inherit", {
-                cursor: sourcing ? "default" : "pointer", opacity: sourcing ? 0.6 : 1,
-              })}>
+            <Button onClick={sourceCandidates} disabled={sourcing} title="Score every eligible person on the exchange against this role">
               {sourcing ? "Sourcing…" : initial.length ? "Re-run matching" : "Source candidates"}
-            </button>
-            <button onClick={reset}
-              style={s("padding:8px 13px;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-4);font-weight:600;background:var(--surface);cursor:pointer;font-family:inherit")}>
+            </Button>
+            <Button onClick={reset}>
               Reset to algorithm
-            </button>
-            <button onClick={send} disabled={!included.length || sending}
-              style={sx("padding:8px 13px;border:0;border-radius:8px;font-size:var(--fs-4);font-weight:700;color:var(--surface);font-family:inherit", {
-                background: included.length ? "var(--t1)" : "var(--border-2)",
-                cursor: included.length && !sending ? "pointer" : "default",
-              })}>
+            </Button>
+            <Button variant="dark" onClick={send} disabled={!included.length || sending}>
               {sending ? "Sending…" : `Send masked shortlist · ${included.length}`}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -378,7 +370,7 @@ export function Workspace({
                 const ost = stageMeta(o.stage);
                 const active = o.code === requirement.code;
                 return (
-                  <a key={o.code} href={`/ops/matching/${o.code}`}
+                  <Link key={o.code} href={`/ops/matching/${o.code}`}
                     style={sx("display:grid;grid-template-columns:76px 1fr 96px 74px;gap:9px;align-items:center;padding:9px 13px;border-bottom:1px solid var(--surface-3);color:var(--t1)", { background: active ? "var(--warn-tint)" : "var(--surface)" })}>
                     <span style={sx("font-size:var(--fs-1);font-weight:700", { fontFamily: TOKENS.mono })}>{o.code}</span>
                     <span style={s("min-width:0")}>
@@ -393,7 +385,7 @@ export function Workspace({
                     <span style={sx("font-size:var(--fs-1);font-weight:600;text-align:right", { color: SLA_COLOR[o.slaState as keyof typeof SLA_COLOR] ?? "var(--t4)" })}>
                       {o.slaLabel}
                     </span>
-                  </a>
+                  </Link>
                 );
               })}
             </div>
@@ -481,11 +473,11 @@ export function Workspace({
           {duplicateCount > 0 ? (
             <div style={s("margin-top:12px;background:var(--danger-tint);border:1px solid var(--danger-tint);border-radius:10px;padding:11px")}>
               <div style={s("font-size:var(--fs-2);font-weight:700;color:var(--danger)")}>
-                {duplicateCount} duplicate flag{duplicateCount === 1 ? "" : "s"} touch this pool
+                {duplicateCount} duplicate {duplicateCount === 1 ? "flag touches" : "flags touch"} this pool
               </div>
-              <a href="/ops/duplicates" style={s("display:inline-block;font-size:var(--fs-1);font-weight:700;color:var(--danger);margin-top:5px")}>
+              <Link href="/ops/duplicates" style={s("display:inline-block;font-size:var(--fs-1);font-weight:700;color:var(--danger);margin-top:5px")}>
                 Resolve before sending →
-              </a>
+              </Link>
             </div>
           ) : null}
 
@@ -543,7 +535,7 @@ export function Workspace({
                 <div key={c.maskedId}
                   draggable onDragStart={() => setDragging(c.maskedId)} onDragEnd={() => setDragging(null)}
                   onDragOver={(e) => e.preventDefault()} onDrop={() => drop(c.maskedId)}
-                  style={sx("background:var(--surface);border-radius:11px;padding:11px;display:flex;gap:11px;align-items:flex-start", {
+                  style={sx("background:var(--surface);border-radius:15px;padding:11px;display:flex;gap:11px;align-items:flex-start", {
                     border: `1px solid ${dragging === c.maskedId ? "var(--warn)" : "var(--border)"}`,
                     opacity: dragging === c.maskedId ? 0.5 : 1,
                     flexWrap: "wrap",
@@ -587,7 +579,7 @@ export function Workspace({
                       ) : null}
                     </div>
                     <div style={s("font-size:var(--fs-2);color:var(--t2);margin-top:4px")}>{c.reasonLine}</div>
-                    <div style={s("display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin-top:9px")}>
+                    <div style={s("display:grid;grid-template-columns:repeat(auto-fit,minmax(86px,1fr));gap:7px;margin-top:9px")}>
                       {c.components.map((comp, i) => (
                         <div key={comp.label}>
                           <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.07em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
@@ -649,21 +641,17 @@ export function Workspace({
               );
             })}
             {rows.length === 0 ? (
-              <div style={s("background:var(--surface);border:1px dashed var(--border-2);border-radius:12px;padding:30px;text-align:center")}>
-                <div style={s("font-size:var(--fs-5);font-weight:600")}>
-                  No candidates sourced for this requirement yet.
-                </div>
-                <div style={s("font-size:var(--fs-3);color:var(--t4);margin-top:5px;line-height:1.55")}>
-                  Matching scores every eligible person on the exchange against this role and
-                  ranks them. Requirements posted from now on are sourced automatically.
-                </div>
-                <button onClick={sourceCandidates} disabled={sourcing}
-                  style={sx("margin-top:13px;padding:8px 15px;border:0;border-radius:9px;font-size:var(--fs-4);font-weight:700;color:#fff;background:var(--brand);font-family:inherit", {
-                    cursor: sourcing ? "default" : "pointer", opacity: sourcing ? 0.6 : 1,
-                  })}>
-                  {sourcing ? "Sourcing…" : "Source candidates"}
-                </button>
-              </div>
+              <EmptyState
+                title="No candidates sourced for this requirement yet"
+                action={
+                  <Button primary size="sm" onClick={sourceCandidates} disabled={sourcing}>
+                    {sourcing ? "Sourcing…" : "Source candidates"}
+                  </Button>
+                }
+              >
+                Matching scores every eligible person on the exchange against this role and ranks
+                them. Requirements posted from now on are sourced automatically.
+              </EmptyState>
             ) : null}
           </div>
         </div>
@@ -779,10 +767,9 @@ function RateEditor({
             quoted to the client
           </span>
         ) : (
-          <button type="button" onClick={() => setOpen(true)}
-            style={s("margin-left:auto;padding:0 12px;height:30px;display:inline-flex;align-items:center;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-2);font-weight:700;background:var(--surface);cursor:pointer;font-family:inherit;white-space:nowrap")}>
-            Change the rate
-          </button>
+          <div style={s("margin-left:auto")}>
+            <Button size="sm" onClick={() => setOpen(true)}>Change the rate</Button>
+          </div>
         )}
 
         {c.rateSetBy ? (
@@ -805,12 +792,12 @@ function RateEditor({
           </label>
           <div style={s("display:flex;align-items:center;gap:6px")}>
             <span style={sx("font-size:var(--fs-7);font-weight:700", { fontFamily: TOKENS.mono })}>₹</span>
-            <input
+            <input className="tv-field"
               autoFocus
               value={rupees}
               onChange={(e) => setRupees(e.target.value)}
               inputMode="numeric"
-              style={sx("width:130px;padding:7px 10px;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-7);font-weight:700;outline:none", { fontFamily: TOKENS.mono })}
+              style={sx("width:130px;padding:7px 10px;border:1px solid var(--border-2);border-radius:9px;font-size:var(--fs-7);font-weight:700;outline:none", { fontFamily: TOKENS.mono })}
             />
           </div>
         </div>
@@ -838,12 +825,12 @@ function RateEditor({
             That is below our {MARGIN_FLOOR_PCT}% floor. You can still set it if you say why. The
             audit log records the reason against your name.
           </div>
-          <textarea
+          <textarea className="tv-field"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             rows={2}
             placeholder="e.g. strategic entry into this client's SAP estate; review at renewal."
-            style={s("width:100%;margin-top:7px;padding:8px 10px;border:1px solid var(--warn);border-radius:8px;font-size:var(--fs-3);font-family:inherit;outline:none;resize:vertical;line-height:1.5")}
+            style={s("width:100%;margin-top:7px;padding:8px 10px;border:1px solid var(--warn);border-radius:9px;font-size:var(--fs-3);font-family:inherit;outline:none;resize:vertical;line-height:1.5")}
           />
         </div>
       ) : null}
@@ -853,16 +840,12 @@ function RateEditor({
       ) : null}
 
       <div style={s("display:flex;gap:7px;margin-top:11px;align-items:center")}>
-        <button type="button" onClick={save} disabled={busy || paise <= 0}
-          style={sx("padding:0 13px;height:32px;display:inline-flex;align-items:center;border:0;border-radius:8px;font-size:var(--fs-3);font-weight:700;color:#fff;background:var(--brand);font-family:inherit", {
-            cursor: busy || paise <= 0 ? "default" : "pointer", opacity: busy || paise <= 0 ? 0.6 : 1,
-          })}>
+        <Button primary size="sm" onClick={save} disabled={busy || paise <= 0}>
           {busy ? "Saving…" : "Set this rate"}
-        </button>
-        <button type="button" onClick={() => { setOpen(false); setError(null); }} disabled={busy}
-          style={s("padding:0 13px;height:32px;display:inline-flex;align-items:center;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-3);font-weight:600;background:var(--surface);cursor:pointer;font-family:inherit")}>
+        </Button>
+        <Button size="sm" onClick={() => { setOpen(false); setError(null); }} disabled={busy}>
           Cancel
-        </button>
+        </Button>
         <span style={s("font-size:var(--fs-1);color:var(--t4);margin-left:auto")}>
           Changing this re-scores the rate component and re-ranks the pool.
         </span>

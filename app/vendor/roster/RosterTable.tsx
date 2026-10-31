@@ -1,5 +1,7 @@
 "use client";
 
+import { HeadCell, EmptyState, Pill } from "@/src/lib/ui/Shell";
+import { Button } from "@/src/lib/ui/Button";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/src/lib/ui/Toast";
@@ -150,28 +152,18 @@ export function RosterTable({
       <div style={s("padding:20px 26px 16px;background:var(--surface);border-bottom:1px solid var(--border);flex:none")}>
         <div style={s("display:flex;align-items:flex-end;justify-content:space-between;gap:16px")}>
           <div>
-            <div style={s("font-size:22px;font-weight:800;letter-spacing:-.6px")}>Bench roster</div>
-            <div style={s("font-size:var(--fs-4);color:var(--t3);margin-top:4px")}>
+            <div style={s("font-size:26px;font-weight:800;letter-spacing:-.6px")}>Bench roster</div>
+            <div style={s("font-size:var(--fs-7);color:var(--t2);margin-top:4px")}>
               {total} resources · {counts.listed} listed on the exchange · confirm availability
               every 14 days to stay in matching
             </div>
           </div>
           <div style={s("display:flex;gap:8px;flex:none")}>
             {/* A <div> that looked like a button. Plain <a>: it is a route handler, not a page. */}
-            <a href="/api/export?kind=vendor-roster"
-              style={s("padding:8px 13px;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-4);font-weight:600;background:var(--surface);color:var(--t1);text-decoration:none")}>
-              Export CSV
-            </a>
-            <button
-              disabled={!expiringIds.length}
-              onClick={() => startTransition(() => { void confirm(expiringIds, "bulk"); })}
-              style={sx("padding:8px 13px;border:0;border-radius:8px;font-size:var(--fs-4);font-weight:700;color:var(--surface);font-family:inherit", {
-                background: expiringIds.length ? "var(--ok)" : "var(--ok-tint)",
-                cursor: expiringIds.length ? "pointer" : "default",
-              })}
-            >
+            <Button href="/api/export?kind=vendor-roster" download>Export CSV</Button>
+            <Button variant="ok" onClick={() => startTransition(() => { void confirm(expiringIds, "bulk"); })} disabled={!expiringIds.length}>
               Confirm all expiring · {expiringIds.length}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -200,12 +192,17 @@ export function RosterTable({
       <div style={s("flex:1;overflow:auto")}>
         <div style={sx("display:grid;padding:9px 26px;background:var(--surface-2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:2", { gridTemplateColumns: COLS, gap: "12px" })}>
           {["NAME", "SKILLS", "EXPERIENCE", "YOUR MONTHLY RATE", "ASSESSMENT", "LAST CONFIRMED", "CONFIRM"].map((h) => (
-            <div key={h} style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.08em;color:var(--t3);line-height:1.3", { fontFamily: TOKENS.mono })}>
-              {h}
-            </div>
+            <HeadCell key={h}>{h}</HeadCell>
           ))}
         </div>
 
+        {shown.length === 0 ? (
+          <EmptyState inline title={
+            filter === "all" ? "No one on your bench yet"
+            : filter === "expiring" ? "No one needs confirming this week"
+            : `No one${filterLabel}`
+          } />
+        ) : null}
         {shown.slice(0, visible).map((r) => {
           const isConfirmed = confirmed[r.maskedId];
           const fresh = isConfirmed
@@ -252,9 +249,9 @@ export function RosterTable({
                 ))}
               </div>
 
-              <div style={s("font-size:var(--fs-3);font-weight:600")}>{r.experienceLabel}</div>
+              <div style={s("text-align:right;padding-right:8px;font-size:var(--fs-3);font-weight:600")}>{r.experienceLabel}</div>
 
-              <div style={sx("font-size:var(--fs-3);font-weight:700", { fontFamily: TOKENS.mono })}>
+              <div style={sx("text-align:right;padding-right:8px;font-size:var(--fs-3);font-weight:700", { fontFamily: TOKENS.mono })}>
                 {r.vendorRateLabel}
               </div>
 
@@ -270,9 +267,7 @@ export function RosterTable({
 
               <div style={s("min-width:0")}>
                 <div style={s("display:flex;align-items:center;gap:7px")}>
-                  <span style={sx("display:inline-block;padding:2px 7px;border-radius:4px;font-size:var(--fs-1);font-weight:700;letter-spacing:.08em;white-space:nowrap", { background: fs.bg, color: fs.fg, fontFamily: TOKENS.mono })}>
-                    {fs.label}
-                  </span>
+                  <Pill bg={fs.bg} fg={fs.fg}>{fs.label}</Pill>
                   <span style={s("font-size:var(--fs-1);color:var(--t4)")}>
                     {fresh.state === "confirmed" && isConfirmed ? "just now" : `${fresh.days}d ago`}
                   </span>
@@ -290,7 +285,7 @@ export function RosterTable({
                 {r.status === "draft" ? (
                   <button
                     onClick={() => startTransition(() => { void listOnExchange(r.maskedId, r.fullName); })}
-                    style={s("padding:6px 10px;border:0;border-radius:7px;font-size:var(--fs-1);font-weight:700;background:var(--brand);color:#fff;cursor:pointer;width:100%;font-family:inherit")}
+                    style={s("padding:6px 10px;border:0;border-radius:7px;font-size:var(--fs-1);font-weight:700;background:var(--brand);color:var(--on-accent);cursor:pointer;width:100%;font-family:inherit")}
                   >
                     List on the exchange
                   </button>
@@ -328,13 +323,9 @@ export function RosterTable({
               : `Showing ${Math.min(visible, shown.length)} of ${shown.length} ${shown.length === 1 ? "person" : "people"}${filterLabel}`}
           </div>
           {visible < shown.length ? (
-            <button
-              type="button"
-              onClick={() => setVisible(shown.length)}
-              style={s("padding:8px 14px;border:1px solid var(--border-2);border-radius:9px;font-size:var(--fs-4);font-weight:700;background:var(--surface);cursor:pointer;font-family:inherit;color:var(--t1)")}
-            >
+            <Button size="sm" onClick={() => setVisible(shown.length)}>
               Show all {shown.length} {shown.length === 1 ? "person" : "people"}
-            </button>
+            </Button>
           ) : null}
         </div>
       </div>

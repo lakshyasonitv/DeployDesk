@@ -13,6 +13,7 @@ import { DeployDeskLogo } from "./DeployDeskLogo";
 import { ToastProvider } from "./Toast";
 import { Search } from "./Search";
 import { HowItWorks } from "./HowItWorks";
+export { Button } from "./Button";
 
 /**
  * The global shell: sidebar + top bar + content column. Applies to all three portals.
@@ -410,43 +411,16 @@ export function Scroll({ children }: { children: ReactNode }) {
   return <div style={s("flex:1;overflow:auto;padding:20px 24px 32px")}>{children}</div>;
 }
 
-export function Button({
-  children, href, primary, accent, download,
-}: {
-  children: ReactNode;
-  href?: string;
-  primary?: boolean;
-  accent?: string;
-  /**
-   * Renders a plain `<a>` instead of next/link, for an href that is a ROUTE HANDLER
-   * rather than a page — a CSV download, for instance.
-   *
-   * next/link does a client-side RSC navigation, so it fetches the destination expecting a
-   * flight payload and the download never starts. This is the same trap that made the
-   * "Acting as" switcher unclickable; the rule is next/link for pages, `<a>` for route
-   * handlers.
-   */
-  download?: boolean;
-}) {
-  const style = primary
-    ? sx("padding:0 14px;height:38px;display:inline-flex;align-items:center;border-radius:10px;font-size:var(--fs-5);font-weight:700;color:#fff;white-space:nowrap;box-shadow:var(--sh)", {
-        background: accent ?? "var(--brand)",
-      })
-    : s("padding:0 14px;height:38px;display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:10px;font-size:var(--fs-5);font-weight:600;background:var(--surface);color:var(--t1);white-space:nowrap");
-  if (href && download) return <a href={href} style={style}>{children}</a>;
-  return href ? <Link href={href} style={style}>{children}</Link> : <div style={style}>{children}</div>;
-}
-
 export function StatCard({
-  label, value, delta, deltaColor, sub,
-}: { label: string; value: string | number; delta?: string; deltaColor?: string; sub?: string }) {
+  label, value, delta, deltaColor, sub, valueColor,
+}: { label: string; value: string | number; delta?: string; deltaColor?: string; sub?: string; valueColor?: string }) {
   return (
     <div style={s("background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:17px;box-shadow:var(--sh)")}>
       <div style={s("font-size:var(--fs-2);font-weight:700;letter-spacing:.08em;color:var(--t3);text-transform:uppercase")}>
         {label}
       </div>
       <div style={s("display:flex;align-items:baseline;gap:7px;margin-top:8px")}>
-        <div style={s("font-size:28px;font-weight:800;letter-spacing:-1px;line-height:1")}>{value}</div>
+        <div style={sx("font-size:28px;font-weight:800;letter-spacing:-1px;line-height:1", valueColor ? { color: valueColor } : {})}>{value}</div>
         {delta ? (
           <div style={sx("font-size:var(--fs-2);font-weight:700", { color: deltaColor ?? "var(--t4)" })}>{delta}</div>
         ) : null}
@@ -541,9 +515,40 @@ export function ScoreBars({
   );
 }
 
-export function EmptyState({ children }: { children: ReactNode }) {
+/**
+ * What a list shows when it has nothing in it. A bold line says what is missing and the
+ * body says what happens next. `inline` drops the dashed card, for use inside a table.
+ */
+export function EmptyState({
+  title, children, action, inline,
+}: { title?: ReactNode; children?: ReactNode; action?: ReactNode; inline?: boolean }) {
   return (
-    <div style={s("background:var(--surface);border:1px dashed var(--border-2);border-radius:16px;padding:34px;text-align:center;color:var(--t4);font-size:var(--fs-5)")}>
+    <div style={s(inline
+      ? "padding:30px 24px;text-align:center"
+      : "background:var(--surface);border:1px dashed var(--border-2);border-radius:16px;padding:30px 24px;text-align:center")}>
+      {title ? <div style={s("font-size:var(--fs-5);font-weight:700;color:var(--t1)")}>{title}</div> : null}
+      {children ? (
+        <div style={sx("font-size:var(--fs-4);color:var(--t3);line-height:1.55;max-width:520px;margin:0 auto", title ? { marginTop: "5px" } : {})}>
+          {children}
+        </div>
+      ) : null}
+      {action ? <div style={s("margin-top:14px")}>{action}</div> : null}
+    </div>
+  );
+}
+
+/** Columns that hold numbers. Their header and cells sit flush right so digits line up. */
+const NUMERIC_HEADS = new Set([
+  "HOW MANY", "EXPERIENCE", "TEST SCORE", "BUDGET / MONTH", "VALUE / MONTH",
+  "YOUR MONTHLY RATE", "BILLED THIS MONTH", "VENDOR RATE", "CLIENT RATE",
+  "BENCH", "BILLED / MONTH", "PAID / MONTH",
+]);
+
+/** One table header cell. Every table uses it, so headers look the same everywhere. */
+export function HeadCell({ children }: { children: string }) {
+  return (
+    <div style={sx("font-size:var(--fs-2);font-weight:700;letter-spacing:.06em;color:var(--t3);line-height:1.3;text-transform:uppercase",
+      NUMERIC_HEADS.has(children) ? { textAlign: "right", paddingRight: "8px" } : {})}>
       {children}
     </div>
   );

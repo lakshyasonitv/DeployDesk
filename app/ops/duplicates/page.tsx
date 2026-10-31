@@ -1,4 +1,4 @@
-import { Shell, PageHeader, Scroll, SectionLabel } from "@/src/lib/ui/Shell";
+import { Shell, PageHeader, Scroll, SectionLabel, EmptyState } from "@/src/lib/ui/Shell";
 import { getDemoSession, getShellNav } from "@/src/lib/auth/session";
 import { getOpsDuplicates } from "@/src/read-models/ops";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
@@ -44,7 +44,7 @@ export default async function DuplicatesPage() {
     <Shell portal="ops" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }} activeKey="duplicates" asideTitle="TODAY'S QUEUE" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Duplicate checks"
-        subtitle="Same person submitted by two suppliers · resolve before a shortlist goes out"
+        subtitle="The same person sent to us by two different suppliers. Clear these before a shortlist goes out."
         /*
           "Detection rules" is gone: it opened nothing, and no agreed thresholds exist to put
           behind it (working agreement 8). "N open flags" was a primary button that did
@@ -60,7 +60,7 @@ export default async function DuplicatesPage() {
         {blocking.map((f) => {
           const keeper = f.recommendation === "b" ? f.sides[1] : f.sides[0];
           return (
-            <div key={f.code} style={s("background:var(--surface);border:1px solid var(--danger-tint);border-radius:12px;overflow:hidden;margin-bottom:14px")}>
+            <div key={f.code} style={s("background:var(--surface);border:1px solid color-mix(in oklab, var(--danger) 26%, transparent);border-radius:18px;overflow:hidden;margin-bottom:14px")}>
               <div style={s("background:var(--danger-tint);border-bottom:1px solid var(--danger-tint);padding:11px 15px;display:flex;align-items:center;justify-content:space-between;gap:12px")}>
                 <div>
                   <div style={s("font-size:var(--fs-5);font-weight:800;color:var(--danger)")}>
@@ -69,7 +69,7 @@ export default async function DuplicatesPage() {
                   <div style={s("font-size:var(--fs-1);color:var(--danger);margin-top:3px")}>
                     Flagged {stamp(f.detectedAt)}
                     {f.blockedRequirementCount > 0
-                      ? ` · blocks ${f.blockedRequirementCount} shortlist`
+                      ? ` · blocks ${f.blockedRequirementCount} ${f.blockedRequirementCount === 1 ? "shortlist" : "shortlists"}`
                       : ""}
                   </div>
                 </div>
@@ -114,7 +114,7 @@ export default async function DuplicatesPage() {
         {secondary.map((f) => {
           const settled = settledAs(f.status, f.sides[0]?.vendorName, f.sides[1]?.vendorName);
           return (
-            <div key={f.code} style={s("background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 15px;display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap")}>
+            <div key={f.code} style={s("background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:13px 15px;display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap")}>
               <span style={sx("width:8px;height:8px;border-radius:50%;flex:none", { background: settled ? "var(--ok)" : "var(--warn)" })} />
               <div style={s("flex:1;min-width:0")}>
                 <div style={s("font-size:var(--fs-4);font-weight:700")}>
@@ -128,7 +128,7 @@ export default async function DuplicatesPage() {
               <div style={s("text-align:right;flex:none")}>
                 <div style={sx("font-size:var(--fs-1);font-weight:700", { fontFamily: TOKENS.mono })}>{f.code} · {f.confidence}%</div>
                 <div style={s("font-size:var(--fs-1);color:var(--t4);margin-top:2px")}>
-                  assigned to {f.assignedName ?? "unassigned"} · {settled ? "settled" : "open"}
+                  {f.assignedName ? `assigned to ${f.assignedName}` : "unassigned"} · {settled ? "settled" : "open"}
                 </div>
               </div>
               {/* "Needs a human call" used to come with no way to make one. */}
@@ -142,9 +142,9 @@ export default async function DuplicatesPage() {
         })}
 
         {flags.length === 0 ? (
-          <div style={s("background:var(--surface);border:1px dashed var(--border-2);border-radius:12px;padding:34px;text-align:center;color:var(--t4);font-size:var(--fs-4)")}>
-            No duplicate flags open. Detection runs on create, on import and nightly.
-          </div>
+          <EmptyState title="No duplicate flags open">
+            Detection runs on create, on import and nightly.
+          </EmptyState>
         ) : null}
       </Scroll>
     </Shell>

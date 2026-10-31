@@ -1,4 +1,4 @@
-import { Shell, PageHeader, Button } from "@/src/lib/ui/Shell";
+import { Shell, PageHeader, Button, HeadCell, EmptyState, Pill } from "@/src/lib/ui/Shell";
 import { getDemoSession, getShellNav } from "@/src/lib/auth/session";
 import {
   getOpsTalentPool, getOpsPoolFacets, getOpsSavedViews, getOpsOpenRequirements,
@@ -37,7 +37,7 @@ export const metadata = { title: "Talent pool · DeployDesk" };
  */
 // SKILLS has a floor (it was a bare `1fr`, and long chips spilled into EXPERIENCE).
 // Sized to fit a 1366px laptop with the 11px type floor; it scrolled 65px sideways before.
-const COLS = "24px 150px 140px minmax(110px, 1fr) 74px 74px 108px 96px 92px 116px";
+const COLS = "24px 136px 128px minmax(88px, 1fr) 90px 74px 100px 96px 92px 132px";
 
 const FRESHNESS_PILL = {
   confirmed: { bg: "var(--ok-tint)", fg: "var(--ok)" },
@@ -125,7 +125,7 @@ export default async function PoolPage({
       >
         <PageHeader
           title="Talent pool"
-          subtitle={`${pool.poolTotal} profiles across the exchange · full detail, nothing hidden · ${withScores} of the ${pool.resultCount} shown have a proctored score`}
+          subtitle={`${pool.poolTotal} profiles across the exchange · full detail, nothing hidden${pool.resultCount ? ` · ${withScores} of the ${pool.resultCount} shown have a proctored score` : ""}`}
           /**
            * "Save this view" is no longer here. It belongs beside the filters it saves — in
            * the header it had nothing to name, and it only makes sense once something is
@@ -148,7 +148,7 @@ export default async function PoolPage({
                 whole exchange. "Select all 1,284" would be a promise the limit cannot keep. */}
             <PoolHeaderCheck />
             {["NAME", "EMPLOYER", "SKILLS", "EXPERIENCE", "TEST SCORE", "VENDOR RATE", "CLIENT RATE", "CITY", "LAST CONFIRMED"].map((h) => (
-              <div key={h} style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.08em;color:var(--t3);line-height:1.3", { fontFamily: TOKENS.mono })}>{h}</div>
+              <HeadCell key={h}>{h}</HeadCell>
             ))}
           </div>
 
@@ -175,33 +175,28 @@ export default async function PoolPage({
                     <span key={sk} title={sk} style={s("padding:2px 6px;background:var(--surface-3);border-radius:4px;font-size:var(--fs-1);font-weight:600;color:var(--t2);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis")}>{sk}</span>
                   ))}
                 </div>
-                <div style={s("font-size:var(--fs-2);font-weight:600")}>{r.experienceLabel}</div>
-                <div style={sx("font-size:var(--fs-4);font-weight:800", { color: scoreColor(r.score) })}>
+                <div style={s("text-align:right;padding-right:8px;font-size:var(--fs-2);font-weight:600")}>{r.experienceLabel}</div>
+                <div style={sx("text-align:right;padding-right:8px;font-size:var(--fs-4);font-weight:800", { color: scoreColor(r.score) })}>
                   {r.score ?? "—"}
                 </div>
-                <div style={sx("font-size:var(--fs-2);font-weight:600", { fontFamily: TOKENS.mono })}>{r.vendorRateLabel}</div>
-                <div style={sx("font-size:var(--fs-2);font-weight:600", { fontFamily: TOKENS.mono, color: r.clientRateLabel ? "var(--brand)" : "var(--t4)" })}>
+                <div style={sx("text-align:right;padding-right:8px;font-size:var(--fs-2);font-weight:600", { fontFamily: TOKENS.mono })}>{r.vendorRateLabel}</div>
+                <div style={sx("text-align:right;padding-right:8px;font-size:var(--fs-2);font-weight:600", { fontFamily: TOKENS.mono, color: r.clientRateLabel ? "var(--brand)" : "var(--t4)" })}>
                   {/* Ops sees both sides. Shows the real proposed rate, or nothing. */}
                   {r.clientRateLabel ?? "not priced"}
                 </div>
                 <div style={s("font-size:var(--fs-2);color:var(--t2)")}>{r.city}</div>
                 <div>
-                  <span style={sx("display:inline-block;padding:3px 8px;border-radius:999px;font-size:var(--fs-1);font-weight:700", { background: fp.bg, color: fp.fg, fontFamily: TOKENS.mono })}>
-                    {r.freshnessLabel}
-                  </span>
+                  <Pill bg={fp.bg} fg={fp.fg}>{r.freshnessLabel}</Pill>
                 </div>
               </div>
             );
           })}
 
           {pool.results.length === 0 ? (
-            <div style={s("padding:34px 26px;text-align:center")}>
-              <div style={s("font-size:var(--fs-5);font-weight:600")}>Nobody matches all of those filters.</div>
-              <div style={s("font-size:var(--fs-3);color:var(--t4);margin-top:5px")}>
-                Widen one of them. The skill filter is the narrowest, because every skill you add has
-                to be present on the same person.
-              </div>
-            </div>
+            <EmptyState inline title="Nobody matches all of those filters">
+              Widen one of them. The skill filter is the narrowest, because every skill you add has
+              to be present on the same person.
+            </EmptyState>
           ) : (
             <div style={s("padding:14px 26px;display:flex;align-items:center;justify-content:space-between;gap:12px")}>
               <div style={s("font-size:var(--fs-2);color:var(--t4)")}>

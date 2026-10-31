@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Shell, PageHeader, Scroll, Button, StatCard, Card, SectionLabel, Pill } from "@/src/lib/ui/Shell";
+import { Shell, PageHeader, Scroll, Button, StatCard, Card, SectionLabel, Pill, HeadCell, EmptyState } from "@/src/lib/ui/Shell";
 import { getDemoSession, getShellNav } from "@/src/lib/auth/session";
 import { getClientOverview } from "@/src/read-models/client";
 import { s, sx, TOKENS, stageMeta } from "@/src/lib/ui/style";
@@ -49,10 +49,10 @@ export default async function ClientDashboard() {
         // No "replies in ~2h" (a promise nothing measures) and no "Ask Talentvibes" button (it
         // had no handler; the conversation lives on each shortlist).
         subtitle={`${overview.orgName} · ${overview.stats.openRequirements} open requirements · your Talentvibes team: ${overview.brokerName}`}
-        actions={<Button primary href="/client/requirements/new">Post a requirement</Button>}
+        actions={<Button primary href="/client/requirements/new">Post a new role</Button>}
       />
       <Scroll>
-        <div style={s("display:grid;grid-template-columns:repeat(4,1fr);gap:12px")}>
+        <div style={s("display:grid;grid-template-columns:repeat(auto-fit,minmax(198px,1fr));gap:12px")}>
           <StatCard label="OPEN REQUIREMENTS" value={overview.stats.openRequirements}
             sub={`${overview.stats.positions} positions in total`} />
           <StatCard label="AWAITING REVIEW" value={overview.stats.awaitingReview}
@@ -65,7 +65,7 @@ export default async function ClientDashboard() {
 
         <div style={s("display:grid;grid-template-columns:1.55fr 1fr;gap:16px;margin-top:16px;align-items:start")}>
           {/* open requirements */}
-          <div style={s("background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden")}>
+          <div style={s("background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden")}>
             <div style={s("padding:13px 15px;border-bottom:1px solid var(--surface-3)")}>
               <SectionLabel>OPEN REQUIREMENTS</SectionLabel>
             </div>
@@ -73,7 +73,7 @@ export default async function ClientDashboard() {
             <div style={sx("", { minWidth: TABLE_MIN_WIDTH })}>
             <div style={sx("display:grid;padding:8px 15px;background:var(--surface-2);border-bottom:1px solid var(--border)", { gridTemplateColumns: TABLE_COLS, gap: "10px" })}>
               {["REQ", "ROLE", "HOW MANY", "BUDGET / MONTH", "STAGE", "ACTION"].map((h) => (
-                <div key={h} style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.08em;color:var(--t3);line-height:1.3", { fontFamily: TOKENS.mono })}>{h}</div>
+                <HeadCell key={h}>{h}</HeadCell>
               ))}
             </div>
             {overview.openRequirements.map((r) => {
@@ -87,12 +87,10 @@ export default async function ClientDashboard() {
                       {r.experienceBand} · {r.locationLabel}{r.startDate ? ` · start ${fmtDay(r.startDate)}` : ""}
                     </div>
                   </div>
-                  <div style={sx("font-size:var(--fs-2);font-weight:700", { fontFamily: TOKENS.mono })}>×{r.quantity}</div>
-                  <div style={sx("font-size:var(--fs-2);font-weight:600", { fontFamily: TOKENS.mono })}>{r.budgetLabel}</div>
+                  <div style={sx("text-align:right;padding-right:8px;font-size:var(--fs-2);font-weight:700", { fontFamily: TOKENS.mono })}>×{r.quantity}</div>
+                  <div style={sx("text-align:right;padding-right:8px;font-size:var(--fs-2);font-weight:600", { fontFamily: TOKENS.mono })}>{r.budgetLabel}</div>
                   <div>
-                    <span style={sx("display:inline-block;padding:3px 8px;border-radius:5px;font-size:var(--fs-1);font-weight:700;letter-spacing:.08em", { background: st.bg, color: st.fg, fontFamily: TOKENS.mono })}>
-                      {st.label}
-                    </span>
+                    <Pill bg={st.bg} fg={st.fg}>{st.label}</Pill>
                   </div>
                   <Link href={r.stage === "shortlisted" ? `/client/shortlists/${r.code}` : r.stage === "interviewing" ? "/client/interviews" : "/client/requirements"}
                     style={s("font-size:var(--fs-2);font-weight:700;color:var(--brand);display:inline-block;padding:6px 0")}>
@@ -104,9 +102,9 @@ export default async function ClientDashboard() {
             </div>
             </div>
             {overview.openRequirements.length === 0 ? (
-              <div style={s("padding:26px;text-align:center;color:var(--t4);font-size:var(--fs-4)")}>
-                No open requirements. Post one and your Talentvibes team starts sourcing.
-              </div>
+              <EmptyState inline title="No open requirements">
+                Post one and your Talentvibes team starts sourcing.
+              </EmptyState>
             ) : null}
           </div>
 
@@ -115,11 +113,11 @@ export default async function ClientDashboard() {
             <Card pad="13px">
               <div style={s("display:flex;align-items:center;justify-content:space-between;margin-bottom:10px")}>
                 <SectionLabel>AWAITING YOUR REVIEW</SectionLabel>
-                <Pill bg="var(--brand-tint)" fg="var(--brand)">{overview.awaitingReview.length}</Pill>
+                <Pill bg="var(--brand-tint)" fg="var(--brand-ink)">{overview.awaitingReview.length}</Pill>
               </div>
               <div style={s("display:flex;flex-direction:column;gap:7px")}>
                 {overview.awaitingReview.map((a) => (
-                  <Link key={a.code} href={`/client/shortlists/${a.code}`}
+                  <Link key={a.code} href={`/client/shortlists/${a.code}`} className="tv-card"
                     style={s("display:block;background:var(--surface-2);border:1px solid var(--surface-3);border-radius:9px;padding:10px;color:var(--t1)")}>
                     <div style={s("display:flex;align-items:center;justify-content:space-between;gap:8px")}>
                       <span style={sx("font-size:var(--fs-1);font-weight:700", { fontFamily: TOKENS.mono })}>{a.code}</span>
@@ -145,7 +143,7 @@ export default async function ClientDashboard() {
                   const st = ENGAGEMENT_STATUS[e.status] ?? ENGAGEMENT_STATUS.active;
                   return (
                     <div key={e.maskedId} style={s("display:flex;align-items:center;gap:10px")}>
-                      <div style={sx("width:34px;height:34px;border-radius:8px;background:var(--brand-tint);flex:none;display:flex;align-items:center;justify-content:center;font-size:var(--fs-1);font-weight:700;color:var(--brand)", { fontFamily: TOKENS.mono })}>
+                      <div style={sx("width:34px;height:34px;border-radius:8px;background:var(--brand-tint);flex:none;display:flex;align-items:center;justify-content:center;font-size:var(--fs-1);font-weight:700;color:var(--brand-ink)", { fontFamily: TOKENS.mono })}>
                         TV
                       </div>
                       <div style={s("flex:1;min-width:0")}>
@@ -153,7 +151,7 @@ export default async function ClientDashboard() {
                           <span style={{ fontFamily: TOKENS.mono }}>{e.maskedId}</span> · {e.roleTitle}
                         </div>
                         <div style={s("font-size:var(--fs-1);color:var(--t4);margin-top:1px")}>
-                          {e.sinceLabel} · {e.rateLabel}/mo
+                          {e.sinceLabel ? `${e.sinceLabel} · ` : ""}{e.rateLabel}/mo
                         </div>
                       </div>
                       <div style={s("display:flex;align-items:center;gap:5px;flex:none")}>

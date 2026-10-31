@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/src/lib/ui/Button";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
@@ -185,12 +186,12 @@ export function FeedbackCard({
       </div>
 
       {/* ---- the note ---- */}
-      <textarea
+      <textarea className="tv-field"
         value={notes}
         onChange={(e) => setNotes(e.target.value)}
         rows={3}
         placeholder="What stood out, and anything your Talentvibes team should know."
-        style={s("width:100%;margin-top:12px;padding:9px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-3);font-family:inherit;outline:none;resize:vertical;line-height:1.5")}
+        style={s("width:100%;margin-top:12px;padding:9px 11px;border:1px solid var(--border-2);border-radius:9px;font-size:var(--fs-3);font-family:inherit;outline:none;resize:vertical;line-height:1.5")}
       />
       <div style={s("font-size:var(--fs-1);color:var(--t4);margin-top:5px;line-height:1.5")}>
         Goes to your Talentvibes team as written. They send the supplier a shortened version and
@@ -212,7 +213,7 @@ export function FeedbackCard({
                 onClick={() => setOutcome(on ? null : o.key)}
                 style={sx("padding:6px 12px;border-radius:8px;font-size:var(--fs-2);font-weight:700;cursor:pointer;font-family:inherit", {
                   background: on ? o.tone : "var(--surface)",
-                  color: on ? "#fff" : "var(--t2)",
+                  color: on ? "var(--on-accent)" : "var(--t2)",
                   border: `1px solid ${on ? o.tone : "var(--border-2)"}`,
                 })}
               >
@@ -225,29 +226,12 @@ export function FeedbackCard({
 
       {/* ---- actions ---- */}
       <div style={s("margin-top:13px;display:flex;gap:7px;align-items:center;flex-wrap:wrap")}>
-        <button
-          type="button"
-          onClick={() => save("submit")}
-          disabled={busy !== null || !outcome}
-          title={outcome ? undefined : "Choose what should happen next first"}
-          style={sx("padding:0 14px;height:34px;display:inline-flex;align-items:center;border:0;border-radius:9px;font-size:var(--fs-4);font-weight:700;color:#fff;font-family:inherit", {
-            background: outcome ? "var(--brand)" : "var(--brand-tint-2)",
-            cursor: busy || !outcome ? "default" : "pointer",
-            opacity: busy ? 0.6 : 1,
-          })}
-        >
+        <Button primary size="sm" onClick={() => save("submit")} disabled={busy !== null || !outcome} title={outcome ? undefined : "Choose what should happen next first"}>
           {busy === "submit" ? "Sending…" : "Send to your Talentvibes team"}
-        </button>
-        <button
-          type="button"
-          onClick={() => save("draft")}
-          disabled={busy !== null}
-          style={sx("padding:0 14px;height:34px;display:inline-flex;align-items:center;border:1px solid var(--border-2);border-radius:9px;font-size:var(--fs-4);font-weight:600;background:var(--surface);font-family:inherit", {
-            cursor: busy ? "default" : "pointer", opacity: busy ? 0.6 : 1,
-          })}
-        >
+        </Button>
+        <Button size="sm" onClick={() => save("draft")} disabled={busy !== null}>
           {busy === "draft" ? "Saving…" : "Save for later"}
-        </button>
+        </Button>
         <span style={s("font-size:var(--fs-1);color:var(--t4);margin-left:auto")}>
           {answered} of {ratings.length} rated
         </span>

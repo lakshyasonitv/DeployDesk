@@ -1,4 +1,4 @@
-import { Shell, PageHeader, Scroll, Card, SectionLabel, Pill } from "@/src/lib/ui/Shell";
+import { Shell, PageHeader, Scroll, Card, SectionLabel, Pill, EmptyState, Button } from "@/src/lib/ui/Shell";
 import { getDemoSession, getShellNav } from "@/src/lib/auth/session";
 import { getClientInterviews, getClientFeedbackDue } from "@/src/read-models/client";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
@@ -57,7 +57,7 @@ export default async function ClientInterviewsPage() {
             {scheduled.map((iv) => {
               const d = new Date(iv.scheduledAt!);
               return (
-                <div key={`${iv.maskedId}-${iv.roundLabel}`} style={s("background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px;display:flex;gap:13px;align-items:flex-start")}>
+                <div key={`${iv.maskedId}-${iv.roundLabel}`} style={s("background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:13px;display:flex;gap:13px;align-items:flex-start")}>
                   <div style={s("width:52px;flex:none;text-align:center;background:var(--surface-2);border-radius:9px;padding:8px 0")}>
                     <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.1em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
                       {istFormat(d, { month: "short" }).toUpperCase()}
@@ -72,7 +72,7 @@ export default async function ClientInterviewsPage() {
                   <div style={s("flex:1;min-width:0")}>
                     <div style={s("display:flex;align-items:center;gap:8px;flex-wrap:wrap")}>
                       <span style={sx("font-size:var(--fs-5);font-weight:700", { fontFamily: TOKENS.mono })}>{iv.maskedId}</span>
-                      <Pill bg="var(--brand-tint)" fg="var(--brand)">{iv.roundLabel}</Pill>
+                      <Pill bg="var(--brand-tint)" fg="var(--brand-ink)">{iv.roundLabel}</Pill>
                       <span style={sx("font-size:var(--fs-1);color:var(--t4)", { fontFamily: TOKENS.mono })}>{iv.requirementCode}</span>
                     </div>
                     <div style={s("font-size:var(--fs-4);font-weight:600;margin-top:5px")}>{iv.roleTitle}</div>
@@ -88,10 +88,7 @@ export default async function ClientInterviewsPage() {
                       this cannot always be live. It says so instead of looking broken.
                     */}
                     {iv.meetingUrl ? (
-                      <a href={iv.meetingUrl} target="_blank" rel="noreferrer"
-                        style={s("padding:0 13px;height:32px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:9px;font-size:var(--fs-3);font-weight:700;background:var(--brand);color:#fff;text-decoration:none;white-space:nowrap")}>
-                        Join
-                      </a>
+                      <Button primary size="sm" href={iv.meetingUrl} external>Join</Button>
                     ) : iv.modeLabel.startsWith("Onsite") ? null : (
                       // An onsite round has no link to come; its place is in the line above.
                       <span title="Your Talentvibes team issues the link once the round is locked."
@@ -139,9 +136,9 @@ export default async function ClientInterviewsPage() {
             ) : null}
 
             {interviews.length === 0 ? (
-              <div style={s("background:var(--surface);border:1px dashed var(--border-2);border-radius:12px;padding:30px;text-align:center;color:var(--t4);font-size:var(--fs-4)")}>
-                No interviews yet. Select profiles on a shortlist and request interviews.
-              </div>
+              <EmptyState title="No interviews yet">
+                Select profiles on a shortlist and request interviews.
+              </EmptyState>
             ) : null}
           </div>
 

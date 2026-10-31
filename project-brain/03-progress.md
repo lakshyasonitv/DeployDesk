@@ -128,6 +128,11 @@ percent-encoded (`@` becomes `%40`). Ask the owner for credentials; do not guess
 
 ## Start here next time
 
+**00. (2026-10-31, Session 16) UI phases 2 to 5 are done and uncommitted.** Ask the owner
+before committing; the phases share files, so it is one commit, and the two new files in
+`src/lib/ui/` must be staged by name. Before-and-after screenshots are in `.claude/ui-review/`.
+What the audits left for the owner is in `04-tasks.md`.
+
 **0. (2026-10-31) The Supabase project was paused after 23 idle days and the owner has
 restored it, then **reseeded on the owner's OK**: `db:verify` 30/30, `npm test` 207/207, all
 18 pages 200. **The seed ages:** about two weeks after `db:seed`, freshness decays,

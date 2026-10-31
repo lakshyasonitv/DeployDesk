@@ -44,6 +44,16 @@
   --info: #175cd3;   --info-tint: #eaf2ff;
   --violet: #6941c6; --violet-tint: #f3f1fd;
   --teal: #0e9384;   --teal-tint: #e6f6f4;
+  /* Text on a filled accent (brand, teal, ok, danger). Dark mode turns the accents light, so
+     white text on them drops under 3:1; there it becomes near-black. */
+  --on-accent: #fff;
+  --teal-ink: color-mix(in oklab, var(--teal) 70%, #000);     /* teal text; plain teal is 3.4:1 on its tint */
+  /* Secondary text on an ink (--t1) fill, such as the dark explainer cards. Mixed from the
+     fill and its text colour, so it works in both themes. */
+  --inv-2: color-mix(in oklab, var(--surface) 80%, var(--t1));
+  --inv-3: color-mix(in oklab, var(--surface) 64%, var(--t1));
+  /* A link on an ink fill, such as Undo on a toast. Plain brand is 3.6:1 there. */
+  --brand-on-ink: color-mix(in oklab, var(--brand) 60%, var(--surface));
 
   /* elevation */
   --sh: 0 1px 2px rgba(15, 23, 41, .06);
@@ -93,6 +103,8 @@
   --info: #7db3fb;   --info-tint: #111f33;
   --violet: #b09df5; --violet-tint: #1c1830;
   --teal: #45d1bd;   --teal-tint: #0b2a26;
+  --on-accent: #0b1016;
+  --teal-ink: var(--teal);
   --sh: 0 1px 2px rgba(0, 0, 0, .5);
   --sh2: 0 6px 20px rgba(0, 0, 0, .5);
   --sh3: 0 24px 56px rgba(0, 0, 0, .65);
@@ -153,3 +165,18 @@ a:hover { color: var(--brand-h); }
   outline: 2px solid var(--brand) !important;
   outline-offset: 2px;
 }
+
+/* Hover for shared buttons and clickable cards. Inline styles set background, colour and
+   border, so hover changes only filter and outline, which nothing sets inline. No shadow
+   and no transition: the contract allows neither here. */
+.tv-btn:not(:disabled):hover { filter: brightness(.95); }
+[data-tvtheme="dark"] .tv-btn:not(:disabled):hover { filter: brightness(1.12); }
+.tv-btn:not(:disabled):active { filter: brightness(.9); }
+.tv-card:hover { outline: 1px solid var(--brand-tint-2); }
+
+/* Native form controls follow the theme, so a field never shows white in dark mode. */
+:root { color-scheme: light; }
+[data-tvtheme="dark"] { color-scheme: dark; }
+/* Form fields: the contract's 40px height and --surface-2 fill. */
+.tv-field { background: var(--surface-2); color: var(--t1); }
+input.tv-field, select.tv-field { min-height: 40px; }

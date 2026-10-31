@@ -1,10 +1,12 @@
 "use client";
 
+import { Drawer } from "@/src/lib/ui/Drawer";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/src/lib/ui/Toast";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
 import { Pill, ScoreBars } from "@/src/lib/ui/Shell";
+import { Button } from "@/src/lib/ui/Button";
 import type { ClientShortlistView } from "@/src/read-models/client";
 import { istFormat } from "@/src/lib/derived";
 
@@ -168,36 +170,24 @@ export function ShortlistBoard({
         <div style={s("display:flex;align-items:flex-end;justify-content:space-between;gap:16px")}>
           <div style={s("min-width:0")}>
             <div style={s("display:flex;align-items:center;gap:9px;margin-bottom:7px")}>
-              <Pill bg="var(--brand-tint)" fg="var(--brand)">SHORTLIST READY</Pill>
+              <Pill bg="var(--brand-tint)" fg="var(--brand-ink)">SHORTLIST READY</Pill>
               <span style={sx("font-size:var(--fs-1);font-weight:600;color:var(--t4)", { fontFamily: TOKENS.mono })}>
                 {view.requirementCode} · delivered {formatDelivered(view.sentAt)}
               </span>
             </div>
-            <div style={s("font-size:22px;font-weight:800;letter-spacing:-.6px")}>{view.roleTitle}</div>
-            <div style={s("font-size:var(--fs-4);color:var(--t3);margin-top:4px")}>
+            <div style={s("font-size:26px;font-weight:800;letter-spacing:-.6px")}>{view.roleTitle}</div>
+            <div style={s("font-size:var(--fs-7);color:var(--t2);margin-top:4px")}>
               {view.quantity} position{view.quantity === 1 ? "" : "s"} · masked profiles ·
               names, photos and supplier withheld
             </div>
           </div>
           <div style={s("display:flex;gap:8px;flex:none")}>
-            <button
-              onClick={() => { setAskContext(`${view.requirementCode} · ${view.roleTitle}`); setAskOpen(true); }}
-              style={s("padding:8px 13px;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-4);font-weight:600;background:var(--surface);cursor:pointer;font-family:inherit")}
-            >
+            <Button onClick={() => { setAskContext(`${view.requirementCode} · ${view.roleTitle}`); setAskOpen(true); }}>
               Conversation
-            </button>
-            <button
-              type="button"
-              onClick={requestInterviews}
-              disabled={!selected.length || busy}
-              style={sx("padding:8px 13px;border:0;border-radius:8px;font-size:var(--fs-4);font-weight:700;color:#fff;font-family:inherit", {
-                background: selected.length ? "var(--brand)" : "var(--brand-tint-2)",
-                cursor: selected.length && !busy ? "pointer" : "default",
-                opacity: busy ? 0.6 : 1,
-              })}
-            >
+            </Button>
+            <Button primary onClick={requestInterviews} disabled={!selected.length || busy}>
               {busy ? "Asking\u2026" : `Request interviews \u00b7 ${selected.length}`}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -223,7 +213,7 @@ export function ShortlistBoard({
             return (
               <div
                 key={c.maskedId}
-                style={sx("background:var(--surface);border-radius:12px;padding:13px;display:flex;flex-direction:column;gap:10px", {
+                style={sx("background:var(--surface);border-radius:16px;padding:13px;display:flex;flex-direction:column;gap:10px", {
                   border: `1px solid ${isSelected ? "var(--brand-tint-2)" : "var(--border)"}`,
                   opacity: isPassed ? 0.55 : 1,
                 })}
@@ -322,7 +312,7 @@ export function ShortlistBoard({
 
         {/* -------- broker footer strip -------- */}
         {view.brokerNote ? (
-          <div style={s("margin-top:14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;align-items:flex-start;gap:11px")}>
+          <div style={s("margin-top:14px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px;display:flex;align-items:flex-start;gap:11px")}>
             <div style={s("width:28px;height:28px;border-radius:50%;background:var(--brand-tint-2);flex:none;display:flex;align-items:center;justify-content:center;font-size:var(--fs-1);font-weight:700;color:var(--brand)")}>
               {initials(view.brokerName)}
             </div>
@@ -330,12 +320,9 @@ export function ShortlistBoard({
               <span style={s("font-size:var(--fs-4);font-weight:700")}>{view.brokerName}:</span>
               <span style={s("font-size:var(--fs-4);color:var(--t2);line-height:1.55")}> {`"${view.brokerNote}"`}</span>
             </div>
-            <button
-              onClick={() => { setAskContext(`${view.requirementCode} · ${view.roleTitle}`); setAskOpen(true); }}
-              style={s("padding:7px 14px;border:0;border-radius:8px;font-size:var(--fs-3);font-weight:700;background:var(--t1);color:var(--surface);cursor:pointer;flex:none;font-family:inherit")}
-            >
+            <Button variant="dark" size="sm" onClick={() => { setAskContext(`${view.requirementCode} · ${view.roleTitle}`); setAskOpen(true); }}>
               View conversation
-            </button>
+            </Button>
           </div>
         ) : null}
       </div>
@@ -370,15 +357,11 @@ function AskPanel({
   const thread = (initial?.messages ?? []).map((m) => ({ who: m.who, body: m.body, mine: m.isMine, at: m.at }));
 
   return (
-    <div style={s("position:fixed;inset:0;background:rgba(16,16,20,.34);display:flex;justify-content:flex-end;z-index:50")} onClick={onClose}>
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={s("width:390px;max-width:100%;background:var(--surface);height:100%;display:flex;flex-direction:column;box-shadow:-18px 0 44px rgba(16,16,20,.18)")}
-      >
+    <Drawer label="Your Talentvibes team" onClose={onClose}>
         <div style={s("padding:15px 17px;border-bottom:1px solid var(--border);flex:none")}>
           <div style={s("display:flex;align-items:center;justify-content:space-between;gap:10px")}>
             <div style={s("font-size:var(--fs-6);font-weight:800")}>Your Talentvibes team</div>
-            <button onClick={onClose} style={s("border:0;background:transparent;font-size:17px;color:var(--t4);cursor:pointer;line-height:1")}>×</button>
+            <button onClick={onClose} aria-label="Close" style={s("border:0;background:transparent;font-size:19px;color:var(--t4);cursor:pointer;line-height:1;flex:none")}>×</button>
           </div>
           <div style={sx("font-size:var(--fs-1);font-weight:600;color:var(--t4);margin-top:3px", { fontFamily: TOKENS.mono })}>
             {context}
@@ -416,8 +399,7 @@ function AskPanel({
             commercials removed.
           </div>
         </div>
-      </div>
-    </div>
+      </Drawer>
   );
 }
 

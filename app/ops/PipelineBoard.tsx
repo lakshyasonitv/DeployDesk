@@ -1,5 +1,6 @@
 "use client";
 
+import { HeadCell, EmptyState } from "@/src/lib/ui/Shell";
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { s, sx, TOKENS, STAGES, SLA_COLOR, stageMeta } from "@/src/lib/ui/style";
@@ -167,7 +168,7 @@ export function PipelineBoard({
           <input
             value={query} onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by role, company, person or code"
-            style={s("padding:6px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-3);width:270px;font-family:inherit;outline:none")}
+            style={s("padding:6px 11px;border:1px solid var(--border-2);border-radius:9px;font-size:var(--fs-3);width:270px;font-family:inherit;outline:none;background:var(--surface-2);color:var(--t1)")}
           />
           {/* It shows due-soon roles too, so it is not called "Running late" — the header's
               "N running late" counts only the overdue ones, and the two disagreed. */}
@@ -192,12 +193,12 @@ export function PipelineBoard({
           <span style={s("font-size:var(--fs-4);flex:1")}>{toast.msg}</span>
           {toast.refused ? null : (
             <button onClick={undo}
-              style={sx("border:0;background:transparent;font-size:var(--fs-4);font-weight:700;cursor:pointer;font-family:inherit", { color: "var(--brand)" })}>
+              style={sx("border:0;background:transparent;font-size:var(--fs-4);font-weight:700;cursor:pointer;font-family:inherit", { color: "var(--brand-on-ink)" })}>
               Undo
             </button>
           )}
           <button onClick={() => setToast(null)}
-            style={s("border:0;background:transparent;font-size:var(--fs-3);color:var(--t4);cursor:pointer;font-family:inherit")}>
+            style={s("border:0;background:transparent;font-size:var(--fs-3);color:var(--inv-3);cursor:pointer;font-family:inherit")}>
             Dismiss
           </button>
         </div>
@@ -292,7 +293,7 @@ export function PipelineBoard({
           })}
         </div>
       ) : (
-        <ListView rows={filtered} onStep={step} />
+        <ListView rows={filtered} onStep={step} filtered={anyFilter} />
       )}
     </>
   );
@@ -301,23 +302,24 @@ export function PipelineBoard({
 /* ------------------------------------------------------------- list view */
 
 // The flexible column has a floor: as a bare 1fr it collapsed to 0px on narrower screens.
-const LIST_COLS = "98px minmax(140px, 1fr) 132px 68px 104px 92px 158px 120px 92px";
+const LIST_COLS = "98px minmax(140px, 1fr) 132px 82px 104px 92px 158px 120px 92px";
 
 function ListView({
-  rows, onStep,
-}: { rows: OpsPipelineRequirement[]; onStep: (code: string, dir: 1 | -1) => void }) {
+  rows, onStep, filtered,
+}: { rows: OpsPipelineRequirement[]; onStep: (code: string, dir: 1 | -1) => void; filtered: boolean }) {
   const ordered = [...rows].sort(
     (a, b) => STAGE_KEYS.indexOf(a.stage) - STAGE_KEYS.indexOf(b.stage),
   );
   return (
     <div style={s("flex:1;overflow:auto")}>
       <div style={sx("display:grid;padding:9px 26px;background:var(--surface-2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:2", { gridTemplateColumns: LIST_COLS, gap: "10px" })}>
-        {["REQ", "ROLE", "CLIENT", "HOW MANY", "VALUE / MONTH", "OWNER", "STAGE · MOVE", "Due", "ACTION"].map((h) => (
-          <div key={h} style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.08em;color:var(--t3);line-height:1.3", { fontFamily: TOKENS.mono })}>
-            {h}
-          </div>
+        {["REQ", "ROLE", "CLIENT", "HOW MANY", "VALUE / MONTH", "OWNER", "STAGE · MOVE", "DUE", "ACTION"].map((h) => (
+          <HeadCell key={h}>{h}</HeadCell>
         ))}
       </div>
+      {ordered.length === 0 ? (
+        <EmptyState inline title={filtered ? "No requirements match those filters" : "No requirements yet"} />
+      ) : null}
       {ordered.map((r) => {
         const st = stageMeta(r.stage);
         return (
@@ -338,8 +340,8 @@ function ListView({
               </div>
             </div>
             <div style={s("font-size:var(--fs-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>{r.clientName}</div>
-            <div style={sx("font-size:var(--fs-2);font-weight:700", { fontFamily: TOKENS.mono })}>×{r.quantity}</div>
-            <div style={sx("font-size:var(--fs-2);font-weight:700", { fontFamily: TOKENS.mono })}>{r.valuePerMonthLabel}</div>
+            <div style={sx("text-align:right;padding-right:8px;font-size:var(--fs-2);font-weight:700", { fontFamily: TOKENS.mono })}>×{r.quantity}</div>
+            <div style={sx("text-align:right;padding-right:8px;font-size:var(--fs-2);font-weight:700", { fontFamily: TOKENS.mono })}>{r.valuePerMonthLabel}</div>
             <div style={s("font-size:var(--fs-2);color:var(--t2)")}>{r.ownerShort}</div>
             <div style={s("display:flex;align-items:center;gap:5px")}>
               <Arrow dir="left" disabled={STAGE_KEYS.indexOf(r.stage) === 0} onClick={() => onStep(r.code, -1)} />

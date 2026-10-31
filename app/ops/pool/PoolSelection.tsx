@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/src/lib/ui/Button";
 import {
   createContext, useCallback, useContext, useMemo, useState, type ReactNode,
 } from "react";
@@ -125,7 +126,7 @@ function box(on: boolean) {
   return sx("width:15px;height:15px;border-radius:4px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none;padding:0", {
     background: on ? "var(--brand)" : "var(--surface)",
     border: `1px solid ${on ? "var(--brand)" : "var(--border)"}`,
-    color: "#fff",
+    color: "var(--on-accent)",
   });
 }
 
@@ -283,19 +284,9 @@ export function AddToRequirementAction() {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        disabled={count === 0}
-        title={count === 0 ? "Tick somebody in the table first" : undefined}
-        style={sx("padding:0 14px;height:38px;display:inline-flex;align-items:center;border-radius:10px;font-size:var(--fs-5);font-weight:700;white-space:nowrap;font-family:inherit;border:0;box-shadow:var(--sh)", {
-          background: count === 0 ? "var(--surface-3)" : "var(--t1)",
-          color: count === 0 ? "var(--t4)" : "#fff",
-          cursor: count === 0 ? "default" : "pointer",
-        })}
-      >
+      <Button variant="dark" onClick={() => setOpen(true)} disabled={count === 0} title={count === 0 ? "Tick somebody in the table first" : undefined}>
         {count === 0 ? "Add to a requirement" : `Add ${count} to a requirement`}
-      </button>
+      </Button>
 
       {open ? (
         <div
@@ -400,13 +391,9 @@ export function AddToRequirementAction() {
 
             {outcome ? (
               <div style={s("padding:12px 18px;border-top:1px solid var(--border);display:flex;justify-content:flex-end")}>
-                <button
-                  type="button"
-                  onClick={close}
-                  style={sx("padding:0 14px;height:34px;display:inline-flex;align-items:center;border-radius:9px;font-size:var(--fs-4);font-weight:700;border:0;cursor:pointer;font-family:inherit", { background: "var(--t1)", color: "#fff" })}
-                >
+                <Button variant="dark" size="sm" onClick={close}>
                   Done
-                </button>
+                </Button>
               </div>
             ) : null}
           </div>
