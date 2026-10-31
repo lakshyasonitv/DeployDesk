@@ -526,7 +526,7 @@ export async function getVendorImports(vendorOrgId: string) {
        * anything else used to fall through to the duplicate wording.
        */
       issue: (r.errors ?? []).includes("missing_rate")
-        ? "Rate missing — add it and re-send the row"
+        ? "Rate missing. Add it and re-send the row."
         : "Being checked by Talentvibes",
       resolution: r.resolution,
     })),

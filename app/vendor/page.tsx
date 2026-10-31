@@ -164,8 +164,8 @@ export default async function VendorDashboard() {
             <Card pad="13px">
               <SectionLabel>ASSESSMENT THROUGHPUT</SectionLabel>
               <div style={s("font-size:11.5px;color:var(--t2);line-height:1.55")}>
-                Scored profiles are shortlisted far more often. Scores are set by the proctoring
-                provider — you cannot edit them, and neither can a client.
+                Talentvibes shortlists scored profiles far more often. The proctoring provider sets
+                the scores. You cannot edit them, and neither can a client.
               </div>
               <a href="/vendor/assessments"
                 style={s("display:inline-block;font-size:11.5px;font-weight:700;color:var(--teal);margin-top:9px")}>

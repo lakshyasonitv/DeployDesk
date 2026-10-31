@@ -20,7 +20,7 @@ export default async function ShortlistsIndex() {
     <Shell portal="client" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }} activeKey="shortlists" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Candidate shortlists"
-        subtitle="Masked profiles sent to you by your Talentvibes team. You see skills, scores and a rate range — names, photos and supplier companies stay hidden."
+        subtitle="Masked profiles sent to you by your Talentvibes team. You see skills, scores and a rate range. Names, photos and supplier companies stay hidden."
       />
       <Scroll>
         <div style={s("display:grid;grid-template-columns:repeat(2,1fr);gap:12px")}>

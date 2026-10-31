@@ -5,7 +5,7 @@ Every table has `created_at timestamptz not null default now()` and
 `updated_at timestamptz not null default now()` unless stated otherwise; these are omitted
 below for brevity.
 
-**Money**: `bigint`, minor units (paise). ₹1,38,000 → `13800000`.
+**Money** is `bigint`, in minor units (paise). ₹1,38,000 is stored as `13800000`.
 **Rates are monthly** unless the column name says otherwise.
 
 ---
@@ -65,8 +65,8 @@ Roles by `org_type`:
 
 A user belongs to exactly one organisation. There is no cross-org membership.
 
-> **Amended by ADR-012.** A user still belongs to exactly one organisation — `memberships`
-> carries `UNIQUE (user_id)` — but a membership now holds a SET of roles
+> **Amended by ADR-012.** A user still belongs to exactly one organisation, which
+> `UNIQUE (user_id)` on `memberships` enforces. A membership now holds a SET of roles
 > (`supply`, `demand`, `admin`) rather than a single one, and the portal switcher IS a
 > production feature for organisations with more than one capability. What an organisation
 > may do lives in `org_capabilities`; `org_type` is derived from it.
@@ -85,7 +85,7 @@ aliases        text[]                      -- 'ReactJS', 'React.js'
 is_active      bool not null default true
 ```
 
-A canonical taxonomy is load-bearing: skill match is 30% of the ranking score, and free-text
+A canonical taxonomy is load-bearing. Skill match is 30% of the ranking score, and free-text
 skills would make it meaningless. Vendor-supplied strings resolve through `aliases`;
 unmatched strings go to a `skill_review_queue` for ops to canonicalise, and count as zero
 match until resolved.
@@ -218,7 +218,7 @@ proctoring_flags     jsonb                     -- ops-only integrity signals
 ```
 
 Only the **latest non-expired scored** assessment counts for matching. Retake policy is in
-`docs/DOMAIN.md`. Vendors cannot edit scores — there is no write path from
+`docs/DOMAIN.md`. Vendors cannot edit scores. There is no write path from
 `/api/vendor/*` to any score column.
 
 ---
@@ -314,7 +314,7 @@ unique (requirement_id, sequence_no)
 
 ### shortlist_items
 **The client-facing snapshot.** The client shortlist endpoint reads from here and nowhere
-else. This table structurally cannot leak: it has no vendor column and no vendor rate.
+else. This table structurally cannot leak. It has no vendor column and no vendor rate.
 ```
 id                     uuid pk
 shortlist_id           uuid not null → shortlists(id) on delete cascade
@@ -406,12 +406,12 @@ margin_exception_note  text
 ```
 
 `spread = client_rate - vendor_rate` and `margin_pct = spread / client_rate × 100` are
-derived. Two separate contracts exist in the real world (Talentvibes↔client and
-Talentvibes↔vendor); the single row models both sides, and neither side's API ever sees
+derived. Two separate contracts exist in the real world (Talentvibes with the client,
+and Talentvibes with the vendor); the single row models both sides, and neither side's API ever sees
 the other's column.
 
 ### rate_changes
-Rates change at renewal and mid-engagement. Keep history — invoices depend on it.
+Rates change at renewal and mid-engagement. Keep history, because invoices depend on it.
 ```
 id             uuid pk
 engagement_id  uuid not null → engagements(id)
@@ -597,8 +597,8 @@ scale; revisit past ~50k profiles.
 
 | View | Purpose |
 |---|---|
-| `v_resource_freshness` | `last_confirmed_at` → days, state, decay width |
-| `v_requirement_sla` | `sla_due_at` + stage → `ok/warn/late/idle` |
+| `v_resource_freshness` | Derives days, state and decay width from `last_confirmed_at` |
+| `v_requirement_sla` | Derives `ok/warn/late/idle` from `sla_due_at` and stage |
 | `v_engagement_margin` | spread and margin percentage, **ops only** |
 | `client_v_shortlist_items` | client-safe projection of `shortlist_items` |
 | `vendor_v_pipeline` | vendor-safe projection of `matches` + `interviews` for own resources |

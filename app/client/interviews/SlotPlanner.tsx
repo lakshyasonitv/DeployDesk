@@ -119,7 +119,7 @@ function SlotDrawer({
         const body = await res.json().catch(() => null);
         throw new Error(
           body?.error === "outside_business_hours"
-            ? "Interviews run 09:00–19:00 IST, Monday to Saturday, and the whole slot has to fit."
+            ? "Interviews run 09:00 to 19:00 IST, Monday to Saturday, and the whole slot has to fit."
             : body?.error === "slot_in_past"
               ? "Pick a time in the future."
               : body?.error === "duplicate_slot"
@@ -185,7 +185,7 @@ function SlotDrawer({
         <div style={s("flex:1;overflow:auto;padding:16px 17px;display:flex;flex-direction:column;gap:16px")}>
           <div style={s("font-size:12px;color:var(--t2);line-height:1.6")}>
             {isMove
-              ? "Tell us when else would work. The time already booked stays in your calendar until we confirm a replacement — we check the engineer is free before anything changes."
+              ? "Tell us when else would work. The time already booked stays in your calendar until we confirm a replacement. We check the engineer is free before anything changes."
               : "Give us a few times that suit your panel. We confirm the engineer is free and come back with one locked slot and a Talentvibes meeting link."}
           </div>
 
@@ -263,7 +263,7 @@ function SlotDrawer({
               </button>
             ) : null}
             <div style={s("font-size:10.5px;color:var(--t4);margin-top:9px;line-height:1.55")}>
-              Times are Indian Standard Time. Interviews run 09:00–19:00 IST, Monday to
+              Times are Indian Standard Time. Interviews run 09:00 to 19:00 IST, Monday to
               Saturday, and public holidays are excluded.
             </div>
           </div>

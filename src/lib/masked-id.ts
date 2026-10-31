@@ -47,7 +47,7 @@ function allocateWide(taken: ReadonlySet<string>): string {
  * PAN is brute-forceable in seconds. Ops-only columns; never leaves the server.
  */
 export function identityHash(value: string, pepper = process.env.IDENTITY_PEPPER): string {
-  if (!pepper) throw new Error("IDENTITY_PEPPER is not set — refusing to write a bare hash");
+  if (!pepper) throw new Error("IDENTITY_PEPPER is not set, so no bare hash will be written");
   const normalised = value.trim().toLowerCase().replace(/\s+/g, "");
   return createHmac("sha256", pepper).update(normalised).digest("hex");
 }

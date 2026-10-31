@@ -197,7 +197,7 @@ export default async function PoolPage({
             <div style={s("padding:34px 26px;text-align:center")}>
               <div style={s("font-size:13px;font-weight:600")}>Nobody matches all of those filters.</div>
               <div style={s("font-size:12px;color:var(--t4);margin-top:5px")}>
-                Widen one of them. The skill filter is the narrowest — every skill you add has
+                Widen one of them. The skill filter is the narrowest, because every skill you add has
                 to be present on the same person.
               </div>
             </div>

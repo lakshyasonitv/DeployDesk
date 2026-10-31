@@ -328,7 +328,7 @@ export function ShortlistBoard({
             </div>
             <div style={s("flex:1;min-width:0")}>
               <span style={s("font-size:12.5px;font-weight:700")}>{view.brokerName}:</span>
-              <span style={s("font-size:12.5px;color:var(--t2);line-height:1.55")}> “{view.brokerNote}”</span>
+              <span style={s("font-size:12.5px;color:var(--t2);line-height:1.55")}> {`"${view.brokerNote}"`}</span>
             </div>
             <button
               onClick={() => { setAskContext(`${view.requirementCode} · ${view.roleTitle}`); setAskOpen(true); }}
@@ -389,7 +389,7 @@ function AskPanel({
           {thread.length === 0 ? (
             <div style={s("font-size:12.5px;color:var(--t4);line-height:1.6;padding:4px 0")}>
               No messages yet. {brokerName} looks after this role for you, and this conversation
-              is between you and them only — no supplier ever sees it.
+              is between you and them only. No supplier ever sees it.
             </div>
           ) : null}
           {thread.map((m, i) => (

@@ -193,8 +193,8 @@ export function FeedbackCard({
         style={s("width:100%;margin-top:12px;padding:9px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:12px;font-family:inherit;outline:none;resize:vertical;line-height:1.5")}
       />
       <div style={s("font-size:10.5px;color:var(--t4);margin-top:5px;line-height:1.5")}>
-        Goes to your Talentvibes team as written. They send the supplier a shortened version — your
-        note is never passed on word for word.
+        Goes to your Talentvibes team as written. They send the supplier a shortened version and
+        never pass your note on word for word.
       </div>
 
       {/* ---- outcome ---- */}

@@ -99,9 +99,9 @@ export default async function VendorEarningsPage() {
         <div style={s("margin-top:14px;background:var(--teal-tint);border:1px solid var(--ok-tint);border-radius:12px;padding:13px")}>
           <SectionLabel>WHY YOU DO NOT SEE THE CLIENT</SectionLabel>
           <div style={s("font-size:12px;color:var(--teal);line-height:1.6")}>
-            {e.disclosure} Client identity, client rate and margin are not shared with suppliers —
-            and your rate is not shared with clients. That symmetry is what keeps the exchange
-            neutral for both sides.
+            {e.disclosure} Client identity, client rate and margin are not shared with suppliers,
+            and your rate is not shared with clients. That keeps the exchange neutral for both
+            sides.
           </div>
         </div>
       </Scroll>

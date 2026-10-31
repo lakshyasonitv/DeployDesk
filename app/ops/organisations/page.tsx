@@ -77,8 +77,8 @@ export default async function OrganisationsPage() {
               <div key={o.orgId} style={s("font-size:12.5px;color:var(--t2);line-height:1.6")}>
                 <strong>{o.name}</strong> has {o.benchCount} on its own bench and {o.openRequirements} open{" "}
                 {o.openRequirements === 1 ? "role" : "roles"}. On <strong>{o.feeModelLabel.toLowerCase()}</strong>,
-                so the spread is declared rather than inferable — and its own people are
-                refused as candidates for its own roles.
+                so the spread is declared rather than inferable. The matcher refuses its own
+                people as candidates for its own roles.
               </div>
             ))}
           </div>
@@ -189,7 +189,7 @@ export default async function OrganisationsPage() {
           ) : (
             <div style={s("font-size:12.5px;color:var(--t4)")}>
               No organisation is flagged on the current data. The two figures worth watching
-              by hand are open roles against placements ever made —{" "}
+              by hand are open roles against placements ever made:{" "}
               {orgs.filter((o) => o.openRequirements > 0 && o.placementsEver === 0)
                 .map((o) => `${o.name} (${o.openRequirements} open, none placed)`)
                 .join("; ") || "every client with open roles has placed before"}.

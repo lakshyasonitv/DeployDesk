@@ -148,7 +148,7 @@ export function Search({ portal }: { portal: Portal }) {
           ) : hits.length === 0 ? (
             <div style={s("padding:14px")}>
               <div style={s("font-size:12.5px;color:var(--t2);font-weight:600")}>
-                Nothing matches “{query.trim()}”.
+                Nothing matches {`"${query.trim()}"`}.
               </div>
               <div style={s("font-size:11.5px;color:var(--t4);margin-top:6px;line-height:1.6")}>
                 Try {examples.map((e, i) => (

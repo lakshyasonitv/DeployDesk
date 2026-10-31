@@ -33,6 +33,7 @@
 
 **2026-10-31**
 
+- [The owner's "unslop" rules are the house style for all writing](#2026-10-31-the-owners-unslop-rules-are-the-house-style-for-all-writing)
 - [The client's match preview has no budget dimension, and returns only buckets](#2026-10-31-the-clients-match-preview-has-no-budget-dimension-and-returns-only-buckets)
 - [Talentvibes sees everything; the client and the vendor see the bare minimum](#2026-10-31-talentvibes-sees-everything-the-client-and-the-vendor-see-the-bare-minimum)
 - [Duplicate checks: the owner delegated six calls; how each was made](#2026-10-31-duplicate-checks-the-owner-delegated-six-calls-how-each-was-made)
@@ -88,6 +89,24 @@
 - [Inline styles copied from the prototype via a parser helper](#2026-10-06-inline-styles-copied-from-the-prototype-via-a-parser-helper)
 - [Database changes are file-first and approval-gated](#2026-10-06-database-changes-are-file-first-and-approval-gated)
 - [Dual-role organisations: three decisions taken before building](#2026-10-06-dual-role-organisations-three-decisions-taken-before-building)
+
+## 2026-10-31 — The owner's "unslop" rules are the house style for all writing
+
+- **Decision:** everything written in this project follows the owner's "unslop" rules.
+  That covers screen copy, docs, CLAUDE.md, brain entries, code comments, commit messages
+  and replies to the owner. The main rules: no em dashes (use a period or a comma), colons
+  only before a list or an example, plain words, active voice that names who does what, and
+  whole sentences with no arrows or dropped articles. The full list is in the owner's skill.
+- **Why:** the owner asked for it. Writing that names the mechanism and the actor is also
+  easier to check against the code, which this project's audits keep relying on.
+- **Rejected:**
+  - Rewriting old brain entries and every code comment. The owner chose not to: the
+    decision log is append-only, the journal is a record, and a comment-only diff of ~550
+    lines changes no behaviour.
+  - Replacing the lone "—" empty-cell placeholder. It is data, not prose, code compares
+    against it, and the owner can still choose a word.
+- **Impact:** new brain entries, including this one, follow the rules. Headings written
+  before today keep their old dash format so the generated index still matches.
 
 ## 2026-10-31 — The client's match preview has no budget dimension, and returns only buckets
 

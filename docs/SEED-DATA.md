@@ -1,15 +1,15 @@
 # SEED-DATA.md
 
-The design prototype ships a complete, internally consistent fixture set. Reuse it — it
+The design prototype ships a complete, internally consistent fixture set. Reuse it. It
 makes the backend demoable against the real UI on day one, and it gives the golden tests
 something to be golden about.
 
-**Source of truth:** `design_handoff_bench_exchange/README.md` and the `class Component`
+The source of truth is `design_handoff_bench_exchange/README.md` and the `class Component`
 block at the bottom of `Talentvibes Bench Exchange.dc.html` (constants `REQS`, `POOLS`,
 `cands()`, roster and earnings tables).
 
-**Reference date:** all relative values ("2h ago", "confirmed 2d", "4d") are relative to
-**22–24 August 2026**. Seed with offsets from a configurable `SEED_NOW`, not absolute
+The reference date is **22–24 August 2026**. All relative values
+("2h ago", "confirmed 2d", "4d") are relative to it. Seed with offsets from a configurable `SEED_NOW`, not absolute
 timestamps, so freshness and SLA states stay correct whenever the seed is run.
 
 ---
@@ -38,8 +38,8 @@ Ops users, from the design:
 | Meridian Pharma | GxP/validated-systems requirements |
 | Vantage Insurance | |
 
-**Vendors** (7 named; the UI claims 14 supplier benches — generate 7 more thinly populated
-so counts read correctly)
+**Vendors** (7 named; the UI claims 14 supplier benches, so generate 7 more, thinly
+populated, to make the counts read correctly)
 
 | Name | Code | Reliability | Notes |
 |---|---|---:|---|
@@ -51,8 +51,8 @@ so counts read correctly)
 | Trueline Consulting | — | 3.4 | |
 | Orbit Talent Services | — | 3.1 | The problem vendor: withdrawals, duplicate losses, stale profiles |
 
-Orbit Talent Services is deliberately the weak supplier across the fixture set. Keep it —
-its low reliability, unconfirmed profiles and duplicate involvement are what make the
+Orbit Talent Services is deliberately the weak supplier across the fixture set. Keep it.
+Its low reliability, unconfirmed profiles and duplicate involvement are what make the
 vendor-reliability component and the duplicates screen testable.
 
 ---
@@ -87,7 +87,7 @@ utilisation the dashboard shows. Distribute freshness so 32 are confirmed, 7 exp
 3 unconfirmed.
 
 Bulk import history: `bench_aug26.csv`, 38 rows imported, 34 listed automatically,
-4 needing review — two missing a rate, two suspected duplicates.
+4 needing review. Of those 4, two are missing a rate and two are suspected duplicates.
 
 ---
 
@@ -97,29 +97,29 @@ All 24 rows are listed in `design_handoff_bench_exchange/README.md` §11 with:
 `id, role, client, qty, skills, value/mo, age, owner, stage, SLA, slaKind, budget, start,
 band, location, pool, client note, sourced count`.
 
-Transcribe them exactly. The distribution matters for the pipeline board — 4 new, 5
+Transcribe them exactly. The distribution matters for the pipeline board: 4 new, 5
 matching, 4 shortlisted, 5 interviewing, 4 placed (plus two more spread across stages),
 across 5 clients and 3 owners, with **one SLA breach** (REQ-2295, "Overdue 2h").
 
 Seed `sla_due_at` by working backwards from the intended state and `SEED_NOW`, rather than
-storing the label. `REQ-2249` and `REQ-2266` are `idle` — awaiting client — so their clocks
+storing the label. `REQ-2249` and `REQ-2266` are `idle`, awaiting client, so their clocks
 must be paused, not merely long.
 
-Client notes are per-requirement and are **client + ops only**. They are useful leak-test
+Client notes are per-requirement and are **client and ops only**. They are useful leak-test
 bait: seed them with distinctive strings and assert none appears in any vendor response.
 
 ---
 
 ## Candidate pools
 
-Four pools, A (React), B (Java/Node), C (QA), D (Enterprise), full data in the prototype's
-`POOLS` constant. Each candidate carries: masked id, name, vendor, experience, vendor rate,
-match score, reason line, six component values, city, notice, proctored score + date,
+There are four pools, A (React), B (Java/Node), C (QA) and D (Enterprise), with full data
+in the prototype's `POOLS` constant. Each candidate carries: masked id, name, vendor, experience, vendor rate,
+match score, reason line, six component values, city, notice, proctored score and date,
 freshness, vendor reliability, proposed client rate, margin, last-project note.
 
 Pool A in algorithm order (94, 89, 86, 81, 77, 68) is the golden case for
 `docs/MATCHING.md`. If your scorer does not reproduce this order from the underlying
-attributes, either the scorer or the fixture needs adjusting — investigate before changing
+attributes, either the scorer or the fixture needs adjusting. Investigate before changing
 either.
 
 The pools contain deliberate edge cases. Keep every one:
@@ -149,11 +149,11 @@ Tested dates 12 Jul / 09 Aug / 15 Aug / 04 Aug / 30 Jul / 18 Aug respectively.
 Client selection state starts with TV-6620 and TV-4821 selected, so the primary button reads
 "Request interviews · 2".
 
-Broker note on the footer strip, from Priya Nair, about TV-6620/TV-4821 clearing budget and
+The footer strip carries a broker note from Priya Nair about TV-6620/TV-4821 clearing budget and
 TV-4488 being above band.
 
 > ⚠️ **Do not copy the rate bands from the prototype.** They bracket the vendor rate.
-> Derive them from the proposed client rate per ADR-004 — for TV-4821 that means a band
+> Derive them from the proposed client rate per ADR-004. For TV-4821 that means a band
 > around ₹1.82L, not ₹1.35–1.55L. The seeded bands should differ from the mockup, and the
 > leak test asserts they do.
 
@@ -161,8 +161,8 @@ TV-4488 being above band.
 
 ## Interviews
 
-- TV-4821, Round 1, 25 Aug 11:00, 45 min, video, panel R. Sundaram + D. Kulkarni
-- TV-6620, Round 2, 26 Aug 15:30, 60 min, onsite Whitefield, panel S. Ahuja + platform pairing
+- TV-4821, Round 1, 25 Aug 11:00, 45 min, video, panel R. Sundaram and D. Kulkarni
+- TV-6620, Round 2, 26 Aug 15:30, 60 min, onsite Whitefield, panel S. Ahuja and platform pairing
 - TV-7715, Round 1, 28 Aug 10:00, 45 min, video, panel D. Kulkarni
 - TV-5302, `awaiting_vendor`, client proposed Thu 27 Aug at 11:00 and 16:00, requested 4h ago
 
@@ -175,18 +175,19 @@ communication 4, role fit 4, with the Playwright/CI notes and outcome pending.
 
 Six live placements are itemised in the margin table (README §14) with vendor rate, client
 rate, spread and margin. Seed engagements from those, plus the five on the client dashboard
-and the five on the vendor earnings screen — reconcile the overlap; they describe the same
-placements from three angles.
+and the five on the vendor earnings screen. Reconcile the overlap, because they describe the
+same placements from three angles.
 
 Deliberate cases:
 
-- **TV-4488** (Vertex Digital → Acme Finserv, SAP ABAP): 14.2% margin, **below the 18%
-  floor**, approved as a strategic entry, review at renewal 1 Oct. Seed with
+- **TV-4488** (Vertex Digital to Acme Finserv, SAP ABAP) has a 14.2% margin, **below the
+  18% floor**, approved as a strategic entry, with review at renewal 1 Oct. Seed with
   `margin_approved_by` set and an exception note.
-- **TV-3964** (Orbit → Northwind Retail, .NET Core): 17.4%, also below floor.
-- **TV-4102** (QA Automation): ends 30 Sep — the "ending" status and pro-rata case.
-- **TV-4455** (SAP ABAP): started 1 Aug, `onboarding`, billed pro-rata (₹1,62,000 of
-  ₹2,15,000) — the mid-month-start billing case.
+- **TV-3964** (Orbit to Northwind Retail, .NET Core) has a 17.4% margin, also below the
+  floor.
+- **TV-4102** (QA Automation) ends 30 Sep. It is the "ending" status and pro-rata case.
+- **TV-4455** (SAP ABAP) started 1 Aug, is `onboarding`, and is billed pro-rata
+  (₹1,62,000 of ₹2,15,000). It is the mid-month-start billing case.
 
 The exchange-wide totals the ops screen shows (31 live placements, ₹3.4Cr run-rate) need
 ~25 generated engagements beyond the named ones.
@@ -195,7 +196,8 @@ The exchange-wide totals the ops screen shows (31 live placements, ₹3.4Cr run-
 
 ## Duplicate flags
 
-**DUP-0148** — 96% confidence, blocks the REQ-2291 shortlist, flagged 22 Aug 09:12.
+**DUP-0148** has 96% confidence, blocks the REQ-2291 shortlist, and was flagged 22 Aug
+09:12.
 
 - A (earlier, 12 Aug 09:41): Arjun Rathore, TV-4821, Nimbus Softworks, PAN hash …7f21c9,
   phone hash …4b8e, 6.2 years, Zeta Commerce 2021–24, score 88 · 09 Aug, rate ₹1,38,000,
@@ -206,19 +208,19 @@ The exchange-wide totals the ops screen shows (31 live placements, ₹3.4Cr run-
 - Signals: PAN exact, phone exact, 3-of-3 employer overlap, same GitHub handle,
   6.2y vs 6.5y, ₹14,000 rate difference
 
-**DUP-0147** — 71%, open, assigned to R. Verma: Kavya Menon (Trueline) vs K. M. Nair
-(Vertex) — matching phone hash and overlapping Salesforce project history, **different
-PAN**. Needs a human call. This is the fixture that proves the 60–84 band flags without
+**DUP-0147** has 71% confidence, is open, and is assigned to R. Verma. It pairs Kavya
+Menon (Trueline) with K. M. Nair (Vertex), who have a matching phone hash and overlapping
+Salesforce project history but a **different PAN**. Needs a human call. This is the fixture that proves the 60–84 band flags without
 blocking.
 
 ---
 
 ## Broker threads
 
-The client-side thread for REQ-2291 is seeded with three messages (broker → client →
-broker) about the shortlist and TV-4488's rate, on 22 Aug at 09:40, 10:02 and 10:15.
+The client-side thread for REQ-2291 is seeded with three messages (broker, then client,
+then broker) about the shortlist and TV-4488's rate, on 22 Aug at 09:40, 10:02 and 10:15.
 
-Seed the **linked vendor-side thread too** — the prototype only shows one side, but the
+Seed the **linked vendor-side thread too**. The prototype only shows one side, but the
 two-thread model (ADR-008) is untestable with one. Add a vendor thread scoped to TV-4488
 with a relayed message whose `relayed_from_id` points at the client message, and whose
 redacted body has "Acme Finserv" and the client's budget removed. That single pair is what
@@ -230,6 +232,6 @@ the relay tests run against.
 
 For performance work: 20,000 bench resources across 200 vendors, 500 requirements across
 50 clients, 5,000 matches, 2,000 engagements. Use a **fixed seed**. Realistic distributions
-matter more than volume — skills follow a long tail, freshness clusters near recent, and
+matter more than volume. Skills follow a long tail, freshness clusters near recent, and
 80% of requirements belong to 20% of clients. A uniform distribution will make every index
 look fine and hide the query that falls over in production.

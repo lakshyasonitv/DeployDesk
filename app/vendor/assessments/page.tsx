@@ -41,7 +41,7 @@ export default async function VendorAssessmentsPage() {
     <Shell portal="vendor" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }} activeKey="assessments" asideTitle="NEEDS CONFIRMING" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="Skill tests"
-        subtitle="Proctored by Talentvibes. Scores are visible to you and to clients — you cannot edit them."
+        subtitle="Proctored by Talentvibes. Scores are visible to you and to clients, and you cannot edit them."
         actions={<InviteAllButton maskedIds={a.untestedMaskedIds} />}
       />
       <Scroll>
@@ -144,7 +144,7 @@ export default async function VendorAssessmentsPage() {
           <SectionLabel>WHY SCORES ARE READ-ONLY</SectionLabel>
           <div style={s("font-size:12px;color:var(--teal);line-height:1.6")}>
             Every score comes from the proctoring provider. No endpoint lets you, the client or
-            Talentvibes write one — that independence is what makes the score worth showing on a
+            Talentvibes write one. That independence is why the score is worth showing on a
             masked profile.
           </div>
         </div>

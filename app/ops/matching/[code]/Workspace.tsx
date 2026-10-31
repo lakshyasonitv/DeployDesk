@@ -299,7 +299,7 @@ export function Workspace({
       if (!res.ok) {
         setToast(
           body.error === "blocked_duplicate" ? "Blocked: resolve the duplicate flags first"
-          : body.error === "on_placement" ? `Not sent: ${(body.candidates ?? []).join(", ")} already on a placement — take them out first`
+          : body.error === "on_placement" ? `Not sent: ${(body.candidates ?? []).join(", ")} already on a placement. Take them out first.`
           : `Send failed: ${body.error ?? res.status}`,
         );
         return;
@@ -343,7 +343,7 @@ export function Workspace({
             <div style={s("font-size:12.5px;color:var(--t3);margin-top:4px")}>
               {sourceNote ?? (initial.length
                 ? `${initial.length} candidates sourced from ${sourcedBenches} of ${benchCount} benches`
-                : "no candidates sourced yet — matching starts here")}
+                : "no candidates sourced yet, so matching starts here")}
             </div>
           </div>
           <div style={s("display:flex;gap:8px;flex:none")}>
@@ -788,7 +788,7 @@ function RateEditor({
         {c.rateSetBy ? (
           <div style={s("flex-basis:100%;font-size:10.5px;color:var(--t4);line-height:1.5")}>
             Set by {c.rateSetBy.name ?? "a broker"}
-            {c.rateSetBy.reason ? ` — ${c.rateSetBy.reason}` : ""}
+            {c.rateSetBy.reason ? `. ${c.rateSetBy.reason}` : ""}
           </div>
         ) : null}
       </div>
@@ -835,8 +835,8 @@ function RateEditor({
       {belowFloor ? (
         <div style={s("margin-top:11px")}>
           <div style={s("font-size:11.5px;color:var(--warn);font-weight:600;line-height:1.5")}>
-            That is below our {MARGIN_FLOOR_PCT}% floor. Allowed — say why, and it is recorded
-            against your name on the Margin page.
+            That is below our {MARGIN_FLOOR_PCT}% floor. You can still set it if you say why. The
+            audit log records the reason against your name.
           </div>
           <textarea
             value={reason}

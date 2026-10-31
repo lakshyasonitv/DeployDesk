@@ -171,8 +171,8 @@ export function AddResourceForm({
         <div style={s("background:var(--ok-tint);border:1px solid var(--ok-tint);border-radius:9px;padding:11px")}>
           <div style={s("font-size:11.5px;color:var(--teal);line-height:1.6")}>
             Clients will see this profile as <strong style={s("font-weight:700")}>TV-####</strong>{" "}
-            only. The name and {vendorName} are never exposed — not on the shortlist card, not in a
-            message from Talentvibes, not in an interview invitation.
+            only. The name and {vendorName} are never exposed, whether on the shortlist card, in a
+            message from Talentvibes or in an interview invitation.
           </div>
         </div>
       </Group>
@@ -251,7 +251,7 @@ export function AddResourceForm({
           <div style={s("margin-top:10px;background:var(--ok-tint);border:1px solid var(--ok-tint);border-radius:9px;padding:11px")}>
             <div style={s("font-size:11.5px;color:var(--teal);line-height:1.6")}>
               This is what Talentvibes pays you. You will never see the client-side rate, and the
-              client never sees this figure — they see a coarse band derived from the price we quote
+              client never sees this figure. They see a coarse band derived from the price we quote
               them.
             </div>
           </div>
@@ -265,8 +265,8 @@ export function AddResourceForm({
 
       <Group label="PROCTORED ASSESSMENT">
         <div style={s("font-size:11.5px;color:var(--t2);line-height:1.6;margin-bottom:10px")}>
-          Scored profiles are shortlisted far more often. The score is set by the proctoring
-          provider — you cannot edit it, which is exactly why a client trusts it.
+          Talentvibes shortlists scored profiles far more often. The proctoring provider sets
+          the score. You cannot edit it, which is why a client trusts it.
         </div>
         {/* "Send test invite now" / "Schedule for later" were <div>s styled as buttons. Requesting
             a test is real, on Skill tests, once the person is saved. */}

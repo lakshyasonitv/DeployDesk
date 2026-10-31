@@ -34,7 +34,7 @@ export default async function ClientEngagementsPage() {
     <Shell portal="client" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }} activeKey="engagements" asideTitle="OPEN REQS" asideItems={aside.items} badges={aside.badges}>
       <PageHeader
         title="People working"
-        subtitle="Everyone currently working for you through Talentvibes. One contract and one invoice, with us — never with the supplier."
+        subtitle="Everyone currently working for you through Talentvibes. You have one contract and one invoice, with us and never with the supplier."
         /**
          * No page-level "Request an extension" button. An extension belongs to one
          * person, and a header button has no way to say which of five placements was
@@ -51,7 +51,7 @@ export default async function ClientEngagementsPage() {
           <StatCard
             label="ENDING SOON"
             value={endingSoon}
-            sub={endingSoon ? "within 45 days — open one to extend" : "nothing needs a decision"}
+            sub={endingSoon ? "within 45 days, open one to extend" : "nothing needs a decision"}
           />
           <StatCard label="CONTRACTING PARTY" value="Talentvibes" sub="one contract for everyone you hire" />
         </div>
@@ -76,7 +76,7 @@ export default async function ClientEngagementsPage() {
           <div style={s("font-size:12px;color:var(--brand-h);line-height:1.6")}>
             Talentvibes invoices you at the agreed rate per resource, net 30, and contracts
             separately with each supplier. Supplier identity and supplier commercials are not part
-            of your agreement — which is what keeps the exchange neutral for both sides.
+            of your agreement, which keeps the exchange neutral for both sides.
           </div>
         </div>
       </Scroll>

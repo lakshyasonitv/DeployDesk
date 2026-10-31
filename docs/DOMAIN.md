@@ -1,4 +1,4 @@
-# DOMAIN.md — glossary, lifecycles and business rules
+# DOMAIN.md: glossary, lifecycles and business rules
 
 ## Glossary
 
@@ -10,7 +10,7 @@
 | **Vendor / supplier** | A company offering its bench. Used interchangeably in the UI; prefer `vendor` in code. |
 | **Broker** | A Talentvibes ops user who owns the relationship on both sides of a requirement. |
 | **Masked ID** | `TV-4821`. The only candidate identifier a client ever sees. |
-| **Requirement** | `REQ-2291`. A client's open demand. Has a quantity — one requirement can produce several placements. |
+| **Requirement** | `REQ-2291`. A client's open demand. Has a quantity, so one requirement can produce several placements. |
 | **Match** | An ops-side scored pairing of a resource to a requirement. Not visible to anyone else. |
 | **Shortlist** | A frozen set of masked profiles sent from ops to a client. |
 | **Freshness** | How recently a vendor confirmed that a resource is still available. |
@@ -32,7 +32,7 @@ draft ──▶ new ──▶ matching ──▶ shortlisted ──▶ interview
                         (ops may move backwards)               cancelled
 ```
 
-Ops can move a requirement to any stage — the pipeline board allows drag to any column and
+Ops can move a requirement to any stage. The pipeline board allows drag to any column and
 arrow moves in both directions. Do not model this as a rigid forward-only machine.
 Instead, permit any transition and enforce **guards**:
 
@@ -47,7 +47,7 @@ Instead, permit any transition and enforce **guards**:
 | `→ closed` | Filled quantity met, or ops closes with a reason |
 
 Every transition writes a `requirement_stage_events` row. **Undo** in the UI is a new
-transition back, not a deletion — the audit trail keeps both moves.
+transition back, not a deletion. The audit trail keeps both moves.
 
 A requirement with `quantity > 1` stays in `interviewing` until the last position is filled;
 each fill creates its own engagement.
@@ -60,20 +60,22 @@ draft ──▶ listed ──▶ in_process ──▶ deployed ──▶ listed 
    └─────────┴──────▶ withdrawn ────────┘  ──▶ archived
 ```
 
-- `draft` — created but not on the exchange. Not matchable.
-- `listed` — on the exchange, matchable subject to eligibility gates.
-- `in_process` — appears on at least one active shortlist or in an interview. Still
-  matchable for other requirements, but ops sees the contention. The vendor sees the
-  stage; the client sees nothing about other processes.
-- `deployed` — placed. Not matchable. When the engagement's `end_date` passes, a job
-  returns the resource to `listed` with freshness reset to unconfirmed, prompting the
-  vendor to re-confirm.
-- `withdrawn` — vendor pulled it. Increments `vendor_profiles.withdrawal_count`, which
-  feeds reliability.
+- `draft` means the resource has been created but is not on the exchange. It is not
+  matchable.
+- `listed` means the resource is on the exchange and matchable, subject to eligibility
+  gates.
+- `in_process` means the resource appears on at least one active shortlist or in an
+  interview. It is still matchable for other requirements, but ops sees the contention.
+  The vendor sees the stage; the client sees nothing about other processes.
+- `deployed` means the resource is placed. It is not matchable. When the engagement's
+  `end_date` passes, a job returns the resource to `listed` with freshness reset to
+  unconfirmed. The reset prompts the vendor to re-confirm.
+- `withdrawn` means the vendor pulled the resource. This increments
+  `vendor_profiles.withdrawal_count`, which feeds reliability.
 
 ## Freshness
 
-Derived from `last_confirmed_at`. **Never stored as a state column.**
+Freshness is derived from `last_confirmed_at`. **It is never stored as a state column.**
 
 ```
 days = floor(now_ist − last_confirmed_at, in days)
@@ -91,7 +93,7 @@ Rules:
   roster and stays in the ops talent pool, flagged.
 - Confirming sets `last_confirmed_at = now()` and appends an `availability_confirmations`
   row. It does not touch anything else.
-- The nightly sweep at **02:00 IST** does not mutate state — it sends the "7 profiles
+- The nightly sweep at **02:00 IST** does not mutate state. It sends the "7 profiles
   expiring" email and refreshes match eligibility. Freshness itself is always computed at
   read time so the roster is never stale between sweeps.
 - A resource already on a live shortlist that goes stale does **not** disappear from that
@@ -99,25 +101,25 @@ Rules:
 
 ## Assessment rules
 
-- Proctored by Talentvibes. Vendors and clients can read scores; **neither can write them**.
+- Talentvibes proctors the assessments. Vendors and clients can read scores; **neither can write them**.
 - A score is valid for **90 days** from completion. After that the assessment is `expired`
   and the resource cannot be included in a shortlist until it is retaken.
 - Retake policy: a candidate scoring below 80 may retake after **60 days**. The design
-  shows attempt numbers on the client card, so attempts are visible — do not hide a second
+  shows attempt numbers on the client card, so attempts are visible. Do not hide a second
   attempt.
 - Matching uses the latest `scored`, non-expired assessment. `not_started` scores zero on
   the test component but does not block matching; it **does** block inclusion in a
   shortlist unless ops explicitly overrides with a note.
 - The four sections are fixed: **coding, DSA, system design, communication**, each 0–100.
-  The overall score is the provider's, not a recomputation — do not average the sections.
+  The overall score is the provider's, not a recomputation. Do not average the sections.
 
 ## Vendor reliability score
 
-0.0–5.0, one decimal, recomputed nightly. It is 8% of the match score and drives the ops
+The score runs 0.0–5.0 with one decimal and is recomputed nightly. It is 8% of the match score and drives the ops
 recommendation on duplicate resolution, so it must be explainable.
 
-Suggested starting formula — record the version used on each computation so historical
-scores stay interpretable:
+The suggested starting formula is below. Record the version used on each computation so
+historical scores stay interpretable.
 
 ```
 base                 3.0
@@ -130,7 +132,7 @@ clamp to [1.0, 5.0]
 ```
 
 New vendors start at **3.5** with a `provisional` marker for their first 10 submissions, so
-a single early outcome does not dominate. Never let the score reach 0 — a 0 reads as a data
+a single early outcome does not dominate. Never let the score reach 0. A 0 reads as a data
 error rather than a judgement.
 
 ## SLA
@@ -151,8 +153,8 @@ remaining < 0              →  late    red
 waiting on the client      →  idle    grey   (clock paused, no breach)
 ```
 
-`idle` is important: an unresponsive client must not make an ops broker look late. Pausing
-happens on entry to `shortlisted` and on `awaiting_vendor` interview states.
+`idle` matters because an unresponsive client must not make an ops broker look late. The
+clock pauses on entry to `shortlisted` and on `awaiting_vendor` interview states.
 
 Business hours are **09:00–19:00 IST, Monday–Saturday**, excluding a configured Indian
 holiday calendar. Put the calendar in a table, not in code.
@@ -162,14 +164,15 @@ holiday calendar. Put the calendar in a table, not in code.
 1. Client selects masked profiles and requests interviews.
 2. Ops confirms supplier release with the vendor. The interview sits in `awaiting_vendor`
    with the client's proposed slots. The client sees "broker is confirming supplier
-   release" — never "waiting on Nimbus Softworks".
+   release", never "waiting on Nimbus Softworks".
 3. Ops confirms a slot, issues a **Talentvibes-owned meeting link**, and briefs the
    candidate on the masking rules.
 4. Client panel interviews. The candidate knows the client's name at this point in the real
-   world; the *vendor* still does not. Brief candidates accordingly — this is a policy
-   matter to confirm with the business, logged as an open question in `docs/DECISIONS.md`.
+   world; the *vendor* still does not. Brief candidates accordingly. This is a policy
+   matter to confirm with the business, and it is logged as an open question in
+   `docs/DECISIONS.md`.
 5. Client submits feedback. Ops relays a redacted summary to the vendor.
-6. Outcome `advance` → next round. `pass` → item marked passed. Client-side decisions are
+6. Outcome `advance` moves to the next round. Outcome `pass` marks the item as passed. Client-side decisions are
    never relayed verbatim; a "pass" reaches the vendor as a neutral outcome with the
    commercial and identity context removed.
 
@@ -177,12 +180,12 @@ holiday calendar. Put the calendar in a table, not in code.
 
 **Stated by the owner, 2026-10-08.**
 
-> Price negotiation starts only once the talent has cleared **all** the rounds — both
+> Price negotiation starts only once the talent has cleared **all** the rounds, both
 > Talentvibes's own rounds and the client's rounds.
 
 Nothing before that point is a price. It is a **starting figure**, and the only number in the
-exchange that is actually settled beforehand is the **vendor rate** — what the supplier wants
-for their engineer. The client rate is negotiated, and it is negotiated last.
+exchange that is actually settled beforehand is the **vendor rate**, which is what the supplier
+wants for their engineer. The client rate is negotiated, and it is negotiated last.
 
 In the model, "cleared all the rounds" means both of:
 
@@ -199,25 +202,26 @@ the sentence quoted from the owner is the authority.*
 - The **proposed client rate** on the matching desk is indicative. It exists so a shortlist
   can carry a band and so the ranking has something to score, not because it is agreed.
 - **Any report that treats it as settled is wrong**, which is why the ops Margin screen was
-  removed on 2026-10-08 — it presented a margin per placement as a fact across the whole
-  exchange. See `project-brain/02-decisions.md`.
-- A margin shown **while somebody is choosing a rate** is a different thing and stays: it is
-  arithmetic on a number being typed, not a claim about a concluded deal.
+  removed on 2026-10-08. That screen presented a margin per placement as a fact across the
+  whole exchange. See `project-brain/02-decisions.md`.
+- A margin shown **while somebody is choosing a rate** is a different thing, and it stays. It
+  is arithmetic on a number being typed, not a claim about a concluded deal.
 
 ## Margin rules
 
-**There is no margin screen.** It was removed on 2026-10-08 — see § *When a price becomes
+**There is no margin screen.** It was removed on 2026-10-08. See § *When a price becomes
 negotiable* above. What remains is margin computed **at the point somebody chooses a rate**,
 never a report of margin across placements.
 
 - Target margin: **≥ 22%**. This is the figure the **proposed client rate** is computed from,
-  so it cannot simply be deleted: it is the default a negotiation starts at.
+  so it cannot simply be deleted. It is the default a negotiation starts at.
 - Floor: **18%**. Below the floor an engagement requires an explicit approval
   (`margin_approved_by`) plus a note. The guardrail panel that used to list the exceptions
   went with the screen; the approval and the note are still columns on `engagements`, still
   seeded, and still checked by `db:verify`. **Whether the floor survives is an open question**
-  put to the owner on 2026-10-08 and not yet answered — if a client rate is negotiated, a hard
-  threshold requiring written justification may be the wrong shape. Unchanged until they say.
+  put to the owner on 2026-10-08 and not yet answered. If a client rate is negotiated, a hard
+  threshold requiring written justification may be the wrong shape. The floor stays
+  unchanged until the owner says otherwise.
 - Margin is computed at the **proposed client rate** during matching, and at the
   **contracted rates** once an engagement exists. Show ops both; never conflate them.
 - Colour thresholds (presentation, but keep the boundaries in one shared constant so the
@@ -227,7 +231,7 @@ never a report of margin across placements.
 
 Run on resource create, on bulk import, and nightly across the full corpus.
 
-Confidence scoring — tune the weights, keep the signals:
+For confidence scoring, tune the weights but keep the signals:
 
 | Signal | Weight |
 |---|---|
@@ -242,12 +246,12 @@ Confidence scoring — tune the weights, keep the signals:
 Thresholds: ≥ 85 auto-flag and **block** any shortlist containing either resource;
 60–84 flag for human review without blocking; below 60 no flag.
 
-Resolution: ops keeps one submission and rejects the other. The recommendation favours the
+To resolve a flag, ops keeps one submission and rejects the other. The recommendation favours the
 **earlier submission** with the better freshness and higher vendor reliability. The losing
 vendor is told only that the profile is already represented on the exchange. **Neither the
-client nor the candidate is informed.** (Not built: today the losing vendor sees only
-`withdrawn`, with no reason — see Q11 in `docs/DECISIONS.md`. Nobody with live work — a
-placement, or a shortlist a client holds — is withdrawn by a resolution.)
+client nor the candidate is informed.** (This message is not built. Today the losing vendor
+sees only `withdrawn`, with no reason. See Q11 in `docs/DECISIONS.md`. A resolution
+withdraws nobody with live work. Live work is a placement, or a shortlist a client holds.)
 
 Note the real-world case the design hints at (`TV-3964` vs `TV-6104`): the same person may
 genuinely have moved between vendors. A differing PAN with a matching phone is "needs a
@@ -255,7 +259,7 @@ human call", not an automatic rejection.
 
 ## Values that must always be derived, never stored
 
-Repeating this because it is the most common source of drift:
+This list is repeated here because it is the most common source of drift:
 
 - freshness state and decay bar width
 - SLA state

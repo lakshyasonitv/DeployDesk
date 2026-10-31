@@ -234,7 +234,7 @@ export function AddToRequirementAction() {
         toast({
           tone: "error",
           message: data?.error === "stage_closed"
-            ? `${req.code} is no longer open — reload the page.`
+            ? `${req.code} is no longer open. Reload the page.`
             : `Could not add anybody to ${req.code}.`,
         });
         return;
@@ -317,7 +317,7 @@ export function AddToRequirementAction() {
                 <div style={s("font-size:11.5px;color:var(--t4);margin-top:3px;line-height:1.45")}>
                   {outcome
                     ? "Not everybody went in cleanly. Here is what happened to each one."
-                    : "Only roles somebody is still working are listed. They are scored and ranked like anybody the matcher sourced — any order you arranged by hand is kept."}
+                    : "Only roles somebody is still working are listed. They are scored and ranked like anybody the matcher sourced, and any order you arranged by hand is kept."}
                 </div>
               </div>
               <button

@@ -353,7 +353,7 @@ export function Shell({
                   <a
                     key={p.orgId}
                     href={p.href}
-                    title={`${p.orgName} — ${p.role}`}
+                    title={`${p.orgName}, ${p.role}`}
                     style={sx("font-size:12.5px;font-weight:700;padding:2px 8px;border-radius:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px", {
                       background: p.active ? "var(--brand-tint)" : "transparent",
                       color: p.active ? "var(--brand-ink)" : "var(--t3)",

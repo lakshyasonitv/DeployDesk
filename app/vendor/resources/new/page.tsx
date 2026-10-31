@@ -107,7 +107,7 @@ export default async function AddResourcePage() {
                         {imports.reviewRows.map((r) => (
                           <div key={r.rowNumber} style={css("font-size:11px;color:var(--warn);line-height:1.5")}>
                             <span style={{ fontFamily: TOKENS.mono }}>row {r.rowNumber}</span> ·{" "}
-                            {r.name} — {r.issue}
+                            {r.name}: {r.issue}
                           </div>
                         ))}
                       </div>
@@ -157,7 +157,7 @@ export default async function AddResourcePage() {
 
               <div style={css("font-size:10.5px;color:var(--t4);margin-top:11px;line-height:1.6")}>
                 Withheld from the client: the name, any photo, and {vendorName}. The exact rate you
-                set is never shown either — the client sees a coarse band derived from the price
+                set is never shown either. The client sees a coarse band derived from the price
                 Talentvibes quotes them, not from your cost.
               </div>
             </div>

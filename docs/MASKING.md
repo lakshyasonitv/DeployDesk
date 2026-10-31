@@ -1,4 +1,4 @@
-# MASKING.md — the visibility contract
+# MASKING.md: the visibility contract
 
 **This is the most important document in the repository.** Every read path must comply.
 When this document and any other document disagree, this one wins.
@@ -54,7 +54,7 @@ Two entries deserve a note:
 - **The assessment report** may be summarised for the client (scores and section
   breakdown, which the design shows) but the raw report artefact often contains the
   candidate's name, code repository handles and webcam stills. Serve a generated,
-  name-free summary — never the raw file.
+  name-free summary, never the raw file.
 
 ## Masked identifiers
 
@@ -66,22 +66,24 @@ Generation rules:
 
 1. **Random, not sequential.** Sequential IDs leak listing order, which leaks which
    profiles arrived in the same bulk upload, which leaks vendor grouping.
-2. Drawn from unused values in a large space; expand beyond four digits when occupancy
+2. IDs are drawn from unused values in a large space; expand beyond four digits when occupancy
    passes ~30% rather than reusing retired IDs. IDs are **never reused**.
-3. Not derived from any candidate attribute. No hashing of the name — that is reversible
-   by dictionary attack.
+3. Not derived from any candidate attribute. Do not hash the name. A name hash is
+   reversible by dictionary attack.
 
 A duplicate-flagged second submission gets its own ID with a suffix in ops views only
 (`TV-7188-B` in the design). Clients never see suffixed IDs.
 
-## Rate bands: the subtle one — read this before implementing shortlists
+## Rate bands: the subtle one
+
+Read this before implementing shortlists.
 
 The client sees a **rate band**, not a number. The band must be derived from the
 **client-facing price**, never from the vendor's cost.
 
 > ⚠️ **The prototype gets this wrong and you must not copy it.** In the design fixtures,
 > TV-4821 has a vendor rate of ₹1.38L and a proposed client rate of ₹1.82L, but the masked
-> client card shows a band of ₹1.35–1.55L — a band that brackets the *vendor cost*.
+> client card shows a band of ₹1.35–1.55L, a band that brackets the *vendor cost*.
 > Shipping that would hand the client the supplier's price and therefore the margin.
 > See ADR-004 for the resolution and the required band algorithm.
 
@@ -90,11 +92,11 @@ Band rules:
 - Compute from `proposed_client_rate` only. The vendor rate must not be an input.
 - Quantise to coarse buckets (e.g. ₹10,000 steps) so the exact figure cannot be recovered
   by comparing bands across candidates.
-- Band width must not vary with margin — a narrow band on a thin-margin candidate is a
+- Band width must not vary with margin. A narrow band on a thin-margin candidate is a
   side channel.
 - Store the band on `shortlist_items` at send time. Never recompute it on read.
 
-## Side channels — things that leak without any forbidden field
+## Side channels that leak without any forbidden field
 
 A response can satisfy the matrix and still leak. Check for these:
 
@@ -106,7 +108,7 @@ A response can satisfy the matrix and still leak. Check for these:
 | Timing | Two candidates created within the same second are the same bulk upload | Never expose `created_at` on client-facing candidate records |
 | Counts | "42 profiles on live benches match" is safe; "14 from one supplier" is not | Aggregates must never be broken down by vendor for a client, or by client for a vendor |
 | Error messages | "Candidate belongs to Nimbus Softworks" in a 403 body | Generic errors; details to the audit log only |
-| Free text | A broker message pasting a supplier name; a client note naming a competitor | Relay redaction is a broker action with automatic flagging — see below |
+| Free text | A broker message pasting a supplier name; a client note naming a competitor | Relay redaction is a broker action with automatic flagging. See below. |
 | File metadata | A PDF's `Author` field, an XLSX sheet name | Strip metadata on any file served cross-side |
 | Interview links | A Google Meet link created on the vendor's workspace domain | Meeting links are always issued by Talentvibes |
 | Email headers | Reply-to, display name, signature | All cross-side email is sent from Talentvibes; no forwarding |
@@ -124,21 +126,21 @@ When ops relays a message or feedback across the divide:
 4. The broker confirms. **Never auto-send a machine-redacted message.** Flagging assists a
    human; it does not replace one.
 
-The footer copy in the design — "Talentvibes relays anything relevant to the supplier with
-your company name and commercials removed" — is a promise the backend has to keep.
+The footer copy in the design says "Talentvibes relays anything relevant to the supplier
+with your company name and commercials removed". That is a promise the backend has to keep.
 
 ## Enforcement
 
-Four mechanisms, all required:
+Masking uses four mechanisms, and all four are required:
 
 1. **Separate read models per portal.** A forbidden field is not merely filtered; it is
    absent from the type. `docs/ARCHITECTURE.md` explains the folder layout.
-2. **Postgres views + RLS.** `client_v_*`, `vendor_v_*` views select only permitted
+2. **Postgres views and RLS.** `client_v_*`, `vendor_v_*` views select only permitted
    columns and carry RLS policies keyed on `org_id`. Application code uses the restricted
    role so policies actually apply.
 3. **Leak tests in CI.** A golden-fixture suite hits every `/api/client/*` and
    `/api/vendor/*` endpoint with a fully populated database and asserts that no response
-   body — at any depth — contains a forbidden key, a known vendor name, a known client
+   body contains, at any depth, a forbidden key, a known vendor name, a known client
    name, or any exact rate from the fixture set. This test must fail loudly when someone
    adds a column. See `docs/TESTING.md`.
 4. **A schema-level tripwire.** Sensitive columns are tagged in a registry

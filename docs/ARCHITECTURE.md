@@ -6,9 +6,9 @@
 
 1. Serve three portals (client, vendor, ops) from one database with strict, provable
    field-level separation.
-2. Support the full brokered lifecycle: requirement → sourcing → matching → masked
-   shortlist → brokered interviews → placement → billing.
-3. Make every client↔vendor interaction pass through a Talentvibes broker, with the
+2. Support the full brokered lifecycle, in this order: requirement, sourcing, matching,
+   masked shortlist, brokered interviews, placement, billing.
+3. Make every interaction between client and vendor pass through a Talentvibes broker, with the
    relay recorded.
 
 **Non-functional constraints**
@@ -16,15 +16,15 @@
 | Constraint | Target |
 |---|---|
 | Scale | ~2,000 bench resources, ~25 concurrent requirements, ~20 vendors, ~10 clients at launch. Design for 20× without re-architecting. |
-| Ops board | Must stay usable at hundreds of requirements — pipeline endpoints must paginate and aggregate server-side. |
+| Ops board | Must stay usable at hundreds of requirements. Pipeline endpoints must paginate and aggregate server-side. |
 | Latency | Talent pool search p95 < 400 ms at 10k profiles (the UI advertises "62 results · 0.18s"). |
 | Correctness over throughput | This is a low-volume, high-value marketplace. Prefer a boring, auditable transactional design over eventual consistency. |
 | Team | Small. Optimise for one codebase, one deploy, few moving parts. |
 
 ## Shape
 
-A **modular monolith**. One Next.js app, one Postgres database. No microservices — the
-volume does not justify them and distributed transactions would make the masking guarantees
+A **modular monolith**. One Next.js app, one Postgres database. No microservices. The
+volume does not justify them, and distributed transactions would make the masking guarantees
 harder, not easier.
 
 ```
@@ -50,9 +50,9 @@ harder, not easier.
                                                        ──▶ object storage (CVs, reports)
 ```
 
-The important asymmetry: **domain services are shared, read models are not.** A service
-like `matching` computes with unmasked data because ops needs it. What crosses the HTTP
-boundary is decided entirely by the portal-specific read model in front of it.
+The important asymmetry is that **domain services are shared, read models are not.** A service
+like `matching` computes with unmasked data because ops needs it. The portal-specific read
+model in front of it decides entirely what crosses the HTTP boundary.
 
 ## Layers
 
@@ -74,22 +74,22 @@ Rules:
 
 - A route handler never touches the database directly.
 - A service never returns an HTTP response shape.
-- A read model never contains business logic — it selects and renames, nothing more.
+- A read model never contains business logic. It selects and renames, nothing more.
 
 ## Tenancy and authorisation
 
 Three checks, in this order, on every request:
 
-1. **Authenticated** — valid Supabase session.
-2. **Portal match** — the JWT's `org_type` matches the route namespace. A vendor user
-   hitting `/api/client/*` is a 404 (not a 403 — do not confirm the route exists).
-3. **Ownership** — the row belongs to the caller's `org_id`. A vendor may only read its
+1. **Authenticated.** The request has a valid Supabase session.
+2. **Portal match.** The JWT's `org_type` matches the route namespace. A vendor user
+   hitting `/api/client/*` gets a 404, not a 403. Do not confirm the route exists.
+3. **Ownership.** The row belongs to the caller's `org_id`. A vendor may only read its
    own bench resources; a client only its own requirements.
 
 A user belongs to **exactly one organisation**.
 
 > **Amended by ADR-012.** The portal switcher now DOES have a production equivalent, for
-> organisations with both `can_supply` and `can_hire` — rendered as "Hiring | Bench". An
+> organisations with both `can_supply` and `can_hire`. It is rendered as "Hiring | Bench". An
 > organisation with a single capability never sees a switcher, and never sees a disabled
 > tab for the side it lacks. One user still maps to one organisation. Ops users are the only ones who can read
 across organisations, and only through `/api/ops/*`.
@@ -98,10 +98,10 @@ across organisations, and only through `/api/ops/*`.
 
 | Layer | What it catches |
 |---|---|
-| Read models | The default case — forbidden fields are not in the shape at all |
+| Read models | The default case. Forbidden fields are not in the shape at all |
 | RLS policies | A service that forgets a `WHERE org_id = …` |
 | Leak tests in CI | A new column silently added to an existing response |
-| Audit log | Post-hoc — who saw what, when |
+| Audit log | Post-hoc: who saw what, when |
 
 Application queries run as a **restricted database role, not the service role**, so RLS
 actually applies. Reserve the service role for migrations and cron jobs, and never expose it
@@ -111,13 +111,13 @@ to a request-scoped code path.
 
 Rather than one `Candidate` type with optional fields, define three unrelated types:
 
-- `ClientMaskedCandidate` — masked id, skills, experience, city, proctored score +
+- `ClientMaskedCandidate` has masked id, skills, experience, city, proctored score and
   breakdown, rate band, availability. **No** name, photo, vendor, exact rate, margin.
-- `VendorRosterResource` — own name, own employee id, masked id, own vendor rate, own
+- `VendorRosterResource` has own name, own employee id, masked id, own vendor rate, own
   assessment, freshness. **No** client name, client rate, margin.
-- `OpsCandidate` — everything.
+- `OpsCandidate` has everything.
 
-They live in different folders and share no base interface. This is deliberate: a shared
+They live in different folders and share no base interface. This is deliberate. A shared
 base is exactly the mechanism by which a field leaks. See `docs/MASKING.md`.
 
 ## Background work
@@ -135,12 +135,12 @@ Jobs are **idempotent** and write to the same audit log as user actions, with a 
 
 ## Data flow: the critical path
 
-Requirement → masked shortlist, the sequence the whole product hangs on:
+From requirement to masked shortlist, the sequence the whole product hangs on:
 
 1. Client posts a requirement (`POST /api/client/requirements`). Stage `new`.
-   The live match preview shown while typing is a **read-only, aggregate-only** endpoint —
-   it returns counts and bands, never profiles.
-2. Ops (or the match job) sources candidates → `matches` rows with algorithm score,
+   The live match preview shown while typing is a **read-only, aggregate-only** endpoint.
+   It returns counts and bands, never profiles.
+2. Ops (or the match job) sources candidates into `matches` rows with an algorithm score,
    six component scores and a proposed client rate. Stage `matching`.
 3. Ops opens the matching workspace, reorders (`manual_rank`), toggles `included`, and
    sends. On send:
@@ -149,11 +149,11 @@ Requirement → masked shortlist, the sequence the whole product hangs on:
    - the requirement moves to `shortlisted`;
    - an audit row records who sent what.
 4. The client reads `/api/client/shortlists/:reqId`, which serves **only from
-   `shortlist_items`** — never from `matches` or `bench_resources`. This is a structural
-   guarantee: the client-facing table physically does not contain vendor identity, exact
+   `shortlist_items`**, never from `matches` or `bench_resources`. This is a structural
+   guarantee. The client-facing table physically does not contain vendor identity, exact
    vendor rate, or margin.
 
-Snapshotting is not just a masking device. It means a vendor editing a rate, or a freshness
+Snapshotting also keeps a shortlist stable. A vendor editing a rate, or a freshness
 timer expiring, does not silently change a shortlist a client is mid-way through reviewing.
 
 ## Brokering: two threads, never one
@@ -167,19 +167,19 @@ client user ──▶ thread(side=client) ──▶ broker ──▶ thread(side
 There is no shared thread row and no message visible to both sides. When ops relays a
 message, a **new message** is created in the counterpart thread with a `relayed_from_id`
 pointer and a redacted body. Redaction is a human action by the broker, assisted by
-automatic flagging of company names, amounts and contact details — never an automatic
+automatic flagging of company names, amounts and contact details. It is never an automatic
 rewrite of what a user typed.
 
-Interview feedback follows the same path: the client's scorecard is stored intact, and a
+Interview feedback follows the same path. The client's scorecard is stored intact, and a
 redacted version with commercials and client identity removed is relayed to the vendor.
 
 ## Integrations
 
 | Integration | Boundary |
 |---|---|
-| Proctored assessments | `AssessmentProvider` interface: `invite`, `getStatus`, `getReport`. Webhook `assessment.completed` writes score + four section scores. See ADR-006 — this is a strong candidate for reusing the in-house proctoring platform. |
-| Email | `Mailer` interface over Resend. All templates server-rendered; no client identity in vendor emails, no vendor identity in client emails — enforced by a lint rule over template inputs. |
-| File storage | CVs, assessment reports, bulk-upload sheets. Signed, short-lived URLs only. **CVs are ops-only** — they contain names, employers and contact details, so they are never served to a client under any circumstance. |
+| Proctored assessments | `AssessmentProvider` interface: `invite`, `getStatus`, `getReport`. Webhook `assessment.completed` writes the score and four section scores. See ADR-006. This is a strong candidate for reusing the in-house proctoring platform. |
+| Email | `Mailer` interface over Resend. All templates are server-rendered. Vendor emails carry no client identity and client emails carry no vendor identity; a lint rule over template inputs enforces this. |
+| File storage | CVs, assessment reports, bulk-upload sheets. Signed, short-lived URLs only. **CVs are ops-only.** They contain names, employers and contact details, so they are never served to a client under any circumstance. |
 | Bulk upload | CSV/XLSX parsed server-side into `bulk_import_rows`, validated row by row, with a review queue for failures and suspected duplicates. |
 
 ## What is deliberately out of scope for v1

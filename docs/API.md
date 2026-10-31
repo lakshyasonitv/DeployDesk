@@ -1,27 +1,27 @@
 # API.md
 
 REST over JSON. Three namespaces mirroring the three portals. A request to a namespace that
-does not match the caller's `org_type` returns **404**, not 403 — do not confirm that a
+does not match the caller's `org_type` returns **404**, not 403. Do not confirm that a
 route exists to someone who should not know about it.
 
 ## Conventions
 
-- Base path `/api`. Versioning by header (`X-API-Version: 2026-08-01`) rather than URL —
-  there is one consumer and URL versioning would churn the whole surface.
+- Base path `/api`. Versioning is by header (`X-API-Version: 2026-08-01`) rather than URL.
+  There is one consumer, and URL versioning would churn every endpoint path.
 - IDs in URLs are the **public business codes** where the design shows them
   (`/api/client/shortlists/REQ-2291`), and UUIDs elsewhere. Resolve codes to UUIDs at the
   boundary.
-- Money in responses is `{ "paise": 13800000 }` — an integer plus its unit. Never a
+- Money in responses is `{ "paise": 13800000 }`, an integer plus its unit. Never a
   pre-formatted string; the UI owns lakh/crore formatting.
 - Lists are cursor-paginated: `?cursor=&limit=` returning `{ data, next_cursor, total }`.
   `total` is capped at 10,000 with `total_is_estimate: true` beyond that.
-- Errors: `{ error: { code, message, details? } }`. Messages are generic for authorisation
+- Errors have the shape `{ error: { code, message, details? } }`. Messages are generic for authorisation
   failures. Never name an organisation in an error body.
 - All mutations accept `Idempotency-Key`. Sending a shortlist twice must not create two.
 
 ---
 
-## Client portal — `/api/client/*`
+## Client portal: `/api/client/*`
 
 ### Dashboard
 ```
@@ -57,8 +57,8 @@ POST   /api/client/requirements/preview        live match preview — see below
   "advisory": { "kind": "raise_floor", "delta_profiles": 11, "suggested_floor_paise": 14000000 }
 }
 ```
-Rate-limit it (it fires on every keystroke — debounce client-side, cap server-side) and
-suppress any count below **5** to `"fewer than 5"`, so a client cannot binary-search the
+Rate-limit it. It fires on every keystroke, so debounce it client-side and cap it
+server-side. Suppress any count below **5** to `"fewer than 5"`, so a client cannot binary-search the
 filters to isolate one profile and infer its exact rate.
 
 ### Shortlists
@@ -109,14 +109,14 @@ POST  /api/client/broker/threads/:id/messages   { body }
 POST  /api/client/broker/threads/:id/read
 ```
 The `?` button on a masked card opens a thread with `scope_type=candidate`,
-`scope_id=<shortlist_item_id>` — **not** a resource id. The client has no resource ids.
+`scope_id=<shortlist_item_id>`, **not** a resource id. The client has no resource ids.
 
 ---
 
-## Vendor portal — `/api/vendor/*`
+## Vendor portal: `/api/vendor/*`
 
-Every endpoint is implicitly scoped to the caller's own organisation. A `vendor_org_id`
-in a request body is ignored, never trusted.
+Every endpoint is implicitly scoped to the caller's own organisation. The server ignores a
+`vendor_org_id` in a request body and never trusts it.
 
 ### Dashboard
 ```
@@ -125,7 +125,7 @@ GET /api/vendor/overview
       metrics, pipeline on own profiles, freshness summary, assessment throughput
 ```
 The pipeline rows show `masked_id`, own short name, own rate, stage and last update.
-**No client name, ever** — the design's own caption says Talentvibes hides the hiring
+**No client name, ever.** The design's own caption says Talentvibes hides the hiring
 company until placement. Confirm with the business whether the client is revealed at
 placement or never (open question in `docs/DECISIONS.md`); default to **never** until told
 otherwise.
@@ -162,8 +162,8 @@ POST /api/vendor/assessments/:id/resend
 POST /api/vendor/assessments/:id/nudge
 GET  /api/vendor/assessments/:id/report         name-free summary
 ```
-There is **no write path to any score column** from this namespace. Not a permission check —
-the route simply does not exist.
+There is **no write path to any score column** from this namespace. It is not a permission
+check. The route simply does not exist.
 
 ### Earnings
 ```
@@ -172,17 +172,17 @@ GET /api/vendor/earnings/statement      ?month=  PDF/CSV
 POST /api/vendor/invoices               raise an invoice against payable lines
 ```
 Reads only `invoices.direction = 'payable'` for the caller's org. The receivable side is
-not joinable from this namespace — enforce it with a view, not a `WHERE` clause someone can
+not joinable from this namespace. Enforce it with a view, not a `WHERE` clause someone can
 forget.
 
 ### Broker
 Same shape as the client's, with `side = 'vendor'`. Threads are scoped to resources and
 requirements-as-anonymous-briefs. A vendor thread's `scope_label` must never contain a
-client name — use the role and band ("Senior React, 5–8y, Bangalore").
+client name. Use the role and band ("Senior React, 5–8y, Bangalore").
 
 ---
 
-## Ops console — `/api/ops/*`
+## Ops console: `/api/ops/*`
 
 Ops sees everything. These endpoints still write audit rows for every read of unmasked PII
 in bulk (talent pool exports, duplicate reviews).
@@ -195,7 +195,7 @@ POST  /api/ops/requirements/:code/stage/undo   { event_id }
 PATCH /api/ops/requirements/:code         owner, SLA, internal notes
 ```
 Board mode returns requirements grouped by stage with **per-column counts computed
-server-side** and per-column pagination — the board must stay usable at hundreds of
+server-side** and per-column pagination. The board must stay usable at hundreds of
 requirements, so do not return every card and group in the browser.
 
 ### Matching workspace
@@ -208,7 +208,7 @@ POST  /api/ops/matching/:reqCode/reset     clear manual rank + include overrides
 GET   /api/ops/matching/:reqCode/candidates/:resourceId   expanded unmasked profile
 POST  /api/ops/matching/:reqCode/send      { item_ids, broker_note, rate_overrides? }
 ```
-`send` is the pivotal transaction. In one database transaction:
+`send` is the central transaction. In one database transaction:
 1. verify no open blocking duplicate flag;
 2. verify every included candidate is eligible (fresh, scored, not deployed);
 3. create `shortlists` + snapshot `shortlist_items` with **bands derived from the client
@@ -231,19 +231,19 @@ GET  /api/ops/pool/export          CSV — audited, rate-limited
 ### Margin
 
 **There is no margin endpoint, and there is no margin screen.** Both were removed on
-2026-10-08: a client rate is negotiated, and negotiation does not begin until the candidate
+2026-10-08. A client rate is negotiated, and negotiation does not begin until the candidate
 has cleared every round on both sides (`docs/DOMAIN.md` § *When a price becomes negotiable*).
 An endpoint reporting a margin per placement would be reporting a number nobody had agreed.
 
-A margin is still computed where somebody is **choosing** a rate —
-`POST /api/ops/matching/rate` returns the implied margin for the rate being set — and ops
+A margin is still computed where somebody is **choosing** a rate.
+`POST /api/ops/matching/rate` returns the implied margin for the rate being set, and ops
 still sees it on a placed pipeline card.
 
 ```
 POST /api/ops/engagements/:id/margin-exception  { note }  approve below-floor
 ```
 
-Whether the below-floor exception survives at all is **open**: see the same section.
+Whether the below-floor exception survives at all is **open**. See the same section.
 
 ### Duplicates
 ```
@@ -261,7 +261,7 @@ POST /api/ops/broker/threads/:id/messages       reply to one side
 POST /api/ops/broker/threads/:id/relay          { message_id, redacted_body, to_thread_id }
 GET  /api/ops/broker/relay/preview              { message_id } → auto-flagged spans
 ```
-`relay/preview` returns the spans a human should check — organisation names, amounts,
+`relay/preview` returns the spans a human should check: organisation names, amounts,
 contact details. It never auto-sends.
 
 ### Interviews and admin

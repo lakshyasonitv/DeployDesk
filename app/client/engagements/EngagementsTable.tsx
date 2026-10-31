@@ -349,7 +349,7 @@ function PlacementPanel({ e, onClose }: { e: ClientEngagement; onClose: () => vo
                   value={note}
                   onChange={(ev) => setNote(ev.target.value)}
                   rows={3}
-                  placeholder="Anything that would help — a project date, a phase that slipped."
+                  placeholder="Anything that would help, such as a project date or a phase that slipped."
                   style={s("width:100%;margin-top:9px;padding:9px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:12px;font-family:inherit;outline:none;resize:vertical;line-height:1.5")}
                 />
                 <div style={s("font-size:10.5px;color:var(--t4);margin-top:5px;line-height:1.5")}>
@@ -404,7 +404,7 @@ function PlacementPanel({ e, onClose }: { e: ClientEngagement; onClose: () => vo
           <div style={s("font-size:10.5px;color:var(--t4);line-height:1.6")}>
             <strong style={s("font-weight:700;color:var(--t3)")}>Why there is no name here.</strong>{" "}
             Names and supplier details are hidden on purpose. A name would let anyone trace
-            which supplier this engineer works for — and once the two sides can find each
+            which supplier this engineer works for. Once the two sides can find each
             other, neither your rate nor theirs stays private. You contract with Talentvibes
             alone, which is what keeps that true.
           </div>

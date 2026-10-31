@@ -235,7 +235,7 @@ export function PostForm({ availableSkills }: { availableSkills: string[] }) {
         <Group label="COMMERCIALS">
           <Field label="Budget range · per month">
             <div style={sx("font-size:12.5px;font-weight:700;margin-bottom:9px", { fontFamily: TOKENS.mono })}>
-              ₹{(minL * 100000).toLocaleString("en-IN")} — ₹{(maxL * 100000).toLocaleString("en-IN")}
+              ₹{(minL * 100000).toLocaleString("en-IN")} to ₹{(maxL * 100000).toLocaleString("en-IN")}
             </div>
             <div style={s("display:flex;gap:14px")}>
               <Slider label="Floor" value={minL} min={0.6} max={3} onChange={(v) => setMinL(Math.min(v, maxL - 0.1))} />

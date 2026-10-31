@@ -94,7 +94,7 @@ export default async function ClientRequirementsPage() {
               {rows.filter((r) => r.note).slice(0, 5).map((r) => (
                 <div key={r.code} style={s("font-size:11.5px;color:var(--t2);line-height:1.55")}>
                   <span style={sx("font-weight:700;color:var(--warn)", { fontFamily: TOKENS.mono })}>{r.code}</span>
-                  {" — "}{r.note}
+                  {": "}{r.note}
                 </div>
               ))}
             </div>

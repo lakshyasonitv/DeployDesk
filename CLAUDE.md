@@ -1,4 +1,4 @@
-# CLAUDE.md — DeployDesk by Talentvibes
+# CLAUDE.md for DeployDesk by Talentvibes
 
 This file is loaded on every session. Read it fully before writing code.
 
@@ -17,16 +17,16 @@ place: `BRAND` in `src/lib/ui/style.ts`.)
 
 There are three portals over one backend: `client`, `vendor`, `ops`.
 The frontend design for all three is specified in
-**`design_handoff_bench_exchange_v2/`** — treat `README.md` (shell and global rules) and
+**`design_handoff_bench_exchange_v2/`**. Treat `README.md` (shell and global rules) and
 `SCREENS.md` (every screen, with copy) as the UI contract, with `DESIGN_TOKENS.md` /
 `tokens.css` for styling.
 
-`design_handoff_bench_exchange/` (v1) is **superseded** — kept for history only, do not
-build from it. Where v2's `DATA_MODEL.md` disagrees with this file or with the implemented
+`design_handoff_bench_exchange/` (v1) is **superseded**. It is kept for history only.
+Do not build from it. Where v2's `DATA_MODEL.md` disagrees with this file or with the implemented
 dual-role brief, three calls are already recorded in `project-brain/02-decisions.md` and
 must not be re-opened from the handoff: groups are **declared in the MSA**, never inferred
 from PAN/GST; SLA `warn` stays at 25% of the window, not an absolute 8h; and the client
-never sees an exact client rate — **bands everywhere, placements included**.
+never sees an exact client rate, which means **bands everywhere, placements included**.
 
 ## The one rule that matters most
 
@@ -43,13 +43,13 @@ Consequences you must hold in your head at all times:
   UI" and no shared serializer that gets pruned per-caller.
 - **Never write a shared DTO across portals.** `client/`, `vendor/` and `ops/` each get
   their own read models. If you find yourself adding `if (role === 'ops')` inside a
-  serializer, stop — that is the wrong shape.
+  serializer, stop. That is the wrong shape.
 - Read `docs/MASKING.md` before touching **any** read path. It is the authoritative
   field-level visibility matrix and it is enforced by tests.
 
 ## Documentation map
 
-Read the ones relevant to your task. Do not duplicate content between them — link instead.
+Read the ones relevant to your task. Do not duplicate content between them. Link instead.
 
 | File | Read it when |
 |---|---|
@@ -59,33 +59,33 @@ Read the ones relevant to your task. Do not duplicate content between them — l
 | `docs/DOMAIN.md` | Business rules, lifecycles, state machines, glossary |
 | `docs/API.md` | Adding or changing an endpoint |
 | `docs/MATCHING.md` | Anything touching ranking, scoring, eligibility gates |
-| `docs/DECISIONS.md` | Before making a non-obvious technical choice — and after |
+| `docs/DECISIONS.md` | Before making a non-obvious technical choice, and after |
 | `docs/BUILD-PLAN.md` | Deciding what to work on next |
 | `docs/TESTING.md` | Writing tests, especially leak tests |
 | `docs/SEED-DATA.md` | Populating a dev database |
 
 ## Stack (see ADR-001)
 
-- **Runtime / API** — Next.js (App Router) route handlers, TypeScript, strict mode
-- **Database** — Postgres on Supabase, with Row Level Security as a second net
-- **Migrations / queries** — Drizzle ORM; all schema changes are checked-in SQL migrations
-- **Auth** — Supabase Auth, JWT carries `org_id`, `org_type`, `role`
-- **Jobs** — `pg_cron` for scheduled sweeps, DB-backed job table for async work
-- **Email** — Resend
-- **Assessments** — external proctoring provider behind an adapter interface (see ADR-006)
+- **Runtime / API.** Next.js (App Router) route handlers, TypeScript, strict mode.
+- **Database.** Postgres on Supabase, with Row Level Security as a second net.
+- **Migrations / queries.** Drizzle ORM. All schema changes are checked-in SQL migrations.
+- **Auth.** Supabase Auth. The JWT carries `org_id`, `org_type`, `role`.
+- **Jobs.** `pg_cron` for scheduled sweeps, and a DB-backed job table for async work.
+- **Email.** Resend.
+- **Assessments.** An external proctoring provider behind an adapter interface (see ADR-006).
 
 ## Working agreements
 
 1. **Migrations are append-only.** Never edit a migration that has been applied. Write a
    new one. Every migration has a matching `down`.
-2. **Money is stored as `bigint` paise** (₹1,38,000 → `13800000`). Never floats, never
+2. **Money is stored as `bigint` paise** (₹1,38,000 is stored as `13800000`). Never floats, never
    strings, never rupees. Formatting to `₹1.38L` is a presentation concern and belongs
    in the frontend.
 3. **Timestamps are `timestamptz` in UTC.** Business days, SLA clocks and the nightly
    freshness sweep run in **Asia/Kolkata**. Convert at the edges, never in the middle.
 4. **Derived values are derived.** Freshness state, decay bar width, column counts, nav
-   badges, margin colour thresholds, SLA state — all computed on read from timestamps and
-   amounts. `docs/DOMAIN.md` lists exactly what must never be stored.
+   badges, margin colour thresholds and SLA state are all computed on read from timestamps
+   and amounts. `docs/DOMAIN.md` lists exactly what must never be stored.
 5. **Everything that changes a stage, a rate, a shortlist or a duplicate resolution writes
    an audit row.** No exceptions. This is a brokered marketplace; disputes will happen.
 6. **Validate at the boundary with Zod schemas**, one per endpoint, colocated with the route.
@@ -110,7 +110,7 @@ Read the ones relevant to your task. Do not duplicate content between them — l
 
 - [ ] Zod-validated input
 - [ ] Tenancy check: caller's `org_id` owns the resource being read or written
-- [ ] Portal-specific read model — no forbidden field in the response shape
+- [ ] Portal-specific read model, with no forbidden field in the response shape
 - [ ] Leak test added to the golden-fixture suite (`docs/TESTING.md`)
 - [ ] Audit row written for state-changing actions
 - [ ] RLS policy exists and is tested with the service role bypassed
@@ -120,5 +120,5 @@ Read the ones relevant to your task. Do not duplicate content between them — l
 This project keeps persistent memory in `project-brain/`. At the START of every session,
 before other work: read `project-brain/03-progress.md` and the newest dated file in
 `project-brain/journal/`, then give a 2-line "where we left off" summary. After completing
-meaningful work, update the brain (journal + progress + tasks; decisions with reasons into
+meaningful work, update the brain (journal, progress and tasks; decisions with reasons go into
 `project-brain/02-decisions.md`). If the user forgets, proactively suggest `/brain log`.

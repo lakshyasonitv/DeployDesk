@@ -39,7 +39,7 @@ const CONTENT: Record<Portal, { title: string; intro: string; sections: Section[
     title: "How Talentvibes works",
     intro:
       "You tell us what you need. We find people from supplier companies you never have to "
-      + "deal with, and you contract with us — not with them.",
+      + "deal with, and you contract with us, not with them.",
     sections: [
       {
         heading: "You post a role",
@@ -50,8 +50,8 @@ const CONTENT: Record<Portal, { title: string; intro: string; sections: Section[
         heading: "We send you a shortlist",
         body: "Each person arrives as a code like TV-4821, with their skills, experience, "
           + "city and an independently supervised test score. You will not see their name, "
-          + "their photo, or which company they work for. That is deliberate: it is what "
-          + "stops the supplier and you cutting each other's terms.",
+          + "their photo, or which company they work for. That is deliberate. It stops the "
+          + "supplier and you from cutting each other's terms.",
       },
       {
         heading: "You see a rate range, not a price list",
@@ -61,7 +61,7 @@ const CONTENT: Record<Portal, { title: string; intro: string; sections: Section[
       },
       {
         heading: "You pick who to meet",
-        body: "Select the people you want to interview and we arrange it — we issue the "
+        body: "Select the people you want to interview and we arrange it. We issue the "
           + "meeting link and brief the candidate. Your panel never contacts the supplier.",
       },
       {
@@ -72,7 +72,7 @@ const CONTENT: Record<Portal, { title: string; intro: string; sections: Section[
       {
         heading: "Your Talentvibes team",
         body: "A named person at Talentvibes owns your account. Your conversation is with "
-          + "them and nobody else — never the supplier, and never with your name attached.",
+          + "them and nobody else. It never goes to the supplier, and never with your name attached.",
       },
     ],
   },
@@ -87,19 +87,19 @@ const CONTENT: Record<Portal, { title: string; intro: string; sections: Section[
         heading: "You list your bench",
         body: "Add each person once with their skills, experience, city and your monthly "
           + "rate. We give them a code like TV-4821, and that code is all a client ever "
-          + "sees — never their name, and never your company name.",
+          + "sees. The client never sees their name or your company name.",
       },
       {
         heading: "Keep them marked as free",
         body: "A profile has to be confirmed as still available every 10 days. After 14 it "
-          + "stops being offered to anyone. One click on “Still available” is enough, and the "
+          + "stops being offered to anyone. One click on \"Still available\" is enough, and the "
           + "roster shows you who is due.",
       },
       {
         heading: "A test score gets people picked",
-        body: "Scores come from an independent proctored test. You cannot change them — "
-          + "which is exactly why a client trusts them, and why scored profiles are "
-          + "shortlisted far more often than unscored ones.",
+        body: "Scores come from an independent proctored test. You cannot change them, "
+          + "which is why a client trusts them. Talentvibes shortlists scored profiles far "
+          + "more often than unscored ones.",
       },
       {
         heading: "Your rate is your rate",
@@ -130,22 +130,22 @@ const CONTENT: Record<Portal, { title: string; intro: string; sections: Section[
       {
         heading: "You are the only one who sees both sides",
         body: "A client never learns who the supplier is. A supplier never learns who the "
-          + "client is. Neither ever sees the margin. That is not a setting — it is the "
-          + "reason the business exists, and it is enforced in the data each portal can "
-          + "read, not in what the screens choose to show.",
+          + "client is. Neither ever sees the margin. That is not a setting. It is the "
+          + "reason the business exists, and each portal's data access enforces it, not what "
+          + "the screens choose to show.",
       },
       {
         heading: "Roles move through the pipeline",
         body: "New, matching, shortlisted, interviewing, placed. Each stage has a promise "
-          + "attached, counted in business hours — 09:00 to 19:00 IST, Monday to Saturday. "
-          + "A role waiting on a client is marked idle, not late: an unresponsive client "
+          + "attached, counted in business hours, 09:00 to 19:00 IST, Monday to Saturday. "
+          + "A role waiting on a client counts as idle, not late. An unresponsive client "
           + "must not make a broker look slow.",
       },
       {
         heading: "The matching desk ranks, you decide",
         body: "The score is a weighted blend of skills, test result, experience fit, rate, "
-          + "freshness and supplier reliability. Reorder it whenever your judgement differs "
-          + "— an override is recorded as one.",
+          + "freshness and supplier reliability. Reorder it whenever your judgement differs. "
+          + "The desk records a reorder as an override.",
       },
       {
         heading: "Some candidates are refused for you",
@@ -157,15 +157,15 @@ const CONTENT: Record<Portal, { title: string; intro: string; sections: Section[
       {
         heading: "Duplicates are flagged before a shortlist goes out",
         body: "The same person submitted by two suppliers has to be settled first. Keeping "
-          + "one withdraws the other — offering a client the same person twice through two "
-          + "suppliers is how they find out about each other.",
+          + "one withdraws the other. Offering a client the same person twice through two "
+          + "suppliers is how the suppliers find out about each other.",
       },
       {
         heading: "The spread is yours alone, and it is never a settled number",
         body: "A vendor rate is agreed; a client rate is negotiated, and only once the "
           + "candidate has cleared every round on both sides. So the margin appears where "
           + "you are choosing a rate, and on placed roles in the pipeline, where both rates "
-          + "are agreed — and there is no report of it, because a report would state as fact "
+          + "are agreed. There is no report of it, because a report would state as fact "
           + "something nobody has agreed yet. A company that "
           + "both supplies and hires is put on a declared fee instead of a hidden markup, "
           + "because it could otherwise compare its two statements and work the spread out.",
