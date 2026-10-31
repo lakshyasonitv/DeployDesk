@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Shell, PageHeader, Scroll, Button, Pill } from "@/src/lib/ui/Shell";
+import { Shell, PageHeader, Scroll, Pill } from "@/src/lib/ui/Shell";
 import { getDemoSession, getShellNav } from "@/src/lib/auth/session";
 import { getClientOverview } from "@/src/read-models/client";
 import { s, sx, TOKENS } from "@/src/lib/ui/style";
@@ -21,7 +21,6 @@ export default async function ShortlistsIndex() {
       <PageHeader
         title="Candidate shortlists"
         subtitle="Masked profiles sent to you by your Talentvibes team. You see skills, scores and a rate range — names, photos and supplier companies stay hidden."
-        actions={<Button>Ask Talentvibes</Button>}
       />
       <Scroll>
         <div style={s("display:grid;grid-template-columns:repeat(2,1fr);gap:12px")}>

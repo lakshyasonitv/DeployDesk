@@ -2,6 +2,7 @@ import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "../../db/client";
 import * as s from "../../db/schema";
 import { istCalendarDaysBetween } from "../business-clock";
+import { livePlacements } from "../../services/withdrawal";
 import {
   algoScore, proposedClientRate, scoreExpFit, scoreFreshness, scoreRate,
   scoreSkill, scoreTest, scoreVendor,
@@ -41,7 +42,7 @@ export interface MatchRunResult {
   /** Eligible supply that existed but scored into the pool — same thing, named for callers. */
   considered: number;
   /** Counts by gate, so ops can be told *why* a pool is small rather than just that it is. */
-  excluded: Record<Ineligible | "no_skill_overlap", number>;
+  excluded: Record<Ineligible | "no_skill_overlap" | "wrong_city", number>;
 }
 
 /** 14 days. `docs/MATCHING.md`: unconfirmed is out of matching entirely. */
@@ -124,7 +125,7 @@ export async function runMatching(requirementCode: string): Promise<MatchRunResu
   if (!req) throw new Error(`runMatching: no requirement ${requirementCode}`);
 
   const excluded: MatchRunResult["excluded"] = {
-    blocked_stale: 0, blocked_duplicate: 0, blocked_deployed: 0, no_skill_overlap: 0,
+    blocked_stale: 0, blocked_duplicate: 0, blocked_deployed: 0, no_skill_overlap: 0, wrong_city: 0,
   };
 
   /* ---------------------------------------------------------- what we need ---- */
@@ -265,8 +266,12 @@ export async function runMatching(requirementCode: string): Promise<MatchRunResu
     now,
   });
 
+  // Someone already on a placement is not available, whatever their status says.
+  const placed = await livePlacements(candidates.map((c) => c.id));
+
   for (const c of candidates) {
     if (blocked.has(c.id)) { excluded.blocked_duplicate++; continue; }
+    if (placed.has(c.id)) { excluded.blocked_deployed++; continue; }
 
     // Freshness. Measured in IST calendar days, the same arithmetic the pill on every other
     // screen uses, so a candidate excluded here is one a broker would also call unconfirmed.
@@ -283,7 +288,9 @@ export async function runMatching(requirementCode: string): Promise<MatchRunResu
     if (req.workMode === "onsite" && req.locationCity) {
       const sameCity = c.baseCity.toLowerCase() === req.locationCity.toLowerCase();
       const willRelocate = (c.workModes ?? []).includes("onsite");
-      if (!sameCity && !willRelocate) { excluded.blocked_deployed++; continue; }
+      // Its own count: this was booked as `blocked_deployed`, which made "deployed" mean
+      // "wrong city" on the desk and hid the real deployed count once it existed.
+      if (!sameCity && !willRelocate) { excluded.wrong_city++; continue; }
     }
 
     const components = scoreCandidate(c, days);
@@ -506,7 +513,7 @@ export async function addToRequirement(
 
   const ids = people.map((x) => x.id);
 
-  const [skillRows, assessRows, dupRows, existing, refusedRows] = await Promise.all([
+  const [skillRows, assessRows, dupRows, existing, refusedRows, placedNow] = await Promise.all([
     db.select({ resourceId: s.resourceSkills.resourceId, label: s.skills.label })
       .from(s.resourceSkills)
       .innerJoin(s.skills, eq(s.skills.id, s.resourceSkills.skillId))
@@ -539,6 +546,9 @@ export async function addToRequirement(
         sql`(is_self_dealing(${s.benchResources.id}, ${req.id})
              or match_is_blocked(${s.benchResources.id}, ${req.id}))`,
       )),
+
+    // On a placement now: flagged `blocked_deployed` (recorded, not enforced, like the rest).
+    livePlacements(ids),
   ]);
 
   const skillsBy = new Map<string, string[]>();
@@ -590,7 +600,7 @@ export async function addToRequirement(
      */
     const eligibility: "eligible" | Ineligible =
       dupBlocked.has(person.id) ? "blocked_duplicate"
-      : person.status === "deployed" ? "blocked_deployed"
+      : person.status === "deployed" || placedNow.has(person.id) ? "blocked_deployed"
       : !Number.isFinite(days) || days >= STALE_DAYS ? "blocked_stale"
       : "eligible";
 

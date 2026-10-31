@@ -14,7 +14,13 @@ import { istFormat } from "@/src/lib/derived";
  */
 export const metadata = { title: "Overview · DeployDesk" };
 
-const TABLE_COLS = "96px 1fr 78px 128px 132px 96px";
+/**
+ * ROLE has a floor. As `1fr` beside 530px of fixed columns, in a card about half the page wide,
+ * it collapsed to 0px at 1024 and one letter at 1366 — the role titles simply vanished. Past
+ * the floor the table scrolls inside its card (v2 README rule 5), as Organisations does.
+ */
+const TABLE_COLS = "86px minmax(160px, 1fr) 60px 116px 108px 78px";
+const TABLE_MIN_WIDTH = "690px";
 
 const ENGAGEMENT_STATUS: Record<string, { dot: string; label: string }> = {
   active: { dot: "var(--ok)", label: "Active" },
@@ -62,6 +68,8 @@ export default async function ClientDashboard() {
             <div style={s("padding:13px 15px;border-bottom:1px solid var(--surface-3)")}>
               <SectionLabel>OPEN REQUIREMENTS</SectionLabel>
             </div>
+            <div style={s("overflow-x:auto")}>
+            <div style={sx("", { minWidth: TABLE_MIN_WIDTH })}>
             <div style={sx("display:grid;padding:8px 15px;background:var(--surface-2);border-bottom:1px solid var(--border)", { gridTemplateColumns: TABLE_COLS, gap: "10px" })}>
               {["REQ", "ROLE", "HOW MANY", "BUDGET / MONTH", "STAGE", "ACTION"].map((h) => (
                 <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--t4);white-space:nowrap", { fontFamily: TOKENS.mono })}>{h}</div>
@@ -92,6 +100,8 @@ export default async function ClientDashboard() {
                 </div>
               );
             })}
+            </div>
+            </div>
             {overview.openRequirements.length === 0 ? (
               <div style={s("padding:26px;text-align:center;color:var(--t4);font-size:12.5px")}>
                 No open requirements. Post one and your Talentvibes team starts sourcing.

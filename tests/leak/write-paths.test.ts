@@ -44,12 +44,13 @@ import {
 } from "@/app/api/ops/pool/add-to-requirement/route";
 import { POST as sendShortlist } from "@/app/api/ops/shortlists/send/route";
 import { POST as matchPreview } from "@/app/api/client/match-preview/route";
-import { getClientEngagements } from "../../src/read-models/client";
+import { getClientEngagements, getClientFeedbackDue, getClientOverview } from "../../src/read-models/client";
 import { algoScore as weightedTotal } from "../../src/lib/matching/score";
 import { marginPct, MARGIN_FLOOR_PCT } from "../../src/lib/money/rate-band";
 import { getOpsMatchingWorkspace, recommendKeeper } from "../../src/read-models/ops";
 import { algoScore } from "../../src/lib/matching/score";
-import { getVendorAssessments, getVendorRoster } from "../../src/read-models/vendor";
+import { getVendorAssessments, getVendorRoster, getVendorOverview, getVendorEarnings } from "../../src/read-models/vendor";
+import { livePlacements } from "../../src/services/withdrawal";
 import {
   getOpsTalentPool, getOpsPipeline, getOpsOpenRequirements,
 } from "../../src/read-models/ops";
@@ -1460,6 +1461,79 @@ describe("a client sees a band for its own placements, never the figure", () => 
   });
 });
 
+/* ====================================================================== */
+/*  2026-10-31 page-by-page walk                                          */
+/* ====================================================================== */
+
+describe("the page-by-page walk's findings stay fixed", () => {
+  it("never sources someone already on a placement", async () => {
+    // TV-6620 passes every other gate for this role — fresh, listed, Playwright / QA, 5.4y —
+    // and is on a live Acme placement. (A SAP ABAP role passed on the OLD code too: those
+    // placed people were excluded for other reasons, so it proved nothing.)
+    const res = await createRequirement(post({
+      roleTitle: MARK, skills: ["Playwright", "QA Automation"], experienceBand: "5-8", quantity: 1,
+      budgetMinPaise: 13_000_000, budgetMaxPaise: 22_000_000,
+      engagementType: "contract", workMode: "remote", noticeAccepted: ["immediate"], stage: "new",
+    }));
+    expect(res.status).toBe(201);
+    const { code } = await res.json() as { code: string };
+    const pool = await db.select({ resourceId: s.matches.resourceId })
+      .from(s.matches)
+      .innerJoin(s.requirements, eq(s.requirements.id, s.matches.requirementId))
+      .where(eq(s.requirements.code, code));
+    const placed = await livePlacements(pool.map((m) => m.resourceId));
+    expect([...placed], "a person on a live placement was sourced").toEqual([]);
+  });
+
+  it("refuses feedback on a round that has not happened, and does not list it as due", async () => {
+    const [round] = await db
+      .select({ id: s.interviews.id, scheduledAt: s.interviews.scheduledAt })
+      .from(s.interviews)
+      .innerJoin(s.shortlistItems, eq(s.shortlistItems.id, s.interviews.shortlistItemId))
+      .where(and(eq(s.shortlistItems.maskedId, "TV-6620"), eq(s.interviews.roundNo, 2)));
+    // The seeded feedback row, exactly, so a failure part-way cannot leave it changed.
+    const [seeded] = await db.select().from(s.interviewFeedback).where(eq(s.interviewFeedback.interviewId, round.id));
+    // Two days ahead for the duration of the test, whatever the seed says.
+    await db.update(s.interviews).set({ scheduledAt: new Date(Date.now() + 2 * 86_400_000) })
+      .where(eq(s.interviews.id, round.id));
+    const started = new Date();
+    try {
+      const due = await getClientFeedbackDue(acmeId);
+      expect(due.some((d) => d.maskedId === "TV-6620" && d.roundNo === 2), "a future round was listed as due").toBe(false);
+
+      const res = await feedback(post({
+        maskedId: "TV-6620", roundNo: 2,
+        ratings: { technicalDepth: 3, problemSolving: 3, communication: 3, roleFit: 3 },
+        outcome: null, notes: MARK,
+      }));
+      expect(res.status).toBe(409);
+    } finally {
+      await db.update(s.interviews).set({ scheduledAt: round.scheduledAt }).where(eq(s.interviews.id, round.id));
+      // Only matters if the guard failed: the seeded row back as it was, and no audit row.
+      if (seeded) await db.update(s.interviewFeedback).set(seeded).where(eq(s.interviewFeedback.id, seeded.id));
+      await db.delete(s.auditLog).where(and(eq(s.auditLog.action, "interview_feedback.saved"), gte(s.auditLog.occurredAt, started)));
+    }
+  });
+
+  it("never counts a placed role as running late", async () => {
+    const { requirements } = await getOpsPipeline();
+    const placed = requirements.filter((r) => r.stage === "placed");
+    expect(placed.length).toBeGreaterThan(0);
+    // The margin colour lives in `tone`; the clock (`state`) of a placed role is idle.
+    for (const r of placed) expect(r.sla.state, `${r.code} reads "${r.sla.label}"`).toBe("idle");
+  });
+
+  it("shows one 'billed this month' on the vendor dashboard and the earnings page", async () => {
+    const [o, e] = await Promise.all([getVendorOverview(nimbusId, "test"), getVendorEarnings(nimbusId)]);
+    expect(o.stats.billedThisMonthLabel).toBe(e.stats.billedThisMonthLabel);
+  });
+
+  it("does not call a role with no profiles 'awaiting review'", async () => {
+    const o = await getClientOverview(acmeId, "test");
+    for (const a of o.awaitingReview) expect(a.count, `${a.code} has no profiles`).toBeGreaterThan(0);
+  });
+});
+
 describe("every write endpoint validates its input", () => {
   const cases: Array<[string, (r: Request) => Promise<Response>, unknown]> = [
     ["vendor/resources", createResource, { fullName: "x" }],
@@ -1689,24 +1763,38 @@ describe("a write response never carries a forbidden field", () => {
     // it, so only its LENGTH is recorded — asserted here so a future edit cannot quietly
     // start copying it in.
     const secret = "Do not copy this sentence into the audit log.";
-    const res = await feedback(post({
-      maskedId: "TV-4821", roundNo: 1,
-      ratings: { technicalDepth: 4, problemSolving: 4, communication: 4, roleFit: 4 },
-      outcome: null, notes: secret,
-    }));
-    expect(res.status).toBe(200);
+    // Feedback is only taken on a round that has happened, and the seeded TV-4821 R1 is in
+    // the future — so it is moved into the past for this test and put back afterwards.
+    const [round] = await db
+      .select({ id: s.interviews.id, scheduledAt: s.interviews.scheduledAt })
+      .from(s.interviews)
+      .innerJoin(s.shortlistItems, eq(s.shortlistItems.id, s.interviews.shortlistItemId))
+      .where(and(eq(s.shortlistItems.maskedId, "TV-4821"), eq(s.interviews.roundNo, 1)));
+    await db.update(s.interviews).set({ scheduledAt: new Date(Date.now() - 3_600_000) })
+      .where(eq(s.interviews.id, round.id));
+    try {
+      const res = await feedback(post({
+        maskedId: "TV-4821", roundNo: 1,
+        ratings: { technicalDepth: 4, problemSolving: 4, communication: 4, roleFit: 4 },
+        outcome: null, notes: secret,
+      }));
+      expect(res.status).toBe(200);
 
-    const rows = await db
-      .select({ after: s.auditLog.after })
-      .from(s.auditLog)
-      .where(eq(s.auditLog.action, "interview_feedback.saved"));
+      const rows = await db
+        .select({ after: s.auditLog.after })
+        .from(s.auditLog)
+        .where(eq(s.auditLog.action, "interview_feedback.saved"));
 
-    for (const r of rows) {
-      expect(JSON.stringify(r.after)).not.toContain(secret);
+      for (const r of rows) {
+        expect(JSON.stringify(r.after)).not.toContain(secret);
+      }
+      expect(JSON.stringify(rows.at(-1)?.after)).toContain("notes_length");
+    } finally {
+      // The round back where it was, and nothing this test wrote left behind. The old
+      // clean-up said it restored the feedback and did not: an empty row stayed on TV-4821.
+      await db.update(s.interviews).set({ scheduledAt: round.scheduledAt }).where(eq(s.interviews.id, round.id));
+      await db.delete(s.interviewFeedback).where(eq(s.interviewFeedback.interviewId, round.id));
+      await db.delete(s.auditLog).where(eq(s.auditLog.action, "interview_feedback.saved"));
     }
-    expect(JSON.stringify(rows.at(-1)?.after)).toContain("notes_length");
-
-    // Clean up: restore the seeded feedback and drop this test's audit rows.
-    await db.delete(s.auditLog).where(eq(s.auditLog.action, "interview_feedback.saved"));
   });
 });

@@ -268,6 +268,8 @@ export async function getClientOverview(
       .where(and(
         eq(s.requirements.clientOrgId, clientOrgId),
         sql`${s.interviewFeedback.outcome} is null`,
+        // Due only once the interview has happened: forms were "due" for rounds days away.
+        sql`${s.interviews.scheduledAt} <= now()`,
       )),
 
     // The broker is whoever Talentvibes assigned to this account, not a name in the source.
@@ -297,7 +299,10 @@ export async function getClientOverview(
   const countByReq = new Map(shortlistCounts.map((c) => [c.requirementId, c]));
 
   const interviewing = reqs.filter((r) => r.stage === "interviewing").length;
-  const awaiting = reqs.filter((r) => r.stage === "shortlisted");
+  // A role is awaiting review once a shortlist with profiles exists — not merely because its
+  // stage says "shortlisted". REQ-2249 showed "SHORTLIST READY · 0 profiles" while its own
+  // page said no shortlist had been sent.
+  const awaiting = reqs.filter((r) => r.stage === "shortlisted" && (countByReq.get(r.id)?.count ?? 0) > 0);
   const monthlySpend = engagements.reduce((a, e) => a + e.clientRatePaise, 0);
 
   return {
@@ -338,7 +343,8 @@ export async function getClientOverview(
     engagements: engagements.map((e) => ({
       maskedId: e.maskedId,
       roleTitle: e.roleTitle,
-      sinceLabel: e.startDate ? `since ${formatDay(e.startDate)}` : "",
+      // A start still ahead says so; "since" a future date read as working already.
+      sinceLabel: !e.startDate ? "" : new Date(e.startDate) > new Date() ? `starts ${formatDay(e.startDate)}` : `since ${formatDay(e.startDate)}`,
       rateLabel: clientBand(e.clientRatePaise),
       status: e.status,
     })),
@@ -412,6 +418,8 @@ export async function getClientFeedbackDue(clientOrgId: string) {
     .where(and(
       eq(s.requirements.clientOrgId, clientOrgId),
       sql`${s.interviewFeedback.outcome} is null`,
+      // Only rounds that have happened — not a form for an interview days away.
+      sql`${s.interviews.scheduledAt} <= now()`,
     ))
     .orderBy(asc(s.interviewFeedback.dueAt));
 
@@ -791,8 +799,9 @@ export async function getClientEngagements(clientOrgId: string): Promise<ClientE
       maskedId: r.maskedId,
       roleTitle: r.roleTitle,
       status: r.status,
-      startedOn: formatFullDay(r.startDate),
-      tenureLabel: tenureSince(r.startDate, now),
+      // A start still ahead reads as one, not "working since" a date weeks away.
+      startedOn: new Date(r.startDate) > now ? `starts ${formatFullDay(r.startDate)}` : formatFullDay(r.startDate),
+      tenureLabel: new Date(r.startDate) > now ? "not started yet" : tenureSince(r.startDate, now),
       endsOn: r.endDate ? formatFullDay(r.endDate) : null,
       endDateIso: r.endDate,
       // 45 days is a notice period plus a fortnight to decide — long enough that a

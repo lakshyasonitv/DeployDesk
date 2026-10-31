@@ -16,7 +16,8 @@ import { istFormat } from "@/src/lib/derived";
  */
 export const metadata = { title: "Your earnings · DeployDesk" };
 
-const COLS = "168px 1fr 96px 120px 120px 130px";
+// The flexible column has a floor: as a bare 1fr it collapsed to 0px on narrower screens.
+const COLS = "168px minmax(140px, 1fr) 96px 120px 120px 130px";
 
 const STATUS_PILL: Record<string, { bg: string; fg: string }> = {
   BILLED: { bg: "var(--ok-tint)", fg: "var(--ok)" },
@@ -39,7 +40,8 @@ export default async function VendorEarningsPage() {
       <PageHeader
         title="Your earnings"
         subtitle="Your contracted rate per placement. Talentvibes contracts separately with the client."
-        actions={<><Button href="/api/export?kind=vendor-earnings" download>Download statement</Button><Button primary accent="var(--teal)">Raise invoice</Button></>}
+        // No "Raise invoice": it did nothing, and there is no billing integration behind it.
+        actions={<Button href="/api/export?kind=vendor-earnings" download>Download statement</Button>}
       />
       <Scroll>
         <div style={s("display:grid;grid-template-columns:repeat(4,1fr);gap:12px")}>
@@ -52,7 +54,7 @@ export default async function VendorEarningsPage() {
           <StatCard label="INVOICES RAISED" value={e.stats.invoicesThisMonth} sub="this month" />
         </div>
 
-        <div style={s("margin-top:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden")}>
+        <div style={s("margin-top:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow-x:auto")}>
           <div style={sx("display:grid;padding:9px 15px;background:var(--surface-2);border-bottom:1px solid var(--border)", { gridTemplateColumns: COLS, gap: "10px" })}>
             {["NAME", "ROLE", "WORKING SINCE", "YOUR MONTHLY RATE", "BILLED THIS MONTH", "STATUS"].map((h) => (
               <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--t4);white-space:nowrap", { fontFamily: TOKENS.mono })}>{h}</div>

@@ -373,6 +373,23 @@ async function main() {
     .where(sql`${s.brokerMessages.relayedFromId} is not null`);
   check("one relayed message exists", relayed === 1, `${relayed}`);
 
+  /* ---------------- invoices: a total is the sum of its lines ---------------- */
+
+  // The Nimbus payable once read ₹8.84L in its header and ₹8.34L in its lines, so two
+  // screens showed two "billed this month" figures.
+  const [{ n: offInvoices }] = await db.execute<{ n: number }>(sql`
+    select count(*)::int as n from invoices i
+     where i.total_paise <> coalesce((select sum(l.amount_paise) from invoice_lines l where l.invoice_id = i.id), 0)
+  `) as unknown as Array<{ n: number }>;
+  check("every invoice total equals the sum of its lines", Number(offInvoices) === 0, `${offInvoices} differ`);
+
+  /* ---------------- placements: nobody "active" before they start ---------------- */
+
+  const [{ n: futureActive }] = await db.execute<{ n: number }>(sql`
+    select count(*)::int as n from engagements where status = 'active' and start_date > current_date
+  `) as unknown as Array<{ n: number }>;
+  check("no placement is active before its start date", Number(futureActive) === 0, `${futureActive}`);
+
   console.log(`\n${pass} passed, ${fail} failed\n`);
   if (fail > 0) process.exitCode = 1;
 }

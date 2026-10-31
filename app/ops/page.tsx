@@ -17,9 +17,11 @@ export default async function OpsPipelinePage() {
     OpsAside(),
     getOpsPipeline(),
     db.execute(sql`
+      -- Capabilities, not org_type: org_type collapses a dual-role company to 'vendor', so
+      -- Cygnet counted as a supplier and never as a hiring company.
       select
-        (select count(*) from organizations where org_type = 'client')::int as clients,
-        (select count(*) from organizations where org_type = 'vendor')::int as vendors
+        (select count(*) from org_capabilities where can_hire)::int   as clients,
+        (select count(*) from org_capabilities where can_supply)::int as vendors
     `),
   ]);
   const [counts] = countRows as unknown as Array<{ clients: number; vendors: number }>;

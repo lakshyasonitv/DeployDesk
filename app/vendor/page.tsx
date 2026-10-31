@@ -15,7 +15,8 @@ import { VendorAside } from "./aside";
  */
 export const metadata = { title: "Overview · DeployDesk" };
 
-const PIPE_COLS = "100px 1fr 120px 130px 118px";
+// The flexible column has a floor: as a bare 1fr it collapsed to 0px on narrower screens.
+const PIPE_COLS = "100px minmax(140px, 1fr) 120px 130px 118px";
 
 const STAGE_PILL: Record<string, { bg: string; fg: string }> = {
   "INTERVIEW R1": { bg: "var(--brand-tint)", fg: "var(--brand)" },
@@ -40,7 +41,6 @@ export default async function VendorDashboard() {
   ]);
 
   const idle = o.stats.onBench - o.stats.listed - o.stats.inProcess;
-  const expiring = o.freshness.find((f) => f.label === "Expiring")?.n ?? 0;
 
   return (
     <Shell portal="vendor" identities={nav.identities} workspaces={nav.workspaces} user={{ name: session.userName, org: session.orgName }} activeKey="overview" asideTitle="NEEDS CONFIRMING" asideItems={aside.items} badges={aside.badges}>
@@ -48,7 +48,9 @@ export default async function VendorDashboard() {
         title={`${o.orgName} · bench`}
         subtitle={`Supplier ID ${o.vendorCode} · reliability score ${o.reliability}/5 · ${o.placements} placements to date`}
         actions={<>
-          <Button href="/vendor/roster">Confirm availability ({expiring})</Button>
+          {/* A link, so it says where it goes. "Confirm availability (4)" confirmed nothing,
+              and its 4 (expiring) disagreed with the roster's own 7 (expiring + unconfirmed). */}
+          <Button href="/vendor/roster">Go to roster</Button>
           <Button primary accent="var(--teal)" href="/vendor/resources/new">Add bench resource</Button>
         </>}
       />
@@ -85,7 +87,7 @@ export default async function VendorDashboard() {
 
         <div style={s("display:grid;grid-template-columns:1.5fr 1fr;gap:16px;margin-top:16px;align-items:start")}>
           {/* pipeline */}
-          <div style={s("background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden")}>
+          <div style={s("background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow-x:auto")}>
             <div style={s("padding:13px 15px;border-bottom:1px solid var(--surface-3)")}>
               <SectionLabel>PIPELINE ON YOUR PROFILES</SectionLabel>
               <div style={s("font-size:11px;color:var(--t4)")}>

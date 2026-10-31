@@ -7,7 +7,7 @@
 >
 > 1. every route returns 200 — **cold and warm**, at least twice each
 > 2. `npm run db:verify` → **30/30**
-> 3. `npm test` → **216/216** — the WHOLE suite. `test:leak` runs only `tests/leak` and
+> 3. `npm test` → **221/221** — the WHOLE suite. `test:leak` runs only `tests/leak` and
 >    misses `tests/business-clock.test.ts`, `tests/matching.test.ts` and two others, so
 >    **`npm test` is the gate**. It also loads `.env.local`; bare `npx vitest` does not.
 > 4. `npm run build` → clean (stop `next dev` and delete `.next` first)
@@ -38,6 +38,13 @@
       search, a competitor hint on bulk import), data-safety holes (a vendor could withdraw a
       placed person; interview Undo un-selected and cascade-deleted) and about 20 dead
       controls or false figures. Details are in journal Session 9.
+- [x] **Page-by-page walk 2026-10-31: all 16 findings fixed** ✅ (journal Sessions 10–11).
+- [x] **Reseeded** ✅ 2026-10-31. `db:verify` 32/32.
+- [x] ~~Page-by-page walk: 16 findings, none fixed yet~~ (superseded by the line above).
+      Most serious: placed people are still offered (the matcher's deployed gate never
+      fires); feedback is "due" on interviews that have not happened; the invoice header
+      total disagrees with its lines; and the pipeline counts below-floor margins as
+      "running late".
 - [ ] **Before launch:** remove the demo org switcher (it lists every org on every page)
       and stop `/api/search` taking `portal` from the query string.
 - [ ] **Small, recorded:** ambiguous (maskedId, roundNo) round lookup; `roleTitle`

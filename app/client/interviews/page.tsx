@@ -92,7 +92,8 @@ export default async function ClientInterviewsPage() {
                         style={s("padding:0 13px;height:32px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:9px;font-size:12px;font-weight:700;background:var(--brand);color:#fff;text-decoration:none;white-space:nowrap")}>
                         Join
                       </a>
-                    ) : (
+                    ) : iv.modeLabel.startsWith("Onsite") ? null : (
+                      // An onsite round has no link to come; its place is in the line above.
                       <span title="Your Talentvibes team issues the link once the round is locked."
                         style={s("padding:0 13px;height:32px;display:inline-flex;align-items:center;justify-content:center;border:1px dashed var(--border-2);border-radius:9px;font-size:12px;font-weight:600;color:var(--t4);white-space:nowrap")}>
                         Link to come

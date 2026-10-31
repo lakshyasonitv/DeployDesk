@@ -164,8 +164,9 @@ const CONTENT: Record<Portal, { title: string; intro: string; sections: Section[
         heading: "The spread is yours alone, and it is never a settled number",
         body: "A vendor rate is agreed; a client rate is negotiated, and only once the "
           + "candidate has cleared every round on both sides. So the margin appears where "
-          + "you are choosing a rate and nowhere else — there is no report of it, because a "
-          + "report would state as fact something nobody has agreed yet. A company that "
+          + "you are choosing a rate, and on placed roles in the pipeline, where both rates "
+          + "are agreed — and there is no report of it, because a report would state as fact "
+          + "something nobody has agreed yet. A company that "
           + "both supplies and hires is put on a declared fee instead of a hidden markup, "
           + "because it could otherwise compare its two statements and work the spread out.",
       },

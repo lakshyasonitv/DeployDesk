@@ -3,6 +3,24 @@ import { db } from "../db/client";
 import * as s from "../db/schema";
 
 /**
+ * Who is on a live placement (onboarding, active or ending) — the half of `liveWork` that
+ * also decides who may be OFFERED. Nothing in the app sets `bench_resources.status =
+ * 'deployed'`, so the matcher's "already deployed" gate keyed on it never fired, and people
+ * on active placements were sourced, shortlisted and labelled "Available now" — to the very
+ * client they were working for. The placement row is the fact; the status is not.
+ */
+export async function livePlacements(resourceIds: string[]): Promise<Set<string>> {
+  if (!resourceIds.length) return new Set();
+  const rows = await db.select({ id: s.engagements.resourceId })
+    .from(s.engagements)
+    .where(and(
+      inArray(s.engagements.resourceId, resourceIds),
+      inArray(s.engagements.status, ["onboarding", "active", "ending"]),
+    ));
+  return new Set(rows.map((r) => r.id));
+}
+
+/**
  * Who a client is relying on: a live placement, or a shortlist the client has not passed on.
  *
  * Nobody in that position is taken off offer by a side-action. Resolving a duplicate flag
@@ -23,12 +41,7 @@ export async function liveWork(resourceIds: string[]): Promise<Map<string, strin
   if (!resourceIds.length) return out;
 
   const [working, offered] = await Promise.all([
-    db.select({ id: s.engagements.resourceId })
-      .from(s.engagements)
-      .where(and(
-        inArray(s.engagements.resourceId, resourceIds),
-        inArray(s.engagements.status, ["onboarding", "active", "ending"]),
-      )),
+    livePlacements(resourceIds),
     // Every shortlist row is a SENT shortlist (`sent_at` is not null). Only a pass frees them.
     db.select({ id: s.shortlistItems.resourceId })
       .from(s.shortlistItems)
@@ -40,7 +53,7 @@ export async function liveWork(resourceIds: string[]): Promise<Map<string, strin
 
   // The placement is the more serious reason, so it wins.
   for (const o of offered) out.set(o.id, "is on a shortlist a client has");
-  for (const w of working) out.set(w.id, "is on a live placement");
+  for (const id of working) out.set(id, "is on a live placement");
   return out;
 }
 

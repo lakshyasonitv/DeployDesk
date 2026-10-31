@@ -31,7 +31,8 @@ const ASSESSMENT_STYLE: Record<string, { dot: string; label: string; sub: string
   abandoned: { dot: "var(--t4)", label: "Abandoned", sub: "not completed" },
 };
 
-const COLS = "170px 1fr 66px 118px 138px 186px 122px";
+// The flexible column has a floor: as a bare 1fr it collapsed to 0px on narrower screens.
+const COLS = "170px minmax(140px, 1fr) 66px 118px 138px 186px 122px";
 
 type Filter = "all" | "listed" | "in_process" | "expiring" | "unconfirmed" | "draft";
 

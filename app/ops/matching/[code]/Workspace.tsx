@@ -10,7 +10,8 @@ import { MARGIN_FLOOR_PCT, MARGIN_TARGET_PCT, marginPct } from "@/src/lib/money/
 const REASON: Record<string, string> = {
   blocked_stale: "not confirmed in the last 14 days",
   blocked_duplicate: "blocked by a duplicate flag",
-  blocked_deployed: "in the wrong city for an onsite role",
+  blocked_deployed: "already on a placement",
+  wrong_city: "in the wrong city for an onsite role",
   no_skill_overlap: "with none of the required skills",
 };
 
@@ -295,7 +296,14 @@ export function Workspace({
         body: JSON.stringify({ code: requirement.code, maskedIds: order.filter((id) => included.includes(id)) }),
       });
       const body = await res.json().catch(() => ({}));
-      if (!res.ok) { setToast(body.error === "blocked_duplicate" ? "Blocked: resolve the duplicate flags first" : `Send failed: ${body.error ?? res.status}`); return; }
+      if (!res.ok) {
+        setToast(
+          body.error === "blocked_duplicate" ? "Blocked: resolve the duplicate flags first"
+          : body.error === "on_placement" ? `Not sent: ${(body.candidates ?? []).join(", ")} already on a placement — take them out first`
+          : `Send failed: ${body.error ?? res.status}`,
+        );
+        return;
+      }
       setToast(`Masked shortlist sent · ${included.length} profiles · ${requirement.code} moved to shortlisted`);
       router.refresh();
     } finally { setSending(false); }

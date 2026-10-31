@@ -35,7 +35,8 @@ export const metadata = { title: "Talent pool · DeployDesk" };
  * content pushes every other column around as the content changes — the same trap that
  * made a score bar 9999px wide on the matching desk.
  */
-const COLS = "24px 158px 148px 1fr 74px 74px 108px 108px 96px 126px";
+// SKILLS has a floor (it was a bare `1fr`, and long chips spilled into EXPERIENCE).
+const COLS = "24px 158px 148px minmax(130px, 1fr) 74px 74px 108px 108px 96px 126px";
 
 const FRESHNESS_PILL = {
   confirmed: { bg: "var(--ok-tint)", fg: "var(--ok)" },
@@ -167,9 +168,10 @@ export default async function PoolPage({
                     <span style={s("font-size:10px;color:var(--t4)")}>reliability {r.vendorReliability}</span>
                   </div>
                 </div>
-                <div style={s("display:flex;flex-wrap:wrap;gap:3px;min-width:0")}>
+                {/* Chips stay inside their cell: they wrap, and a long one truncates with a title. */}
+                <div style={s("display:flex;flex-wrap:wrap;gap:3px;min-width:0;overflow:hidden")}>
                   {r.skills.slice(0, 3).map((sk) => (
-                    <span key={sk} style={s("padding:2px 6px;background:var(--surface-3);border-radius:4px;font-size:10px;font-weight:600;color:var(--t2);white-space:nowrap")}>{sk}</span>
+                    <span key={sk} title={sk} style={s("padding:2px 6px;background:var(--surface-3);border-radius:4px;font-size:10px;font-weight:600;color:var(--t2);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis")}>{sk}</span>
                   ))}
                 </div>
                 <div style={s("font-size:11.5px;font-weight:600")}>{r.experienceLabel}</div>

@@ -64,6 +64,9 @@ export function SlotButton({ round }: { round: Round }) {
   const [open, setOpen] = useState(false);
   const isMove = round.status === "confirmed" && round.scheduledAt;
 
+  // A round that has happened, or was called off, has no times left to offer or move.
+  if (round.status === "completed" || round.status === "cancelled" || round.status === "no_show") return null;
+
   return (
     <>
       <button

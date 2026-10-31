@@ -33,7 +33,12 @@ export interface OpsPipelineRequirement {
   ageLabel: string;
   ownerShort: string;
   stage: string;
-  sla: { state: SlaState; label: string };
+  /**
+   * `state` is the CLOCK — what "running late", the filter and the late border count.
+   * `tone` only colours the label: for a placed role it is the margin colour, which used to be
+   * written into `state`, so a below-floor placement counted as "running late".
+   */
+  sla: { state: SlaState; label: string; tone: SlaState };
   budgetLabel: string;
   startDate: string | null;
   experienceBand: string;
@@ -141,7 +146,8 @@ export async function getOpsPipeline(opts: {
         .select({ requirementId: s.interviews.requirementId, dueAt: s.interviewFeedback.dueAt, outcome: s.interviewFeedback.outcome })
         .from(s.interviewFeedback)
         .innerJoin(s.interviews, eq(s.interviews.id, s.interviewFeedback.interviewId))
-        .where(inArray(s.interviews.requirementId, ids))
+        // A round still to come has no feedback due yet.
+        .where(and(inArray(s.interviews.requirementId, ids), sql`${s.interviews.scheduledAt} <= now()`))
     : [];
 
   const skillsBy = new Map<string, string[]>();
@@ -170,6 +176,7 @@ export async function getOpsPipeline(opts: {
     // Stage-specific label, all derived.
     let label = sla.label;
     let state: SlaState = sla.state;
+    let tone: SlaState | null = null;
     if (r.stage === "placed") {
       const eng = engBy.get(r.id);
       if (eng) {
@@ -178,8 +185,9 @@ export async function getOpsPipeline(opts: {
         // Derived from marginBand() rather than re-testing the thresholds here. The
         // vocabulary differs (SLA states, not margin colours) but the cut points must
         // not: two copies of 25/18 drift the first time one is tuned.
-        state = ({ green: "ok", amber: "warn", red: "late" } as const)[marginBand(pct)];
-      } else { label = "Placed"; state = "ok"; }
+        tone = ({ green: "ok", amber: "warn", red: "late" } as const)[marginBand(pct)];
+      } else { label = "Placed"; }
+      state = "idle"; // a placed role has no clock to be late on
     } else if (r.stage === "interviewing") {
       const fb = feedbackBy.get(r.id);
       const nx = nextInterviewBy.get(r.id);
@@ -203,7 +211,7 @@ export async function getOpsPipeline(opts: {
       ageLabel: ageLabel(r.postedAt),
       ownerShort: shortenOwner(r.ownerName ?? ""),
       stage: r.stage,
-      sla: { state, label },
+      sla: { state, label, tone: tone ?? state },
       budgetLabel: `${formatPaiseShort(r.budgetMinPaise)}–${formatPaiseShort(r.budgetMaxPaise).replace("₹", "")}`,
       startDate: r.startDate,
       experienceBand: `${r.experienceBand} years`,
@@ -1038,8 +1046,9 @@ export async function getOpsSidebar() {
       (select count(*) from requirements where stage = 'matching')::int    as matching,
       (select count(*) from requirements where stage = 'shortlisted')::int as shortlisted,
       (select count(*) from duplicate_flags where status = 'open')::int    as open_dupes,
-      (select count(*) from interview_feedback
-        where outcome is null and due_at is not null)::int                 as feedback_due
+      (select count(*) from interview_feedback f join interviews i on i.id = f.interview_id
+        where f.outcome is null and f.due_at is not null
+          and i.scheduled_at <= now())::int                                as feedback_due
   `)) as unknown as Array<{
     total: number; matching: number; shortlisted: number;
     open_dupes: number; feedback_due: number;

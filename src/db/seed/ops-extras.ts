@@ -30,13 +30,15 @@ export async function seedInterviews(
     });
     panelFor.push({ key: "TV-4821", names: [["R. Sundaram", "Eng Manager"], ["D. Kulkarni", "Staff FE"]] });
   }
-  // TV-6620 · Round 2 · 60 min onsite Whitefield · S. Ahuja
+  // TV-6620 · Round 2 · 60 min onsite Whitefield · S. Ahuja — HELD yesterday. It was in the
+  // future while its feedback was "submitted 18h ago", and feedback is only due on a round
+  // that has happened.
   if (item("TV-6620")) {
     rows.push({
       requirementId: req2291.id, shortlistItemId: item("TV-6620")!.id, roundNo: 2,
-      status: "confirmed", scheduledAt: daysAhead(3), durationMinutes: 60, mode: "onsite",
+      status: "completed", scheduledAt: hoursAgo(26), durationMinutes: 60, mode: "onsite",
       locationText: "Whitefield campus",
-      meetingUrl: null, confirmedAt: hoursAgo(26),
+      meetingUrl: null, confirmedAt: daysAgo(3),
     });
     panelFor.push({ key: "TV-6620", names: [["S. Ahuja", "QA Lead"], ["D. Kulkarni", "Staff FE"]] });
   }
@@ -125,15 +127,19 @@ export async function seedEngagements(
     const isBelow = isBelowFloor(pct);
     if (isBelow) belowFloor.push(`${maskedId} ${pct.toFixed(1)}%`);
 
+    // A fixture date re-anchored to SEED_NOW can land in the future (TV-4821's "15 Sep" became
+    // 23 Nov), and a placement that has not started is onboarding, not active — the client
+    // was told someone was "working since" a date three weeks away.
+    const start = fixtureDateToOffset(START_DATES[maskedId] ?? "1 Jun 2026");
     rows.push({
       requirementId: null,
       resourceId: resource.id,
       clientOrgId: clientOrg.id,
       vendorOrgId: vendorOrg.id,
       roleTitle: m.role as string,
-      startDate: fixtureDateToOffset(START_DATES[maskedId] ?? "1 Jun 2026").toISOString().slice(0, 10),
+      startDate: start.toISOString().slice(0, 10),
       endDate: maskedId === "TV-4102" ? daysAhead(24).toISOString().slice(0, 10) : null,
-      status: maskedId === "TV-4455" ? "onboarding" : maskedId === "TV-4102" ? "ending" : "active",
+      status: maskedId === "TV-4455" || start > SEED_NOW ? "onboarding" : maskedId === "TV-4102" ? "ending" : "active",
       vendorRatePaise: vendorRate,
       clientRatePaise: clientRate,
       // Below the floor requires an explicit approver plus a note (docs/DOMAIN.md).
@@ -248,11 +254,25 @@ export async function seedEngagements(
   const periodMonth = new Date(Date.UTC(SEED_NOW.getUTCFullYear(), SEED_NOW.getUTCMonth(), 1))
     .toISOString().slice(0, 10);
 
+  /**
+   * Lines first, then each invoice's total is THE SUM OF ITS LINES. The total used to be the
+   * full monthly rates while an onboarding placement was billed 23/30 of a month, so the
+   * Nimbus payable read ₹8.84L in its header and ₹8.34L in its lines — and the vendor
+   * dashboard and earnings page each showed one. A placement that has not started by the
+   * end of the invoice month is not billed in it at all.
+   */
+  const monthEnd = new Date(Date.UTC(SEED_NOW.getUTCFullYear(), SEED_NOW.getUTCMonth() + 1, 1));
+  const billable = engagements.filter((e) => new Date(e.startDate) < monthEnd);
+  const amount = (e: (typeof engagements)[number], side: "client" | "vendor") => {
+    const rate = side === "client" ? e.clientRatePaise : e.vendorRatePaise;
+    return e.status === "onboarding" ? Math.round(rate * 23 / 30) : rate; // mid-month start
+  };
+
   const byClient = new Map<string, number>();
   const byVendor = new Map<string, number>();
-  for (const e of engagements) {
-    byClient.set(e.clientOrgId, (byClient.get(e.clientOrgId) ?? 0) + e.clientRatePaise);
-    byVendor.set(e.vendorOrgId, (byVendor.get(e.vendorOrgId) ?? 0) + e.vendorRatePaise);
+  for (const e of billable) {
+    byClient.set(e.clientOrgId, (byClient.get(e.clientOrgId) ?? 0) + amount(e, "client"));
+    byVendor.set(e.vendorOrgId, (byVendor.get(e.vendorOrgId) ?? 0) + amount(e, "vendor"));
   }
 
   const invoiceRows: Array<typeof s.invoices.$inferInsert> = [
@@ -269,20 +289,20 @@ export async function seedEngagements(
 
   const lineRows: Array<typeof s.invoiceLines.$inferInsert> = [];
   const invByKey = new Map(invoices.map((i) => [`${i.counterpartyOrgId}:${i.direction}`, i]));
-  for (const e of engagements) {
-    const prorata = e.status === "onboarding"; // mid-month start
+  for (const e of billable) {
+    const prorata = e.status === "onboarding";
     const recv = invByKey.get(`${e.clientOrgId}:receivable`);
     const pay = invByKey.get(`${e.vendorOrgId}:payable`);
     if (recv) lineRows.push({
       invoiceId: recv.id, engagementId: e.id, description: `${e.roleTitle} — monthly fee`,
       daysBilled: prorata ? 23 : 30, daysInMonth: 30,
-      amountPaise: prorata ? Math.round(e.clientRatePaise * 23 / 30) : e.clientRatePaise,
+      amountPaise: amount(e, "client"),
       isProrata: prorata,
     });
     if (pay) lineRows.push({
       invoiceId: pay.id, engagementId: e.id, description: `${e.roleTitle} — supplier payable`,
       daysBilled: prorata ? 23 : 30, daysInMonth: 30,
-      amountPaise: prorata ? Math.round(e.vendorRatePaise * 23 / 30) : e.vendorRatePaise,
+      amountPaise: amount(e, "vendor"),
       isProrata: prorata,
     });
   }

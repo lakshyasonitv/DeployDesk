@@ -69,6 +69,7 @@ export async function POST(req: Request) {
     .select({
       interviewId: s.interviews.id,
       status: s.interviews.status,
+      scheduledAt: s.interviews.scheduledAt,
     })
     .from(s.interviews)
     .innerJoin(s.shortlistItems, eq(s.shortlistItems.id, s.interviews.shortlistItemId))
@@ -85,7 +86,9 @@ export async function POST(req: Request) {
 
   // Feedback is on a round that was arranged. `status` was selected and never read, so a
   // rating could be filed on a round still being requested, or one that was cancelled.
-  if (round.status === "proposed" || round.status === "awaiting_vendor" || round.status === "cancelled") {
+  // …and on one that has HAPPENED: the screen offered forms for rounds days away.
+  if (round.status === "proposed" || round.status === "awaiting_vendor" || round.status === "cancelled"
+      || !round.scheduledAt || round.scheduledAt.getTime() > Date.now()) {
     return NextResponse.json({ error: "round_not_held" }, { status: 409 });
   }
 

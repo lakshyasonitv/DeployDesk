@@ -4,6 +4,7 @@ import { z } from "zod";
 import { db } from "@/src/db/client";
 import * as s from "@/src/db/schema";
 import { getDemoSession } from "@/src/lib/auth/session";
+import { livePlacements } from "@/src/services/withdrawal";
 import { deriveRateBand } from "@/src/lib/money/rate-band";
 import { istFormat } from "@/src/lib/derived";
 
@@ -86,6 +87,17 @@ export async function POST(req: Request) {
   if (blocking.length) {
     return NextResponse.json(
       { error: "blocked_duplicate", flags: blocking.map((b) => `${b.code} (${b.confidence}%)`) },
+      { status: 409 },
+    );
+  }
+
+  /* ---- 1b. nobody already on a placement ---- */
+  // Checked here as well as in the matcher: a pool scored before that gate existed still
+  // carries `eligible` rows for people who are now working (TV-4821 / TV-4488 in the seed).
+  const placed = await livePlacements(resourceIds);
+  if (placed.size) {
+    return NextResponse.json(
+      { error: "on_placement", candidates: candidates.filter((c) => placed.has(c.resourceId)).map((c) => c.maskedId) },
       { status: 409 },
     );
   }

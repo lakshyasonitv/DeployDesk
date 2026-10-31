@@ -204,9 +204,12 @@ export async function getVendorOverview(vendorOrgId: string, viewerName: string)
       .limit(10),
 
     // Earnings: PAYABLE invoices only. There is no path from here to a receivable row.
+    // Summed from the LINES, as the earnings page does. The header `total_paise` disagreed
+    // with its own lines (₹8.84L vs ₹8.34L for Nimbus), so the two screens disagreed too.
     db
-      .select({ total: sql<number>`coalesce(sum(${s.invoices.totalPaise}), 0)::bigint` })
-      .from(s.invoices)
+      .select({ total: sql<number>`coalesce(sum(${s.invoiceLines.amountPaise}), 0)::bigint` })
+      .from(s.invoiceLines)
+      .innerJoin(s.invoices, eq(s.invoices.id, s.invoiceLines.invoiceId))
       .where(and(
         eq(s.invoices.counterpartyOrgId, vendorOrgId),
         eq(s.invoices.direction, "payable"),

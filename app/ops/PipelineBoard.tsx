@@ -56,6 +56,8 @@ export function PipelineBoard({
 
   const anyFilter = Boolean(query || atRisk || needsSourcing);
   const breaches = rows.filter((r) => r.sla.state === "late").length;
+  const placedCount = rows.filter((r) => r.stage === "placed").length;
+  const openCount = rows.length - placedCount;
 
   const move = async (code: string, toStage: string) => {
     const row = rows.find((r) => r.code === code);
@@ -113,7 +115,9 @@ export function PipelineBoard({
           <div>
             <div style={s("font-size:26px;font-weight:800;letter-spacing:-.6px")}>Role pipeline</div>
             <div style={s("font-size:14px;color:var(--t2);margin-top:4px")}>
-              {rows.length} open {rows.length === 1 ? "role" : "roles"} · {clientCount} hiring
+              {/* Placed roles are on the board but not open; this counted them as open. */}
+              {openCount} open {openCount === 1 ? "role" : "roles"}
+              {placedCount ? ` · ${placedCount} placed` : ""} · {clientCount} hiring
               companies · {vendorCount} supplier benches
               {breaches ? <> · <strong>{breaches} running late</strong></> : null}
             </div>
@@ -165,7 +169,9 @@ export function PipelineBoard({
             placeholder="Search by role, company, person or code"
             style={s("padding:6px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:12px;width:270px;font-family:inherit;outline:none")}
           />
-          <Toggle on={atRisk} onClick={() => setAtRisk((v) => !v)}>Running late</Toggle>
+          {/* It shows due-soon roles too, so it is not called "Running late" — the header's
+              "N running late" counts only the overdue ones, and the two disagreed. */}
+          <Toggle on={atRisk} onClick={() => setAtRisk((v) => !v)}>Late or due soon</Toggle>
           <Toggle on={needsSourcing} onClick={() => setNeedsSourcing((v) => !v)}>Needs candidates</Toggle>
           {anyFilter ? (
             <button onClick={() => { setQuery(""); setAtRisk(false); setNeedsSourcing(false); }}
@@ -264,8 +270,8 @@ export function PipelineBoard({
                           {r.valuePerMonthLabel}
                         </span>
                         <span style={s("display:inline-flex;align-items:center;gap:5px")}>
-                          <span style={sx("width:5px;height:5px;border-radius:50%", { background: SLA_COLOR[r.sla.state] })} />
-                          <span style={sx("font-size:10px;font-weight:600", { color: SLA_COLOR[r.sla.state] })}>
+                          <span style={sx("width:5px;height:5px;border-radius:50%", { background: SLA_COLOR[r.sla.tone] })} />
+                          <span style={sx("font-size:10px;font-weight:600", { color: SLA_COLOR[r.sla.tone] })}>
                             {r.sla.label}
                           </span>
                         </span>
@@ -294,7 +300,8 @@ export function PipelineBoard({
 
 /* ------------------------------------------------------------- list view */
 
-const LIST_COLS = "98px 1fr 132px 68px 104px 92px 158px 120px 92px";
+// The flexible column has a floor: as a bare 1fr it collapsed to 0px on narrower screens.
+const LIST_COLS = "98px minmax(140px, 1fr) 132px 68px 104px 92px 158px 120px 92px";
 
 function ListView({
   rows, onStep,
@@ -342,8 +349,8 @@ function ListView({
               <Arrow dir="right" disabled={STAGE_KEYS.indexOf(r.stage) === STAGE_KEYS.length - 1} onClick={() => onStep(r.code, 1)} />
             </div>
             <div style={s("display:inline-flex;align-items:center;gap:5px")}>
-              <span style={sx("width:5px;height:5px;border-radius:50%;flex:none", { background: SLA_COLOR[r.sla.state] })} />
-              <span style={sx("font-size:10.5px;font-weight:600", { color: SLA_COLOR[r.sla.state] })}>{r.sla.label}</span>
+              <span style={sx("width:5px;height:5px;border-radius:50%;flex:none", { background: SLA_COLOR[r.sla.tone] })} />
+              <span style={sx("font-size:10.5px;font-weight:600", { color: SLA_COLOR[r.sla.tone] })}>{r.sla.label}</span>
             </div>
             <Link href={`/ops/matching/${r.code}`} style={s("font-size:11px;font-weight:700;color:var(--brand)")}>
               {STAGE_ACTION[r.stage] ?? "Open"}

@@ -184,7 +184,7 @@ export function ShortlistBoard({
               onClick={() => { setAskContext(`${view.requirementCode} · ${view.roleTitle}`); setAskOpen(true); }}
               style={s("padding:8px 13px;border:1px solid var(--border-2);border-radius:8px;font-size:12.5px;font-weight:600;background:var(--surface);cursor:pointer;font-family:inherit")}
             >
-              Ask Talentvibes
+              Conversation
             </button>
             <button
               type="button"
@@ -312,13 +312,8 @@ export function ShortlistBoard({
                   >
                     Pass
                   </button>
-                  <button
-                    onClick={() => { setAskContext(`${c.maskedId} · ${view.roleTitle}`); setAskOpen(true); }}
-                    title="Ask your Talentvibes team about this candidate"
-                    style={s("width:30px;padding:7px 0;border:1px solid var(--border-2);border-radius:7px;font-size:11.5px;font-weight:700;background:var(--surface);cursor:pointer;color:var(--brand);font-family:inherit")}
-                  >
-                    ?
-                  </button>
+                  {/* The per-card "?" (ask about this candidate) is gone: it opened the same
+                      read-only conversation, which cannot send — a question it could not ask. */}
                 </div>
               </div>
             );
@@ -339,7 +334,7 @@ export function ShortlistBoard({
               onClick={() => { setAskContext(`${view.requirementCode} · ${view.roleTitle}`); setAskOpen(true); }}
               style={s("padding:7px 14px;border:0;border-radius:8px;font-size:12px;font-weight:700;background:var(--t1);color:var(--surface);cursor:pointer;flex:none;font-family:inherit")}
             >
-              Reply
+              View conversation
             </button>
           </div>
         ) : null}
@@ -382,7 +377,7 @@ function AskPanel({
       >
         <div style={s("padding:15px 17px;border-bottom:1px solid var(--border);flex:none")}>
           <div style={s("display:flex;align-items:center;justify-content:space-between;gap:10px")}>
-            <div style={s("font-size:13.5px;font-weight:800")}>Ask Talentvibes</div>
+            <div style={s("font-size:13.5px;font-weight:800")}>Your Talentvibes team</div>
             <button onClick={onClose} style={s("border:0;background:transparent;font-size:17px;color:var(--t4);cursor:pointer;line-height:1")}>×</button>
           </div>
           <div style={sx("font-size:10.5px;font-weight:600;color:var(--t4);margin-top:3px", { fontFamily: TOKENS.mono })}>

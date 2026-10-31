@@ -21,8 +21,8 @@ models rather than RLS (ADR-003).
 
 | Gate | State |
 |---|---|
-| `npm test` | **216 passing**, 10 files (as of 2026-10-31) |
-| `npm run db:verify` | **30/30** |
+| `npm test` | **221 passing**, 10 files (as of 2026-10-31) |
+| `npm run db:verify` | **32/32** (reseeded 2026-10-31) |
 | `npm run build` | clean |
 | `npx tsc --noEmit` | clean |
 
@@ -36,7 +36,7 @@ round); real talent-pool filters with saved views and a search box; the draft �
 **the matching engine** — `docs/MATCHING.md`'s six components and five gates, so a posted
 requirement is sourced automatically instead of dead-ending on an empty desk.
 
-**`05-status.md` is the authoritative list** of what works, what is half-built and the **5**
+**`05-status.md` is the authoritative list** of what works, what is half-built and the **4**
 controls that still do nothing, each with a note on whether it needs a data model, an
 external system, or just work.
 
@@ -88,7 +88,7 @@ percent-encoded (`@` becomes `%40`). Ask the owner for credentials; do not guess
 | `npm run dev` | dev server; **slow by design**, judge speed on `next start` instead |
 | `npm run build` | production build — **stop `next dev` and `rm -rf .next` first**, or it fails with `Cannot find module for page` |
 | `npx next start -p 3000` | production server, what to measure |
-| `npm test` | **the gate** — 216 tests. It loads `.env.local`; bare `npx vitest` does not |
+| `npm test` | **the gate** — 221 tests. It loads `.env.local`; bare `npx vitest` does not |
 | `npm run db:verify` | 30 assertions over the seeded data |
 | `npm run db:seed` | reseed (~4s) |
 | `npm run db:apply -- --dry` | list pending hand-written SQL migrations, touch nothing |

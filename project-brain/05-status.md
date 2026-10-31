@@ -98,7 +98,7 @@ header link hardcoded to `REQ-2291` was removed.
 requirement check names fixture codes instead of counting rows. Nothing was loosened; the
 code check is stricter than the count was.
 
-## 3. Visible but inert — 5 controls that do nothing
+## 3. Visible but inert — 4 controls that do nothing
 
 Each needs a decision, not just wiring. Grouped by what they actually need.
 
@@ -113,7 +113,7 @@ Each needs a decision, not just wiring. Grouped by what they actually need.
 - ~~**Detection rules** (`/ops/duplicates`)~~ — **REMOVED from the screen 2026-10-31**, the same call as Panel availability: no agreed thresholds exist to put behind it (working agreement 8)
 
 **Needs an external system**
-- **Raise invoice** (`/vendor/earnings`) — billing integration
+- ~~**Raise invoice** (`/vendor/earnings`)~~ — **REMOVED from the screen 2026-10-31**: it did nothing and there is no billing integration behind it
 
 **Needs only work, no decisions**
 - ~~**Add to a requirement** (`/ops/pool`)~~ — **wired 2026-10-08.** Tick rows, pick an open
