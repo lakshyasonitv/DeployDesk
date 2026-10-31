@@ -67,7 +67,7 @@ export function EngagementsTable({ engagements }: { engagements: ClientEngagemen
           <div style={s("min-width:730px")}>
             <div style={sx("display:grid;padding:9px 15px;background:var(--surface-2);border-bottom:1px solid var(--border)", { gridTemplateColumns: COLS, gap: "10px" })}>
               {["REFERENCE", "ROLE", "WORKING SINCE", "ENDS", "YOUR MONTHLY RATE", "STATUS"].map((h) => (
-                <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--t4);white-space:nowrap", { fontFamily: TOKENS.mono })}>{h}</div>
+                <div key={h} style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.08em;color:var(--t3);line-height:1.3", { fontFamily: TOKENS.mono })}>{h}</div>
               ))}
             </div>
 
@@ -87,19 +87,19 @@ export function EngagementsTable({ engagements }: { engagements: ClientEngagemen
                   onMouseEnter={(ev) => { ev.currentTarget.style.background = "var(--surface-2)"; }}
                   onMouseLeave={(ev) => { ev.currentTarget.style.background = "transparent"; }}
                 >
-                  <div style={sx("font-size:11.5px;font-weight:700", { fontFamily: TOKENS.mono })}>{e.maskedId}</div>
-                  <div style={s("font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>{e.roleTitle}</div>
-                  <div style={s("font-size:11.5px;color:var(--t3);white-space:nowrap")}>{e.startedOn}</div>
-                  <div style={sx("font-size:11.5px;white-space:nowrap", {
+                  <div style={sx("font-size:var(--fs-2);font-weight:700", { fontFamily: TOKENS.mono })}>{e.maskedId}</div>
+                  <div style={s("font-size:var(--fs-4);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>{e.roleTitle}</div>
+                  <div style={s("font-size:var(--fs-2);color:var(--t3);white-space:nowrap")}>{e.startedOn}</div>
+                  <div style={sx("font-size:var(--fs-2);white-space:nowrap", {
                     // v2 SCREENS.md:100 — an end date that is close shows amber and bold.
                     color: e.endsOn ? (e.endingSoon ? "var(--warn)" : "var(--t3)") : "var(--t4)",
                     fontWeight: e.endingSoon ? 700 : 400,
                   })}>
                     {e.endsOn ?? "open-ended"}
                   </div>
-                  <div style={sx("font-size:12px;font-weight:700", { fontFamily: TOKENS.mono })}>{e.rateLabel}</div>
+                  <div style={sx("font-size:var(--fs-3);font-weight:700", { fontFamily: TOKENS.mono })}>{e.rateLabel}</div>
                   <div>
-                    <span style={sx("display:inline-block;padding:3px 8px;border-radius:5px;font-size:8.5px;font-weight:700;letter-spacing:.08em;white-space:nowrap", { background: st.bg, color: st.fg, fontFamily: TOKENS.mono })}>
+                    <span style={sx("display:inline-block;padding:3px 8px;border-radius:5px;font-size:var(--fs-1);font-weight:700;letter-spacing:.08em;white-space:nowrap", { background: st.bg, color: st.fg, fontFamily: TOKENS.mono })}>
                       {st.label}
                     </span>
                   </div>
@@ -108,7 +108,7 @@ export function EngagementsTable({ engagements }: { engagements: ClientEngagemen
             })}
 
             {engagements.length === 0 ? (
-              <div style={s("padding:28px;text-align:center;color:var(--t4);font-size:12.5px")}>
+              <div style={s("padding:28px;text-align:center;color:var(--t4);font-size:var(--fs-4)")}>
                 Nobody is working for you through Talentvibes yet.
               </div>
             ) : null}
@@ -116,7 +116,7 @@ export function EngagementsTable({ engagements }: { engagements: ClientEngagemen
         </div>
 
         {engagements.length ? (
-          <div style={s("padding:10px 15px;background:var(--surface-2);font-size:11px;color:var(--t4)")}>
+          <div style={s("padding:10px 15px;background:var(--surface-2);font-size:var(--fs-1);color:var(--t4)")}>
             Click anyone to see their full placement, their test result, and to ask to
             keep them for longer.
           </div>
@@ -135,8 +135,8 @@ export function EngagementsTable({ engagements }: { engagements: ClientEngagemen
 function Fact({ k, v, tone }: { k: string; v: string; tone?: string }) {
   return (
     <div>
-      <div style={sx("font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--t4)", { fontFamily: TOKENS.mono })}>{k}</div>
-      <div style={sx("font-size:12.5px;font-weight:600;margin-top:3px", { color: tone ?? "var(--t1)" })}>{v}</div>
+      <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.1em;color:var(--t4)", { fontFamily: TOKENS.mono })}>{k}</div>
+      <div style={sx("font-size:var(--fs-4);font-weight:600;margin-top:3px", { color: tone ?? "var(--t1)" })}>{v}</div>
     </div>
   );
 }
@@ -220,8 +220,8 @@ function PlacementPanel({ e, onClose }: { e: ClientEngagement; onClose: () => vo
         <div style={s("padding:15px 17px;border-bottom:1px solid var(--border);flex:none")}>
           <div style={s("display:flex;align-items:flex-start;justify-content:space-between;gap:10px")}>
             <div style={s("min-width:0")}>
-              <div style={sx("font-size:14px;font-weight:800", { fontFamily: TOKENS.mono })}>{e.maskedId}</div>
-              <div style={s("font-size:12.5px;color:var(--t2);margin-top:2px")}>{e.roleTitle}</div>
+              <div style={sx("font-size:var(--fs-7);font-weight:800", { fontFamily: TOKENS.mono })}>{e.maskedId}</div>
+              <div style={s("font-size:var(--fs-4);color:var(--t2);margin-top:2px")}>{e.roleTitle}</div>
             </div>
             <button
               onClick={onClose}
@@ -251,7 +251,7 @@ function PlacementPanel({ e, onClose }: { e: ClientEngagement; onClose: () => vo
 
           {/* ------------------------------------------------- the person */}
           <div style={s("border-top:1px solid var(--border);padding-top:14px")}>
-            <div style={sx("font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--t4);margin-bottom:9px", { fontFamily: TOKENS.mono })}>
+            <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.1em;color:var(--t4);margin-bottom:9px", { fontFamily: TOKENS.mono })}>
               ABOUT THIS ENGINEER
             </div>
             <div style={s("display:grid;grid-template-columns:1fr 1fr;gap:13px")}>
@@ -263,7 +263,7 @@ function PlacementPanel({ e, onClose }: { e: ClientEngagement; onClose: () => vo
             {e.skills.length ? (
               <div style={s("display:flex;flex-wrap:wrap;gap:4px;margin-top:12px")}>
                 {e.skills.map((sk) => (
-                  <span key={sk} style={s("padding:3px 8px;background:var(--surface-3);border-radius:5px;font-size:10.5px;font-weight:600;color:var(--t2)")}>
+                  <span key={sk} style={s("padding:3px 8px;background:var(--surface-3);border-radius:5px;font-size:var(--fs-1);font-weight:600;color:var(--t2)")}>
                     {sk}
                   </span>
                 ))}
@@ -273,7 +273,7 @@ function PlacementPanel({ e, onClose }: { e: ClientEngagement; onClose: () => vo
 
           {/* ------------------------------------------------- the test */}
           <div style={s("border-top:1px solid var(--border);padding-top:14px")}>
-            <div style={sx("font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--t4);margin-bottom:9px", { fontFamily: TOKENS.mono })}>
+            <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.1em;color:var(--t4);margin-bottom:9px", { fontFamily: TOKENS.mono })}>
               INDEPENDENT TEST RESULT
             </div>
             {e.assessment ? (
@@ -285,7 +285,7 @@ function PlacementPanel({ e, onClose }: { e: ClientEngagement; onClose: () => vo
                     })}>
                       {e.assessment.scoreOverall ?? "—"}
                     </div>
-                    <div style={sx("font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--t4);margin-top:3px", { fontFamily: TOKENS.mono })}>
+                    <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.1em;color:var(--t4);margin-top:3px", { fontFamily: TOKENS.mono })}>
                       TEST SCORE
                     </div>
                   </div>
@@ -299,7 +299,7 @@ function PlacementPanel({ e, onClose }: { e: ClientEngagement; onClose: () => vo
                     width={210}
                   />
                 </div>
-                <div style={s("font-size:10.5px;color:var(--t4);margin-top:10px;line-height:1.5")}>
+                <div style={s("font-size:var(--fs-1);color:var(--t4);margin-top:10px;line-height:1.5")}>
                   {e.assessment.attemptNo === 1 ? "First attempt" : `Attempt ${e.assessment.attemptNo ?? "—"}`}
                   {e.assessment.testedOn ? ` · tested ${e.assessment.testedOn}` : ""}
                   {" · proctored by an independent provider, taken before you interviewed them."}
@@ -311,7 +311,7 @@ function PlacementPanel({ e, onClose }: { e: ClientEngagement; onClose: () => vo
                * `requirement_id = null`, so most placements have no shortlist lineage and
                * therefore no snapshot. Say why rather than render an empty block.
                */
-              <div style={s("font-size:11.5px;color:var(--t4);line-height:1.55")}>
+              <div style={s("font-size:var(--fs-2);color:var(--t4);line-height:1.55")}>
                 No test result is on file for this placement. Scores are captured on the
                 shortlist a person arrives on, so placements arranged outside that flow do
                 not carry one.
@@ -321,21 +321,21 @@ function PlacementPanel({ e, onClose }: { e: ClientEngagement; onClose: () => vo
 
           {/* ------------------------------------------------- extension */}
           <div style={s("border-top:1px solid var(--border);padding-top:14px")}>
-            <div style={sx("font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--t4);margin-bottom:9px", { fontFamily: TOKENS.mono })}>
+            <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.1em;color:var(--t4);margin-bottom:9px", { fontFamily: TOKENS.mono })}>
               KEEPING THEM FOR LONGER
             </div>
 
             {e.extension && !e.extension.settled ? (
               <div style={s("background:var(--info-tint);border:1px solid var(--info-tint);border-radius:9px;padding:11px")}>
-                <div style={s("font-size:12px;font-weight:700;color:var(--info)")}>{e.extension.statusLabel}</div>
-                <div style={s("font-size:11.5px;color:var(--t2);margin-top:4px;line-height:1.5")}>
+                <div style={s("font-size:var(--fs-3);font-weight:700;color:var(--info)")}>{e.extension.statusLabel}</div>
+                <div style={s("font-size:var(--fs-2);color:var(--t2);margin-top:4px;line-height:1.5")}>
                   You asked to keep them until {e.extension.requestedUntil}. We are checking that
                   they are free to stay and will come back to you.
                 </div>
               </div>
             ) : asking ? (
               <>
-                <label style={s("display:block;font-size:11.5px;color:var(--t2);margin-bottom:5px")}>
+                <label style={s("display:block;font-size:var(--fs-2);color:var(--t2);margin-bottom:5px")}>
                   Keep them until
                 </label>
                 <input
@@ -343,23 +343,23 @@ function PlacementPanel({ e, onClose }: { e: ClientEngagement; onClose: () => vo
                   value={until}
                   min={minUntil}
                   onChange={(ev) => setUntil(ev.target.value)}
-                  style={s("width:100%;padding:9px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:12.5px;font-family:inherit;outline:none")}
+                  style={s("width:100%;padding:9px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-4);font-family:inherit;outline:none")}
                 />
                 <textarea
                   value={note}
                   onChange={(ev) => setNote(ev.target.value)}
                   rows={3}
                   placeholder="Anything that would help, such as a project date or a phase that slipped."
-                  style={s("width:100%;margin-top:9px;padding:9px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:12px;font-family:inherit;outline:none;resize:vertical;line-height:1.5")}
+                  style={s("width:100%;margin-top:9px;padding:9px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-3);font-family:inherit;outline:none;resize:vertical;line-height:1.5")}
                 />
-                <div style={s("font-size:10.5px;color:var(--t4);margin-top:5px;line-height:1.5")}>
+                <div style={s("font-size:var(--fs-1);color:var(--t4);margin-top:5px;line-height:1.5")}>
                   Your note goes to your Talentvibes team only. It is never passed on word for word.
                 </div>
                 <div style={s("display:flex;gap:7px;margin-top:11px")}>
                   <button
                     onClick={request}
                     disabled={busy}
-                    style={sx("padding:0 14px;height:34px;display:inline-flex;align-items:center;border:0;border-radius:9px;font-size:12.5px;font-weight:700;color:#fff;background:var(--brand);font-family:inherit", {
+                    style={sx("padding:0 14px;height:34px;display:inline-flex;align-items:center;border:0;border-radius:9px;font-size:var(--fs-4);font-weight:700;color:#fff;background:var(--brand);font-family:inherit", {
                       cursor: busy ? "default" : "pointer", opacity: busy ? 0.6 : 1,
                     })}
                   >
@@ -368,7 +368,7 @@ function PlacementPanel({ e, onClose }: { e: ClientEngagement; onClose: () => vo
                   <button
                     onClick={() => setAsking(false)}
                     disabled={busy}
-                    style={s("padding:0 14px;height:34px;display:inline-flex;align-items:center;border:1px solid var(--border-2);border-radius:9px;font-size:12.5px;font-weight:600;background:var(--surface);cursor:pointer;font-family:inherit")}
+                    style={s("padding:0 14px;height:34px;display:inline-flex;align-items:center;border:1px solid var(--border-2);border-radius:9px;font-size:var(--fs-4);font-weight:600;background:var(--surface);cursor:pointer;font-family:inherit")}
                   >
                     Cancel
                   </button>
@@ -377,12 +377,12 @@ function PlacementPanel({ e, onClose }: { e: ClientEngagement; onClose: () => vo
             ) : (
               <>
                 {e.extension?.settled ? (
-                  <div style={s("font-size:11.5px;color:var(--t2);margin-bottom:10px;line-height:1.55")}>
+                  <div style={s("font-size:var(--fs-2);color:var(--t2);margin-bottom:10px;line-height:1.55")}>
                     Your last request (until {e.extension.requestedUntil}) came back:{" "}
                     <strong style={s("font-weight:700")}>{e.extension.statusLabel.toLowerCase()}</strong>.
                   </div>
                 ) : (
-                  <div style={s("font-size:11.5px;color:var(--t2);margin-bottom:10px;line-height:1.55")}>
+                  <div style={s("font-size:var(--fs-2);color:var(--t2);margin-bottom:10px;line-height:1.55")}>
                     {e.endsOn
                       ? `This placement ends ${e.endsOn}. Ask now and we will check whether they can stay.`
                       : "There is no agreed end date. You can still fix one further out if you want certainty."}
@@ -390,7 +390,7 @@ function PlacementPanel({ e, onClose }: { e: ClientEngagement; onClose: () => vo
                 )}
                 <button
                   onClick={() => setAsking(true)}
-                  style={s("padding:0 14px;height:34px;display:inline-flex;align-items:center;border:0;border-radius:9px;font-size:12.5px;font-weight:700;color:#fff;background:var(--brand);cursor:pointer;font-family:inherit")}
+                  style={s("padding:0 14px;height:34px;display:inline-flex;align-items:center;border:0;border-radius:9px;font-size:var(--fs-4);font-weight:700;color:#fff;background:var(--brand);cursor:pointer;font-family:inherit")}
                 >
                   Request an extension
                 </button>
@@ -401,7 +401,7 @@ function PlacementPanel({ e, onClose }: { e: ClientEngagement; onClose: () => vo
 
         {/* ------------------------------------------------- masking note */}
         <div style={s("flex:none;padding:12px 17px;border-top:1px solid var(--border);background:var(--surface-2)")}>
-          <div style={s("font-size:10.5px;color:var(--t4);line-height:1.6")}>
+          <div style={s("font-size:var(--fs-1);color:var(--t4);line-height:1.6")}>
             <strong style={s("font-weight:700;color:var(--t3)")}>Why there is no name here.</strong>{" "}
             Names and supplier details are hidden on purpose. A name would let anyone trace
             which supplier this engineer works for. Once the two sides can find each

@@ -319,17 +319,17 @@ export function Workspace({
         <div style={s("display:flex;align-items:flex-end;justify-content:space-between;gap:16px")}>
           <div style={s("min-width:0")}>
             <div style={s("display:flex;align-items:center;gap:9px;margin-bottom:6px")}>
-              <span style={sx("padding:3px 8px;border-radius:5px;font-size:9px;font-weight:700;letter-spacing:.08em", { background: st.bg, color: st.fg, fontFamily: TOKENS.mono })}>
+              <span style={sx("padding:3px 8px;border-radius:5px;font-size:var(--fs-1);font-weight:700;letter-spacing:.08em", { background: st.bg, color: st.fg, fontFamily: TOKENS.mono })}>
                 {st.label}
               </span>
-              <span style={s("font-size:11.5px;color:var(--t4)")}>
+              <span style={s("font-size:var(--fs-2);color:var(--t4)")}>
                 {requirement.clientName} · owner {requirement.ownerShort}
               </span>
             </div>
             <div style={s("display:flex;align-items:center;gap:10px")}>
               <div style={s("font-size:22px;font-weight:800;letter-spacing:-.6px")}>Matching workspace</div>
               <button onClick={() => setPickerOpen((v) => !v)}
-                style={sx("display:flex;align-items:center;gap:7px;padding:5px 10px;border-radius:8px;font-size:11.5px;cursor:pointer;font-family:inherit", {
+                style={sx("display:flex;align-items:center;gap:7px;padding:5px 10px;border-radius:8px;font-size:var(--fs-2);cursor:pointer;font-family:inherit", {
                   background: pickerOpen ? "var(--warn-tint)" : "var(--surface)",
                   border: `1px solid ${pickerOpen ? "var(--warn-tint)" : "var(--border-2)"}`,
                 })}>
@@ -340,7 +340,7 @@ export function Workspace({
                 <span style={s("color:var(--t4)")}>▾</span>
               </button>
             </div>
-            <div style={s("font-size:12.5px;color:var(--t3);margin-top:4px")}>
+            <div style={s("font-size:var(--fs-4);color:var(--t3);margin-top:4px")}>
               {sourceNote ?? (initial.length
                 ? `${initial.length} candidates sourced from ${sourcedBenches} of ${benchCount} benches`
                 : "no candidates sourced yet, so matching starts here")}
@@ -349,17 +349,17 @@ export function Workspace({
           <div style={s("display:flex;gap:8px;flex:none")}>
             <button onClick={sourceCandidates} disabled={sourcing}
               title="Score every eligible person on the exchange against this role"
-              style={sx("padding:8px 13px;border:1px solid var(--border-2);border-radius:8px;font-size:12.5px;font-weight:600;background:var(--surface);font-family:inherit", {
+              style={sx("padding:8px 13px;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-4);font-weight:600;background:var(--surface);font-family:inherit", {
                 cursor: sourcing ? "default" : "pointer", opacity: sourcing ? 0.6 : 1,
               })}>
               {sourcing ? "Sourcing…" : initial.length ? "Re-run matching" : "Source candidates"}
             </button>
             <button onClick={reset}
-              style={s("padding:8px 13px;border:1px solid var(--border-2);border-radius:8px;font-size:12.5px;font-weight:600;background:var(--surface);cursor:pointer;font-family:inherit")}>
+              style={s("padding:8px 13px;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-4);font-weight:600;background:var(--surface);cursor:pointer;font-family:inherit")}>
               Reset to algorithm
             </button>
             <button onClick={send} disabled={!included.length || sending}
-              style={sx("padding:8px 13px;border:0;border-radius:8px;font-size:12.5px;font-weight:700;color:var(--surface);font-family:inherit", {
+              style={sx("padding:8px 13px;border:0;border-radius:8px;font-size:var(--fs-4);font-weight:700;color:var(--surface);font-family:inherit", {
                 background: included.length ? "var(--t1)" : "var(--border-2)",
                 cursor: included.length && !sending ? "pointer" : "default",
               })}>
@@ -370,7 +370,7 @@ export function Workspace({
 
         {pickerOpen ? (
           <div style={s("position:absolute;top:92px;left:26px;width:430px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 16px 40px rgba(16,16,20,.16);z-index:30;overflow:hidden")}>
-            <div style={sx("padding:10px 13px;background:var(--surface-2);border-bottom:1px solid var(--border);font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
+            <div style={sx("padding:10px 13px;background:var(--surface-2);border-bottom:1px solid var(--border);font-size:var(--fs-1);font-weight:700;letter-spacing:.12em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
               SELECT A REQUIREMENT · {pickerOptions.length} ON YOUR DESK
             </div>
             <div style={s("max-height:330px;overflow:auto")}>
@@ -380,24 +380,24 @@ export function Workspace({
                 return (
                   <a key={o.code} href={`/ops/matching/${o.code}`}
                     style={sx("display:grid;grid-template-columns:76px 1fr 96px 74px;gap:9px;align-items:center;padding:9px 13px;border-bottom:1px solid var(--surface-3);color:var(--t1)", { background: active ? "var(--warn-tint)" : "var(--surface)" })}>
-                    <span style={sx("font-size:10.5px;font-weight:700", { fontFamily: TOKENS.mono })}>{o.code}</span>
+                    <span style={sx("font-size:var(--fs-1);font-weight:700", { fontFamily: TOKENS.mono })}>{o.code}</span>
                     <span style={s("min-width:0")}>
-                      <span style={s("display:block;font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>{o.roleTitle}</span>
-                      <span style={s("display:block;font-size:10px;color:var(--t4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
+                      <span style={s("display:block;font-size:var(--fs-3);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>{o.roleTitle}</span>
+                      <span style={s("display:block;font-size:var(--fs-1);color:var(--t4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
                         {o.clientName} · ×{o.quantity} · {o.ownerShort}
                       </span>
                     </span>
-                    <span style={sx("padding:2px 6px;border-radius:4px;font-size:8.5px;font-weight:700;letter-spacing:.06em;text-align:center", { background: ost.bg, color: ost.fg, fontFamily: TOKENS.mono })}>
+                    <span style={sx("padding:2px 6px;border-radius:4px;font-size:var(--fs-1);font-weight:700;letter-spacing:.06em;text-align:center", { background: ost.bg, color: ost.fg, fontFamily: TOKENS.mono })}>
                       {ost.label}
                     </span>
-                    <span style={sx("font-size:10px;font-weight:600;text-align:right", { color: SLA_COLOR[o.slaState as keyof typeof SLA_COLOR] ?? "var(--t4)" })}>
+                    <span style={sx("font-size:var(--fs-1);font-weight:600;text-align:right", { color: SLA_COLOR[o.slaState as keyof typeof SLA_COLOR] ?? "var(--t4)" })}>
                       {o.slaLabel}
                     </span>
                   </a>
                 );
               })}
             </div>
-            <div style={s("padding:9px 13px;font-size:10.5px;color:var(--t4);background:var(--surface-2)")}>
+            <div style={s("padding:9px 13px;font-size:var(--fs-1);color:var(--t4);background:var(--surface-2)")}>
               Only requirements in Matching, Shortlisted or New appear here.
             </div>
           </div>
@@ -407,7 +407,7 @@ export function Workspace({
       {toast ? (
         <div style={s("background:var(--t1);color:var(--surface);padding:10px 26px;display:flex;align-items:center;gap:11px;flex:none")}>
           <span style={s("width:7px;height:7px;border-radius:50%;background:var(--ok);flex:none")} />
-          <span style={s("font-size:12.5px;flex:1")}>{toast}</span>
+          <span style={s("font-size:var(--fs-4);flex:1")}>{toast}</span>
           {/*
             A real reversal, offered by whichever ranking action ran last. Reset discards
             work a broker did by hand, and an Undo protects against the decision where a
@@ -420,12 +420,12 @@ export function Workspace({
                 setUndoRank(null);
                 void run().catch(() => setToast("Could not undo that."));
               }}
-              style={s("border:0;background:transparent;font-size:12px;font-weight:700;color:var(--surface);cursor:pointer;font-family:inherit;text-decoration:underline")}
+              style={s("border:0;background:transparent;font-size:var(--fs-3);font-weight:700;color:var(--surface);cursor:pointer;font-family:inherit;text-decoration:underline")}
             >
               Undo
             </button>
           ) : null}
-          <button onClick={() => { setToast(null); setUndoRank(null); }} style={s("border:0;background:transparent;font-size:12px;color:var(--t4);cursor:pointer;font-family:inherit")}>Dismiss</button>
+          <button onClick={() => { setToast(null); setUndoRank(null); }} style={s("border:0;background:transparent;font-size:var(--fs-3);color:var(--t4);cursor:pointer;font-family:inherit")}>Dismiss</button>
         </div>
       ) : null}
 
@@ -433,11 +433,11 @@ export function Workspace({
       <div style={s("flex:1;min-height:0;display:flex;overflow:hidden")}>
         {/* left: requirement facts + weighting */}
         <div style={s("width:320px;flex:none;background:var(--surface);border-right:1px solid var(--border);overflow:auto;padding:16px")}>
-          <div style={sx("font-size:9px;font-weight:700;letter-spacing:.14em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
+          <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.14em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
             REQUIREMENT
           </div>
           <div style={s("font-size:15px;font-weight:800;margin-top:7px;line-height:1.3")}>{requirement.roleTitle}</div>
-          <div style={s("font-size:11.5px;color:var(--t4);margin-top:3px")}>
+          <div style={s("font-size:var(--fs-2);color:var(--t4);margin-top:3px")}>
             {requirement.clientName} · {requirement.quantity} position{requirement.quantity === 1 ? "" : "s"} · owner {requirement.ownerShort}
           </div>
 
@@ -450,13 +450,13 @@ export function Workspace({
             <Fact k="Target margin" v="≥ 22%" color="var(--ok)" />
           </div>
 
-          <div style={sx("font-size:9px;font-weight:700;letter-spacing:.14em;color:var(--t4);margin-top:18px", { fontFamily: TOKENS.mono })}>
+          <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.14em;color:var(--t4);margin-top:18px", { fontFamily: TOKENS.mono })}>
             WEIGHTING
           </div>
           <div style={s("margin-top:9px;display:flex;flex-direction:column;gap:7px")}>
             {weights.map((w) => (
               <div key={w.label}>
-                <div style={s("display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px")}>
+                <div style={s("display:flex;justify-content:space-between;font-size:var(--fs-1);margin-bottom:3px")}>
                   <span style={s("color:var(--t2)")}>{w.label}</span>
                   <span style={sx("font-weight:700", { fontFamily: TOKENS.mono })}>{w.pct}</span>
                 </div>
@@ -469,10 +469,10 @@ export function Workspace({
 
           {requirement.clientNote ? (
             <div style={s("margin-top:18px;background:var(--warn-tint);border:1px solid var(--warn-tint);border-radius:10px;padding:11px")}>
-              <div style={sx("font-size:8.5px;font-weight:700;letter-spacing:.12em;color:var(--warn)", { fontFamily: TOKENS.mono })}>
+              <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.12em;color:var(--warn)", { fontFamily: TOKENS.mono })}>
                 CLIENT NOTE · CLIENT + OPS ONLY
               </div>
-              <div style={s("font-size:11.5px;color:var(--t2);margin-top:6px;line-height:1.5")}>
+              <div style={s("font-size:var(--fs-2);color:var(--t2);margin-top:6px;line-height:1.5")}>
                 {requirement.clientNote}
               </div>
             </div>
@@ -480,10 +480,10 @@ export function Workspace({
 
           {duplicateCount > 0 ? (
             <div style={s("margin-top:12px;background:var(--danger-tint);border:1px solid var(--danger-tint);border-radius:10px;padding:11px")}>
-              <div style={s("font-size:11.5px;font-weight:700;color:var(--danger)")}>
+              <div style={s("font-size:var(--fs-2);font-weight:700;color:var(--danger)")}>
                 {duplicateCount} duplicate flag{duplicateCount === 1 ? "" : "s"} touch this pool
               </div>
-              <a href="/ops/duplicates" style={s("display:inline-block;font-size:11px;font-weight:700;color:var(--danger);margin-top:5px")}>
+              <a href="/ops/duplicates" style={s("display:inline-block;font-size:var(--fs-1);font-weight:700;color:var(--danger);margin-top:5px")}>
                 Resolve before sending →
               </a>
             </div>
@@ -502,19 +502,19 @@ export function Workspace({
           {ownBenchMatches > 0 ? (
             <div style={s("margin-top:12px;background:var(--violet-tint);border:1px solid var(--violet-tint);border-radius:10px;padding:11px")}>
               <div style={s("display:flex;align-items:center;gap:7px")}>
-                <span style={sx("font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--violet);border:1px solid var(--violet);border-radius:4px;padding:1px 4px;flex:none", { fontFamily: TOKENS.mono })}>
+                <span style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.1em;color:var(--violet);border:1px solid var(--violet);border-radius:4px;padding:1px 4px;flex:none", { fontFamily: TOKENS.mono })}>
                   OPS ONLY
                 </span>
-                <div style={s("font-size:11.5px;font-weight:700;color:var(--violet)")}>
+                <div style={s("font-size:var(--fs-2);font-weight:700;color:var(--violet)")}>
                   Dual-role client
                 </div>
               </div>
-              <div style={s("font-size:11.5px;color:var(--t2);margin-top:6px;line-height:1.5")}>
+              <div style={s("font-size:var(--fs-2);color:var(--t2);margin-top:6px;line-height:1.5")}>
                 <strong>{ownBenchMatches}</strong> matching {ownBenchMatches === 1 ? "person" : "people"}{" "}
                 on this client&apos;s own bench or declared group
                 {refusedByRules > 0 ? <> · <strong>{refusedByRules}</strong> candidate{refusedByRules === 1 ? "" : "s"} refused by the self-dealing and block rules</> : null}
               </div>
-              <div style={s("font-size:11px;color:var(--t4);margin-top:5px")}>
+              <div style={s("font-size:var(--fs-1);color:var(--t4);margin-top:5px")}>
                 Not visible to the client. They cannot be offered this requirement.
               </div>
             </div>
@@ -524,13 +524,13 @@ export function Workspace({
         {/* right: ranked candidates */}
         <div style={s("flex:1;min-width:0;background:var(--bg);overflow:auto;padding:14px 18px 22px")}>
           <div style={s("display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:11px")}>
-            <div style={s("font-size:12.5px")}>
+            <div style={s("font-size:var(--fs-4)")}>
               <strong style={s("font-weight:700")}>Ranked candidates · {rows.length}</strong>
               <span style={s("color:var(--t4)")}>
                 {manual ? " · manual override active, algorithm ranking saved" : " · algorithm ranking"}
               </span>
             </div>
-            <div style={sx("font-size:10.5px;color:var(--t4)", { fontFamily: TOKENS.mono })}>
+            <div style={sx("font-size:var(--fs-1);color:var(--t4)", { fontFamily: TOKENS.mono })}>
               Drag a row or use ▲▼ to reorder · client sees this order
             </div>
           </div>
@@ -551,7 +551,7 @@ export function Workspace({
                   {/* rank */}
                   <div style={s("width:34px;flex:none;text-align:center")}>
                     <div style={s("font-size:19px;font-weight:800;line-height:1")}>{idx + 1}</div>
-                    <div style={sx("font-size:8px;font-weight:700;letter-spacing:.1em;color:var(--t4);margin-top:2px", { fontFamily: TOKENS.mono })}>RANK</div>
+                    <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.1em;color:var(--t4);margin-top:2px", { fontFamily: TOKENS.mono })}>RANK</div>
                     <div style={s("display:flex;flex-direction:column;gap:3px;margin-top:6px")}>
                       <button onClick={() => moveBy(c.maskedId, -1)} style={miniBtn}>▲</button>
                       <button onClick={() => moveBy(c.maskedId, 1)} style={miniBtn}>▼</button>
@@ -561,16 +561,16 @@ export function Workspace({
                   {/* identity — UNMASKED, ops only */}
                   <div style={s("width:186px;flex:none;min-width:0")}>
                     <div style={s("display:flex;align-items:center;gap:6px;flex-wrap:wrap")}>
-                      <span style={sx("font-size:12px;font-weight:700", { fontFamily: TOKENS.mono })}>{c.maskedId}</span>
-                      <span style={sx("padding:2px 6px;border-radius:4px;font-size:8px;font-weight:700;letter-spacing:.06em", {
+                      <span style={sx("font-size:var(--fs-3);font-weight:700", { fontFamily: TOKENS.mono })}>{c.maskedId}</span>
+                      <span style={sx("padding:2px 6px;border-radius:4px;font-size:var(--fs-1);font-weight:700;letter-spacing:.06em", {
                         background: inSet ? "var(--ok-tint)" : "var(--surface-3)", color: inSet ? "var(--ok)" : "var(--t4)", fontFamily: TOKENS.mono,
                       })}>
                         {inSet ? "IN SHORTLIST" : "HELD BACK"}
                       </span>
                     </div>
-                    <div style={s("font-size:12.5px;font-weight:700;margin-top:4px")}>{c.fullName}</div>
-                    <div style={s("font-size:10.5px;color:var(--t4);margin-top:2px")}>{c.vendorName}</div>
-                    <div style={sx("font-size:10.5px;color:var(--t2);margin-top:3px", { fontFamily: TOKENS.mono })}>
+                    <div style={s("font-size:var(--fs-4);font-weight:700;margin-top:4px")}>{c.fullName}</div>
+                    <div style={s("font-size:var(--fs-1);color:var(--t4);margin-top:2px")}>{c.vendorName}</div>
+                    <div style={sx("font-size:var(--fs-1);color:var(--t2);margin-top:3px", { fontFamily: TOKENS.mono })}>
                       {c.experienceLabel} · {c.vendorRateLabel}/mo
                     </div>
                   </div>
@@ -579,24 +579,24 @@ export function Workspace({
                   <div style={s("flex:1;min-width:230px")}>
                     <div style={s("display:flex;align-items:baseline;gap:8px")}>
                       <span style={s("font-size:20px;font-weight:800;color:var(--warn);line-height:1")}>{c.algoScore}</span>
-                      <span style={sx("font-size:8.5px;font-weight:700;letter-spacing:.1em;color:var(--t4)", { fontFamily: TOKENS.mono })}>MATCH SCORE</span>
+                      <span style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.1em;color:var(--t4)", { fontFamily: TOKENS.mono })}>MATCH SCORE</span>
                       {c.eligibility !== "eligible" ? (
-                        <span style={sx("padding:2px 6px;border-radius:4px;font-size:8px;font-weight:700;background:var(--danger-tint);color:var(--danger)", { fontFamily: TOKENS.mono })}>
+                        <span style={sx("padding:2px 6px;border-radius:4px;font-size:var(--fs-1);font-weight:700;background:var(--danger-tint);color:var(--danger)", { fontFamily: TOKENS.mono })}>
                           {c.eligibility.replace("blocked_", "").toUpperCase()}
                         </span>
                       ) : null}
                     </div>
-                    <div style={s("font-size:11.5px;color:var(--t2);margin-top:4px")}>{c.reasonLine}</div>
+                    <div style={s("font-size:var(--fs-2);color:var(--t2);margin-top:4px")}>{c.reasonLine}</div>
                     <div style={s("display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin-top:9px")}>
                       {c.components.map((comp, i) => (
                         <div key={comp.label}>
-                          <div style={sx("font-size:7.5px;font-weight:700;letter-spacing:.07em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
+                          <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.07em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
                             {COMPONENT_SHORT[i]}
                           </div>
                           <div style={s("height:4px;background:var(--border);border-radius:3px;margin-top:3px;overflow:hidden")}>
                             <div style={sx("height:100%;border-radius:3px", { width: `${comp.value}%`, background: barColor(comp.value) })} />
                           </div>
-                          <div style={sx("font-size:9px;font-weight:700;margin-top:2px", { fontFamily: TOKENS.mono })}>{comp.value}</div>
+                          <div style={sx("font-size:var(--fs-1);font-weight:700;margin-top:2px", { fontFamily: TOKENS.mono })}>{comp.value}</div>
                         </div>
                       ))}
                     </div>
@@ -605,13 +605,13 @@ export function Workspace({
                   {/* actions */}
                   <div style={s("width:96px;flex:none;display:flex;flex-direction:column;gap:5px")}>
                     <button onClick={() => toggleInclude(c.maskedId)}
-                      style={sx("padding:6px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;border:0", {
+                      style={sx("padding:6px;border-radius:7px;font-size:var(--fs-1);font-weight:700;cursor:pointer;font-family:inherit;border:0", {
                         background: inSet ? "var(--ok)" : "var(--t1)", color: "var(--surface)",
                       })}>
                       {inSet ? "Included" : "Include"}
                     </button>
                     <button onClick={() => setExpanded(open ? null : c.maskedId)}
-                      style={s("padding:6px;border:1px solid var(--border-2);border-radius:7px;font-size:11px;font-weight:600;background:var(--surface);cursor:pointer;font-family:inherit")}>
+                      style={s("padding:6px;border:1px solid var(--border-2);border-radius:7px;font-size:var(--fs-1);font-weight:600;background:var(--surface);cursor:pointer;font-family:inherit")}>
                       {open ? "Hide" : "Profile"}
                     </button>
                   </div>
@@ -639,7 +639,7 @@ export function Workspace({
                       */}
                       <RateEditor code={requirement.code} c={c} onChanged={() => router.refresh()} />
                       {c.lastProjectNote ? (
-                        <div style={s("margin-top:10px;background:var(--surface-2);border-radius:8px;padding:9px;font-size:11.5px;color:var(--t2);line-height:1.5")}>
+                        <div style={s("margin-top:10px;background:var(--surface-2);border-radius:8px;padding:9px;font-size:var(--fs-2);color:var(--t2);line-height:1.5")}>
                           {c.lastProjectNote}
                         </div>
                       ) : null}
@@ -650,15 +650,15 @@ export function Workspace({
             })}
             {rows.length === 0 ? (
               <div style={s("background:var(--surface);border:1px dashed var(--border-2);border-radius:12px;padding:30px;text-align:center")}>
-                <div style={s("font-size:13px;font-weight:600")}>
+                <div style={s("font-size:var(--fs-5);font-weight:600")}>
                   No candidates sourced for this requirement yet.
                 </div>
-                <div style={s("font-size:12px;color:var(--t4);margin-top:5px;line-height:1.55")}>
+                <div style={s("font-size:var(--fs-3);color:var(--t4);margin-top:5px;line-height:1.55")}>
                   Matching scores every eligible person on the exchange against this role and
                   ranks them. Requirements posted from now on are sourced automatically.
                 </div>
                 <button onClick={sourceCandidates} disabled={sourcing}
-                  style={sx("margin-top:13px;padding:8px 15px;border:0;border-radius:9px;font-size:12.5px;font-weight:700;color:#fff;background:var(--brand);font-family:inherit", {
+                  style={sx("margin-top:13px;padding:8px 15px;border:0;border-radius:9px;font-size:var(--fs-4);font-weight:700;color:#fff;background:var(--brand);font-family:inherit", {
                     cursor: sourcing ? "default" : "pointer", opacity: sourcing ? 0.6 : 1,
                   })}>
                   {sourcing ? "Sourcing…" : "Source candidates"}
@@ -674,15 +674,15 @@ export function Workspace({
 
 const miniBtn = {
   width: "22px", height: "16px", borderRadius: "4px", border: "1px solid var(--border)",
-  background: "var(--surface)", fontSize: "8px", lineHeight: "1", cursor: "pointer",
+  background: "var(--surface)", fontSize: "var(--fs-1)", lineHeight: "1", cursor: "pointer",
   color: "var(--t2)", fontFamily: "inherit", padding: 0,
 } as const;
 
 function Fact({ k, v, color }: { k: string; v: string; color?: string }) {
   return (
     <div style={s("display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--surface-3)")}>
-      <span style={s("font-size:11.5px;color:var(--t4)")}>{k}</span>
-      <span style={sx("font-size:11.5px;font-weight:700;text-align:right", { color: color ?? "var(--t1)" })}>{v}</span>
+      <span style={s("font-size:var(--fs-2);color:var(--t4)")}>{k}</span>
+      <span style={sx("font-size:var(--fs-2);font-weight:700;text-align:right", { color: color ?? "var(--t1)" })}>{v}</span>
     </div>
   );
 }
@@ -756,18 +756,18 @@ function RateEditor({
     return (
       <div style={s("margin-top:11px;background:var(--surface-2);border-radius:9px;padding:11px;display:flex;align-items:center;gap:14px;flex-wrap:wrap")}>
         <div>
-          <div style={sx("font-size:8.5px;font-weight:700;letter-spacing:.1em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
+          <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.1em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
             WE WOULD CHARGE
           </div>
-          <div style={sx("font-size:14px;font-weight:800;margin-top:3px", { fontFamily: TOKENS.mono })}>
+          <div style={sx("font-size:var(--fs-7);font-weight:800;margin-top:3px", { fontFamily: TOKENS.mono })}>
             {c.proposedClientRateLabel}
           </div>
         </div>
         <div>
-          <div style={sx("font-size:8.5px;font-weight:700;letter-spacing:.1em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
+          <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.1em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
             MARGIN
           </div>
-          <div style={sx("font-size:14px;font-weight:800;margin-top:3px", { fontFamily: TOKENS.mono, color: tone })}>
+          <div style={sx("font-size:var(--fs-7);font-weight:800;margin-top:3px", { fontFamily: TOKENS.mono, color: tone })}>
             {c.marginPctLabel}
           </div>
         </div>
@@ -775,18 +775,18 @@ function RateEditor({
         {/* Quoted already: the band on `shortlist_items` is frozen (ADR-004). */}
         {c.rateLocked ? (
           <span title="Already sent to the client. The band they hold was derived from this rate, so re-pricing means a new shortlist."
-            style={s("margin-left:auto;font-size:11px;color:var(--t4)")}>
+            style={s("margin-left:auto;font-size:var(--fs-1);color:var(--t4)")}>
             quoted to the client
           </span>
         ) : (
           <button type="button" onClick={() => setOpen(true)}
-            style={s("margin-left:auto;padding:0 12px;height:30px;display:inline-flex;align-items:center;border:1px solid var(--border-2);border-radius:8px;font-size:11.5px;font-weight:700;background:var(--surface);cursor:pointer;font-family:inherit;white-space:nowrap")}>
+            style={s("margin-left:auto;padding:0 12px;height:30px;display:inline-flex;align-items:center;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-2);font-weight:700;background:var(--surface);cursor:pointer;font-family:inherit;white-space:nowrap")}>
             Change the rate
           </button>
         )}
 
         {c.rateSetBy ? (
-          <div style={s("flex-basis:100%;font-size:10.5px;color:var(--t4);line-height:1.5")}>
+          <div style={s("flex-basis:100%;font-size:var(--fs-1);color:var(--t4);line-height:1.5")}>
             Set by {c.rateSetBy.name ?? "a broker"}
             {c.rateSetBy.reason ? `. ${c.rateSetBy.reason}` : ""}
           </div>
@@ -800,30 +800,30 @@ function RateEditor({
     <div style={s("margin-top:11px;background:var(--surface-2);border:1px solid var(--border-2);border-radius:9px;padding:12px")}>
       <div style={s("display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap")}>
         <div>
-          <label style={sx("display:block;font-size:8.5px;font-weight:700;letter-spacing:.1em;color:var(--t4);margin-bottom:4px", { fontFamily: TOKENS.mono })}>
+          <label style={sx("display:block;font-size:var(--fs-1);font-weight:700;letter-spacing:.1em;color:var(--t4);margin-bottom:4px", { fontFamily: TOKENS.mono })}>
             WE WOULD CHARGE · PER MONTH
           </label>
           <div style={s("display:flex;align-items:center;gap:6px")}>
-            <span style={sx("font-size:14px;font-weight:700", { fontFamily: TOKENS.mono })}>₹</span>
+            <span style={sx("font-size:var(--fs-7);font-weight:700", { fontFamily: TOKENS.mono })}>₹</span>
             <input
               autoFocus
               value={rupees}
               onChange={(e) => setRupees(e.target.value)}
               inputMode="numeric"
-              style={sx("width:130px;padding:7px 10px;border:1px solid var(--border-2);border-radius:8px;font-size:14px;font-weight:700;outline:none", { fontFamily: TOKENS.mono })}
+              style={sx("width:130px;padding:7px 10px;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-7);font-weight:700;outline:none", { fontFamily: TOKENS.mono })}
             />
           </div>
         </div>
         <div>
-          <div style={sx("font-size:8.5px;font-weight:700;letter-spacing:.1em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
+          <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.1em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
             SUPPLIER GETS
           </div>
-          <div style={sx("font-size:13px;font-weight:700;margin-top:4px", { fontFamily: TOKENS.mono })}>
+          <div style={sx("font-size:var(--fs-5);font-weight:700;margin-top:4px", { fontFamily: TOKENS.mono })}>
             {c.vendorRateLabel}
           </div>
         </div>
         <div>
-          <div style={sx("font-size:8.5px;font-weight:700;letter-spacing:.1em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
+          <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.1em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
             MARGIN
           </div>
           <div style={sx("font-size:17px;font-weight:800;margin-top:2px", { fontFamily: TOKENS.mono, color: tone })}>
@@ -834,7 +834,7 @@ function RateEditor({
 
       {belowFloor ? (
         <div style={s("margin-top:11px")}>
-          <div style={s("font-size:11.5px;color:var(--warn);font-weight:600;line-height:1.5")}>
+          <div style={s("font-size:var(--fs-2);color:var(--warn);font-weight:600;line-height:1.5")}>
             That is below our {MARGIN_FLOOR_PCT}% floor. You can still set it if you say why. The
             audit log records the reason against your name.
           </div>
@@ -843,27 +843,27 @@ function RateEditor({
             onChange={(e) => setReason(e.target.value)}
             rows={2}
             placeholder="e.g. strategic entry into this client's SAP estate; review at renewal."
-            style={s("width:100%;margin-top:7px;padding:8px 10px;border:1px solid var(--warn);border-radius:8px;font-size:12px;font-family:inherit;outline:none;resize:vertical;line-height:1.5")}
+            style={s("width:100%;margin-top:7px;padding:8px 10px;border:1px solid var(--warn);border-radius:8px;font-size:var(--fs-3);font-family:inherit;outline:none;resize:vertical;line-height:1.5")}
           />
         </div>
       ) : null}
 
       {error ? (
-        <div style={s("margin-top:9px;font-size:11.5px;color:var(--danger);line-height:1.5")}>{error}</div>
+        <div style={s("margin-top:9px;font-size:var(--fs-2);color:var(--danger);line-height:1.5")}>{error}</div>
       ) : null}
 
       <div style={s("display:flex;gap:7px;margin-top:11px;align-items:center")}>
         <button type="button" onClick={save} disabled={busy || paise <= 0}
-          style={sx("padding:0 13px;height:32px;display:inline-flex;align-items:center;border:0;border-radius:8px;font-size:12px;font-weight:700;color:#fff;background:var(--brand);font-family:inherit", {
+          style={sx("padding:0 13px;height:32px;display:inline-flex;align-items:center;border:0;border-radius:8px;font-size:var(--fs-3);font-weight:700;color:#fff;background:var(--brand);font-family:inherit", {
             cursor: busy || paise <= 0 ? "default" : "pointer", opacity: busy || paise <= 0 ? 0.6 : 1,
           })}>
           {busy ? "Saving…" : "Set this rate"}
         </button>
         <button type="button" onClick={() => { setOpen(false); setError(null); }} disabled={busy}
-          style={s("padding:0 13px;height:32px;display:inline-flex;align-items:center;border:1px solid var(--border-2);border-radius:8px;font-size:12px;font-weight:600;background:var(--surface);cursor:pointer;font-family:inherit")}>
+          style={s("padding:0 13px;height:32px;display:inline-flex;align-items:center;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-3);font-weight:600;background:var(--surface);cursor:pointer;font-family:inherit")}>
           Cancel
         </button>
-        <span style={s("font-size:10.5px;color:var(--t4);margin-left:auto")}>
+        <span style={s("font-size:var(--fs-1);color:var(--t4);margin-left:auto")}>
           Changing this re-scores the rate component and re-ranks the pool.
         </span>
       </div>
@@ -874,8 +874,8 @@ function RateEditor({
 function Detail({ k, v, color }: { k: string; v: string; color?: string }) {
   return (
     <div>
-      <div style={sx("font-size:8px;font-weight:700;letter-spacing:.1em;color:var(--t4)", { fontFamily: TOKENS.mono })}>{k}</div>
-      <div style={sx("font-size:11.5px;font-weight:700;margin-top:3px", { color: color ?? "var(--t1)" })}>{v}</div>
+      <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.1em;color:var(--t4)", { fontFamily: TOKENS.mono })}>{k}</div>
+      <div style={sx("font-size:var(--fs-2);font-weight:700;margin-top:3px", { color: color ?? "var(--t1)" })}>{v}</div>
     </div>
   );
 }

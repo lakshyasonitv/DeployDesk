@@ -66,15 +66,15 @@ export default async function OrganisationsPage() {
         {dualRole.length ? (
           <div style={s("margin-top:16px;background:var(--violet-tint);border:1px solid var(--violet-tint);border-radius:14px;padding:16px")}>
             <div style={s("display:flex;align-items:center;gap:8px;margin-bottom:8px")}>
-              <span style={sx("font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--violet);border:1px solid var(--violet);border-radius:4px;padding:1px 5px", { fontFamily: TOKENS.mono })}>
+              <span style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.1em;color:var(--violet);border:1px solid var(--violet);border-radius:4px;padding:1px 5px", { fontFamily: TOKENS.mono })}>
                 OPS ONLY
               </span>
-              <div style={s("font-size:13px;font-weight:700;color:var(--violet)")}>
+              <div style={s("font-size:var(--fs-5);font-weight:700;color:var(--violet)")}>
                 {dualRole.length === 1 ? "One organisation sits on both sides" : `${dualRole.length} organisations sit on both sides`}
               </div>
             </div>
             {dualRole.map((o) => (
-              <div key={o.orgId} style={s("font-size:12.5px;color:var(--t2);line-height:1.6")}>
+              <div key={o.orgId} style={s("font-size:var(--fs-4);color:var(--t2);line-height:1.6")}>
                 <strong>{o.name}</strong> has {o.benchCount} on its own bench and {o.openRequirements} open{" "}
                 {o.openRequirements === 1 ? "role" : "roles"}. On <strong>{o.feeModelLabel.toLowerCase()}</strong>,
                 so the spread is declared rather than inferable. The matcher refuses its own
@@ -95,7 +95,7 @@ export default async function OrganisationsPage() {
             <div style={sx("min-width:940px")}>
               <div style={sx(`display:grid;grid-template-columns:${COLS};gap:10px;padding:11px 18px;background:var(--surface-2);border-bottom:1px solid var(--border)`)}>
                 {["Organisation", "Role", "Fee model", "Group / blocks", "Bench", "Billed / mo", "Paid / mo"].map((h, i) => (
-                  <div key={h} style={sx("font-size:11.5px;font-weight:700;letter-spacing:.04em;color:var(--t3);text-transform:uppercase", { textAlign: i >= 4 ? "right" : "left" })}>
+                  <div key={h} style={sx("font-size:var(--fs-2);font-weight:700;letter-spacing:.04em;color:var(--t3);text-transform:uppercase", { textAlign: i >= 4 ? "right" : "left" })}>
                     {h}
                   </div>
                 ))}
@@ -109,10 +109,10 @@ export default async function OrganisationsPage() {
                   })}
                 >
                   <div style={s("min-width:0")}>
-                    <div style={s("font-size:13.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
+                    <div style={s("font-size:var(--fs-6);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
                       {o.name}
                     </div>
-                    <div style={sx("font-size:11.5px;color:var(--t4)", { fontFamily: TOKENS.mono })}>
+                    <div style={sx("font-size:var(--fs-2);color:var(--t4)", { fontFamily: TOKENS.mono })}>
                       {o.publicCode ?? "—"}
                     </div>
                   </div>
@@ -121,11 +121,11 @@ export default async function OrganisationsPage() {
                     {o.isDualRole ? (
                       <Pill bg="var(--violet-tint)" fg="var(--violet)">BOTH SIDES</Pill>
                     ) : (
-                      <span style={s("font-size:12.5px;color:var(--t2)")}>{o.roleLabel}</span>
+                      <span style={s("font-size:var(--fs-4);color:var(--t2)")}>{o.roleLabel}</span>
                     )}
                   </div>
 
-                  <div style={s("font-size:12.5px;color:var(--t2)")}>
+                  <div style={s("font-size:var(--fs-4);color:var(--t2)")}>
                     {o.feeModel === "flat_declared_fee" ? (
                       <Pill bg="var(--ok-tint)" fg="var(--ok)">DECLARED FEE</Pill>
                     ) : o.feeModelLabel}
@@ -133,27 +133,27 @@ export default async function OrganisationsPage() {
 
                   <div style={s("min-width:0;display:flex;flex-direction:column;gap:3px")}>
                     {o.groupName ? (
-                      <div style={s("font-size:11.5px;color:var(--t2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
+                      <div style={s("font-size:var(--fs-2);color:var(--t2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
                         {o.groupName} · with {o.groupSiblings.join(", ") || "—"}
                       </div>
                     ) : null}
                     {o.blockedWith.length ? (
-                      <div style={s("font-size:11.5px;color:var(--danger);overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
+                      <div style={s("font-size:var(--fs-2);color:var(--danger);overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
                         blocked ↔ {o.blockedWith.join(", ")}
                       </div>
                     ) : null}
                     {!o.groupName && !o.blockedWith.length ? (
-                      <span style={s("font-size:11.5px;color:var(--t4)")}>—</span>
+                      <span style={s("font-size:var(--fs-2);color:var(--t4)")}>—</span>
                     ) : null}
                   </div>
 
-                  <div style={sx("font-size:13px;text-align:right", { fontFamily: TOKENS.mono, color: o.benchCount ? "var(--t1)" : "var(--t4)" })}>
+                  <div style={sx("font-size:var(--fs-5);text-align:right", { fontFamily: TOKENS.mono, color: o.benchCount ? "var(--t1)" : "var(--t4)" })}>
                     {o.benchCount || "—"}
                   </div>
-                  <div style={sx("font-size:13px;text-align:right", { fontFamily: TOKENS.mono, color: o.billedAsClientLabel === "—" ? "var(--t4)" : "var(--t1)" })}>
+                  <div style={sx("font-size:var(--fs-5);text-align:right", { fontFamily: TOKENS.mono, color: o.billedAsClientLabel === "—" ? "var(--t4)" : "var(--t1)" })}>
                     {o.billedAsClientLabel}
                   </div>
-                  <div style={sx("font-size:13px;text-align:right", { fontFamily: TOKENS.mono, color: o.paidAsSupplierLabel === "—" ? "var(--t4)" : "var(--t1)" })}>
+                  <div style={sx("font-size:var(--fs-5);text-align:right", { fontFamily: TOKENS.mono, color: o.paidAsSupplierLabel === "—" ? "var(--t4)" : "var(--t1)" })}>
                     {o.paidAsSupplierLabel}
                   </div>
                 </div>
@@ -167,17 +167,17 @@ export default async function OrganisationsPage() {
           <SectionLabel>Probing signal</SectionLabel>
         </div>
         <div style={s("background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--sh);padding:18px")}>
-          <div style={s("font-size:12.5px;color:var(--t2);line-height:1.6;margin-bottom:10px")}>
+          <div style={s("font-size:var(--fs-4);color:var(--t2);line-height:1.6;margin-bottom:10px")}>
             A client that posts roles, collects masked shortlists and never requests an
             interview may be mapping the market rather than hiring.{" "}
-            <code style={sx("font-size:11.5px;color:var(--t3)", { fontFamily: TOKENS.mono })}>v_requirement_probing</code>{" "}
+            <code style={sx("font-size:var(--fs-2);color:var(--t3)", { fontFamily: TOKENS.mono })}>v_requirement_probing</code>{" "}
             counts a role as a suspect once a shortlist has sat five days without an
             interview request.
           </div>
           {probing.length ? (
             <div style={s("display:flex;flex-direction:column;gap:8px")}>
               {probing.map((o) => (
-                <div key={o.orgId} style={s("display:flex;align-items:center;gap:9px;font-size:12.5px")}>
+                <div key={o.orgId} style={s("display:flex;align-items:center;gap:9px;font-size:var(--fs-4)")}>
                   <Pill bg="var(--warn-tint)" fg="var(--warn)">{o.probingSuspectRequirements} SUSPECT</Pill>
                   <strong>{o.name}</strong>
                   <span style={s("color:var(--t3)")}>
@@ -187,7 +187,7 @@ export default async function OrganisationsPage() {
               ))}
             </div>
           ) : (
-            <div style={s("font-size:12.5px;color:var(--t4)")}>
+            <div style={s("font-size:var(--fs-4);color:var(--t4)")}>
               No organisation is flagged on the current data. The two figures worth watching
               by hand are open roles against placements ever made:{" "}
               {orgs.filter((o) => o.openRequirements > 0 && o.placementsEver === 0)

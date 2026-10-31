@@ -58,23 +58,23 @@ export default async function VendorDashboard() {
         <div style={s("display:grid;grid-template-columns:1.15fr repeat(4,1fr);gap:12px")}>
           {/* utilisation — dark card */}
           <div style={s("background:var(--t1);border-radius:12px;padding:15px;color:var(--surface)")}>
-            <div style={sx("font-size:9.5px;font-weight:700;letter-spacing:.12em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
+            <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.12em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
               BENCH UTILISATION
             </div>
             <div style={s("display:flex;align-items:baseline;gap:8px;margin-top:7px")}>
               <div style={s("font-size:27px;font-weight:800;letter-spacing:-1px;line-height:1")}>
                 {o.stats.utilisationPct}%
               </div>
-              <div style={s("font-size:11.5px;font-weight:700;color:var(--brand)")}>listed + in process</div>
+              <div style={s("font-size:var(--fs-2);font-weight:700;color:var(--brand);display:inline-block;padding:6px 0")}>listed + in process</div>
             </div>
             <div style={s("display:flex;height:7px;border-radius:4px;overflow:hidden;margin-top:11px;background:var(--border)")}>
               <div style={sx("height:100%", { width: `${pct(o.stats.listed, o.stats.onBench)}%`, background: "var(--brand)" })} />
               <div style={sx("height:100%", { width: `${pct(o.stats.inProcess, o.stats.onBench)}%`, background: "var(--brand)" })} />
             </div>
-            <div style={s("font-size:11px;color:var(--t2);margin-top:9px")}>
+            <div style={s("font-size:var(--fs-1);color:var(--t2);margin-top:9px")}>
               {o.stats.listed} listed / {o.stats.inProcess} in process / {Math.max(0, idle)} idle
             </div>
-            <div style={s("font-size:11px;color:var(--t4);margin-top:7px;line-height:1.5")}>
+            <div style={s("font-size:var(--fs-1);color:var(--t4);margin-top:7px;line-height:1.5")}>
               Listing idle profiles is the fastest way to recover bench cost.
             </div>
           </div>
@@ -90,13 +90,13 @@ export default async function VendorDashboard() {
           <div style={s("background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow-x:auto")}>
             <div style={s("padding:13px 15px;border-bottom:1px solid var(--surface-3)")}>
               <SectionLabel>PIPELINE ON YOUR PROFILES</SectionLabel>
-              <div style={s("font-size:11px;color:var(--t4)")}>
+              <div style={s("font-size:var(--fs-1);color:var(--t4)")}>
                 Talentvibes contracts with the client directly; client identity is not shared.
               </div>
             </div>
             <div style={sx("display:grid;padding:8px 15px;background:var(--surface-2);border-bottom:1px solid var(--border)", { gridTemplateColumns: PIPE_COLS, gap: "10px" })}>
               {["REFERENCE", "SKILLS", "YOUR MONTHLY RATE", "STAGE", "UPDATED"].map((h) => (
-                <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--t4);white-space:nowrap", { fontFamily: TOKENS.mono })}>{h}</div>
+                <div key={h} style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.08em;color:var(--t3);line-height:1.3", { fontFamily: TOKENS.mono })}>{h}</div>
               ))}
             </div>
             {o.pipeline.map((p) => {
@@ -104,28 +104,28 @@ export default async function VendorDashboard() {
               return (
                 <div key={p.maskedId} style={sx("display:grid;padding:10px 15px;border-bottom:1px solid var(--surface-3);align-items:center", { gridTemplateColumns: PIPE_COLS, gap: "10px" })}>
                   <div>
-                    <div style={sx("font-size:11px;font-weight:700", { fontFamily: TOKENS.mono })}>{p.maskedId}</div>
-                    <div style={s("font-size:10.5px;color:var(--t4);margin-top:2px")}>{p.displayName}</div>
+                    <div style={sx("font-size:var(--fs-1);font-weight:700", { fontFamily: TOKENS.mono })}>{p.maskedId}</div>
+                    <div style={s("font-size:var(--fs-1);color:var(--t4);margin-top:2px")}>{p.displayName}</div>
                   </div>
                   <div style={s("display:flex;flex-wrap:wrap;gap:3px;min-width:0")}>
                     {p.skills.slice(0, 3).map((sk) => (
-                      <span key={sk} style={s("padding:2px 6px;background:var(--surface-3);border-radius:4px;font-size:9.5px;font-weight:600;color:var(--t2);white-space:nowrap")}>
+                      <span key={sk} style={s("padding:2px 6px;background:var(--surface-3);border-radius:4px;font-size:var(--fs-1);font-weight:600;color:var(--t2);white-space:nowrap")}>
                         {sk}
                       </span>
                     ))}
                   </div>
-                  <div style={sx("font-size:11.5px;font-weight:700", { fontFamily: TOKENS.mono })}>{p.rateLabel}</div>
+                  <div style={sx("font-size:var(--fs-2);font-weight:700", { fontFamily: TOKENS.mono })}>{p.rateLabel}</div>
                   <div>
-                    <span style={sx("display:inline-block;padding:3px 8px;border-radius:5px;font-size:8.5px;font-weight:700;letter-spacing:.07em", { background: pill.bg, color: pill.fg, fontFamily: TOKENS.mono })}>
+                    <span style={sx("display:inline-block;padding:3px 8px;border-radius:5px;font-size:var(--fs-1);font-weight:700;letter-spacing:.07em", { background: pill.bg, color: pill.fg, fontFamily: TOKENS.mono })}>
                       {p.stageLabel}
                     </span>
                   </div>
-                  <div style={s("font-size:10.5px;color:var(--t4)")}>{p.updatedAgo}</div>
+                  <div style={s("font-size:var(--fs-1);color:var(--t4)")}>{p.updatedAgo}</div>
                 </div>
               );
             })}
             {o.pipeline.length === 0 ? (
-              <div style={s("padding:26px;text-align:center;color:var(--t4);font-size:12.5px")}>
+              <div style={s("padding:26px;text-align:center;color:var(--t4);font-size:var(--fs-4)")}>
                 None of your profiles are in a client process yet.
               </div>
             ) : null}
@@ -138,7 +138,7 @@ export default async function VendorDashboard() {
                 <SectionLabel>LAST CONFIRMED</SectionLabel>
                 <Pill bg="var(--warn-tint)" fg="var(--warn)">ACTION NEEDED</Pill>
               </div>
-              <div style={s("font-size:11.5px;color:var(--t2);line-height:1.55")}>
+              <div style={s("font-size:var(--fs-2);color:var(--t2);line-height:1.55")}>
                 Profiles unconfirmed for 14 days drop out of matching. Confirming takes one click
                 and lifts your ranking.
               </div>
@@ -148,7 +148,7 @@ export default async function VendorDashboard() {
                   return (
                     <div key={t.key} style={sx("border-radius:9px;padding:9px;text-align:center", { background: t.bg })}>
                       <div style={sx("font-size:17px;font-weight:800;line-height:1", { color: t.fg })}>{n}</div>
-                      <div style={sx("font-size:9px;font-weight:700;margin-top:3px", { color: t.fg })}>{t.key}</div>
+                      <div style={sx("font-size:var(--fs-1);font-weight:700;margin-top:3px", { color: t.fg })}>{t.key}</div>
                     </div>
                   );
                 })}
@@ -156,19 +156,19 @@ export default async function VendorDashboard() {
               {/* It is a link, so it says where it goes: "Confirm all N" confirmed nothing, and its
                   N disagreed with the roster's own button (expiring + unconfirmed). */}
               <Link href="/vendor/roster"
-                style={s("display:block;margin-top:10px;padding:9px;border-radius:8px;background:var(--ok);color:var(--surface);font-size:12px;font-weight:700;text-align:center")}>
+                style={s("display:block;margin-top:10px;padding:9px;border-radius:8px;background:var(--ok);color:var(--surface);font-size:var(--fs-3);font-weight:700;text-align:center")}>
                 Confirm on your roster
               </Link>
             </div>
 
             <Card pad="13px">
               <SectionLabel>ASSESSMENT THROUGHPUT</SectionLabel>
-              <div style={s("font-size:11.5px;color:var(--t2);line-height:1.55")}>
+              <div style={s("font-size:var(--fs-2);color:var(--t2);line-height:1.55")}>
                 Talentvibes shortlists scored profiles far more often. The proctoring provider sets
                 the scores. You cannot edit them, and neither can a client.
               </div>
               <a href="/vendor/assessments"
-                style={s("display:inline-block;font-size:11.5px;font-weight:700;color:var(--teal);margin-top:9px")}>
+                style={s("display:inline-block;font-size:var(--fs-2);font-weight:700;color:var(--teal);margin-top:9px")}>
                 Review assessments →
               </a>
             </Card>

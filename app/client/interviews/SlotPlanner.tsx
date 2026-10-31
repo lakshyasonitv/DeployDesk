@@ -72,7 +72,7 @@ export function SlotButton({ round }: { round: Round }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        style={s("padding:0 13px;height:32px;display:inline-flex;align-items:center;border:1px solid var(--border-2);border-radius:9px;font-size:12px;font-weight:600;background:var(--surface);cursor:pointer;font-family:inherit;white-space:nowrap")}
+        style={s("padding:0 13px;height:32px;display:inline-flex;align-items:center;border:1px solid var(--border-2);border-radius:9px;font-size:var(--fs-3);font-weight:600;background:var(--surface);cursor:pointer;font-family:inherit;white-space:nowrap")}
       >
         {isMove ? "Move this" : "Offer times"}
       </button>
@@ -169,10 +169,10 @@ function SlotDrawer({
       >
         <div style={s("padding:15px 17px;border-bottom:1px solid var(--border);flex:none;display:flex;align-items:flex-start;justify-content:space-between;gap:10px")}>
           <div>
-            <div style={s("font-size:13.5px;font-weight:800")}>
+            <div style={s("font-size:var(--fs-6);font-weight:800")}>
               {isMove ? "Move this interview" : "Offer times"}
             </div>
-            <div style={sx("font-size:10.5px;font-weight:600;color:var(--t4);margin-top:3px", { fontFamily: TOKENS.mono })}>
+            <div style={sx("font-size:var(--fs-1);font-weight:600;color:var(--t4);margin-top:3px", { fontFamily: TOKENS.mono })}>
               {round.maskedId} · {round.roundLabel}
             </div>
           </div>
@@ -183,7 +183,7 @@ function SlotDrawer({
         </div>
 
         <div style={s("flex:1;overflow:auto;padding:16px 17px;display:flex;flex-direction:column;gap:16px")}>
-          <div style={s("font-size:12px;color:var(--t2);line-height:1.6")}>
+          <div style={s("font-size:var(--fs-3);color:var(--t2);line-height:1.6")}>
             {isMove
               ? "Tell us when else would work. The time already booked stays in your calendar until we confirm a replacement. We check the engineer is free before anything changes."
               : "Give us a few times that suit your panel. We confirm the engineer is free and come back with one locked slot and a Talentvibes meeting link."}
@@ -191,7 +191,7 @@ function SlotDrawer({
 
           {round.slots.length ? (
             <div>
-              <div style={sx("font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--t4);margin-bottom:8px", { fontFamily: TOKENS.mono })}>
+              <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.1em;color:var(--t4);margin-bottom:8px", { fontFamily: TOKENS.mono })}>
                 TIMES SO FAR
               </div>
               <div style={s("display:flex;flex-direction:column;gap:6px")}>
@@ -201,12 +201,12 @@ function SlotDrawer({
                     <div key={sl.startsAtIso + sl.status}
                       style={s("display:flex;align-items:center;justify-content:space-between;gap:9px;padding:8px 10px;background:var(--surface-2);border-radius:8px")}>
                       <div style={s("min-width:0")}>
-                        <div style={s("font-size:12px;font-weight:600")}>{sl.label}</div>
-                        <div style={s("font-size:10.5px;color:var(--t4);margin-top:2px")}>
+                        <div style={s("font-size:var(--fs-3);font-weight:600")}>{sl.label}</div>
+                        <div style={s("font-size:var(--fs-1);color:var(--t4);margin-top:2px")}>
                           {sl.durationLabel} · offered by {sl.byLabel}
                         </div>
                       </div>
-                      <span style={sx("display:inline-block;padding:3px 8px;border-radius:5px;font-size:8.5px;font-weight:700;letter-spacing:.07em;flex:none", { background: st.bg, color: st.fg, fontFamily: TOKENS.mono })}>
+                      <span style={sx("display:inline-block;padding:3px 8px;border-radius:5px;font-size:var(--fs-1);font-weight:700;letter-spacing:.07em;flex:none", { background: st.bg, color: st.fg, fontFamily: TOKENS.mono })}>
                         {st.label}
                       </span>
                     </div>
@@ -221,7 +221,7 @@ function SlotDrawer({
                  * supplier's own words reaching a client is the leak masking exists to
                  * prevent. A broker-authored relay field would fix it; there isn't one yet.
                  */
-                <div style={s("font-size:10.5px;color:var(--t4);margin-top:8px;line-height:1.55")}>
+                <div style={s("font-size:var(--fs-1);color:var(--t4);margin-top:8px;line-height:1.55")}>
                   Where a time did not work, your Talentvibes team has the detail and will
                   explain if it matters.
                 </div>
@@ -230,7 +230,7 @@ function SlotDrawer({
           ) : null}
 
           <div>
-            <div style={sx("font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--t4);margin-bottom:8px", { fontFamily: TOKENS.mono })}>
+            <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.1em;color:var(--t4);margin-bottom:8px", { fontFamily: TOKENS.mono })}>
               TIMES THAT WORK FOR YOU · IST
             </div>
             <div style={s("display:flex;flex-direction:column;gap:7px")}>
@@ -240,7 +240,7 @@ function SlotDrawer({
                     type="datetime-local"
                     value={t}
                     onChange={(e) => setAt(i, e.target.value)}
-                    style={s("flex:1;padding:9px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:12.5px;font-family:inherit;outline:none")}
+                    style={s("flex:1;padding:9px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-4);font-family:inherit;outline:none")}
                   />
                   {times.length > 1 ? (
                     <button
@@ -257,19 +257,19 @@ function SlotDrawer({
             {times.length < 5 ? (
               <button
                 onClick={() => setTimes((prev) => [...prev, defaultSlotValue()])}
-                style={s("margin-top:8px;padding:6px 11px;border:1px dashed var(--border-2);border-radius:8px;font-size:11.5px;font-weight:600;background:transparent;cursor:pointer;color:var(--t3);font-family:inherit")}
+                style={s("margin-top:8px;padding:6px 11px;border:1px dashed var(--border-2);border-radius:8px;font-size:var(--fs-2);font-weight:600;background:transparent;cursor:pointer;color:var(--t3);font-family:inherit")}
               >
                 + Another time
               </button>
             ) : null}
-            <div style={s("font-size:10.5px;color:var(--t4);margin-top:9px;line-height:1.55")}>
+            <div style={s("font-size:var(--fs-1);color:var(--t4);margin-top:9px;line-height:1.55")}>
               Times are Indian Standard Time. Interviews run 09:00 to 19:00 IST, Monday to
               Saturday, and public holidays are excluded.
             </div>
           </div>
 
           <div>
-            <div style={sx("font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--t4);margin-bottom:7px", { fontFamily: TOKENS.mono })}>
+            <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.1em;color:var(--t4);margin-bottom:7px", { fontFamily: TOKENS.mono })}>
               HOW LONG
             </div>
             <div style={s("display:flex;gap:6px;flex-wrap:wrap")}>
@@ -277,7 +277,7 @@ function SlotDrawer({
                 <button
                   key={m}
                   onClick={() => setDuration(m)}
-                  style={sx("padding:6px 12px;border-radius:8px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit", {
+                  style={sx("padding:6px 12px;border-radius:8px;font-size:var(--fs-2);font-weight:700;cursor:pointer;font-family:inherit", {
                     background: duration === m ? "var(--brand)" : "var(--surface)",
                     color: duration === m ? "#fff" : "var(--t2)",
                     border: `1px solid ${duration === m ? "var(--brand)" : "var(--border-2)"}`,
@@ -294,7 +294,7 @@ function SlotDrawer({
           <button
             onClick={send}
             disabled={busy}
-            style={sx("padding:0 14px;height:34px;display:inline-flex;align-items:center;border:0;border-radius:9px;font-size:12.5px;font-weight:700;color:#fff;background:var(--brand);font-family:inherit", {
+            style={sx("padding:0 14px;height:34px;display:inline-flex;align-items:center;border:0;border-radius:9px;font-size:var(--fs-4);font-weight:700;color:#fff;background:var(--brand);font-family:inherit", {
               cursor: busy ? "default" : "pointer", opacity: busy ? 0.6 : 1,
             })}
           >
@@ -303,7 +303,7 @@ function SlotDrawer({
           <button
             onClick={onClose}
             disabled={busy}
-            style={s("padding:0 14px;height:34px;display:inline-flex;align-items:center;border:1px solid var(--border-2);border-radius:9px;font-size:12.5px;font-weight:600;background:var(--surface);cursor:pointer;font-family:inherit")}
+            style={s("padding:0 14px;height:34px;display:inline-flex;align-items:center;border:1px solid var(--border-2);border-radius:9px;font-size:var(--fs-4);font-weight:600;background:var(--surface);cursor:pointer;font-family:inherit")}
           >
             Cancel
           </button>

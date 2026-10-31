@@ -100,7 +100,9 @@ try {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${sans.variable} ${mono.variable}`}>
+    // The script above sets data-tvtheme before React loads, so the server's <html> and the
+    // browser's differ by that one attribute. Expected, and limited to this element.
+    <html lang="en" className={`${sans.variable} ${mono.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
       </head>

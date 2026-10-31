@@ -217,7 +217,7 @@ export function HowItWorks({ portal }: { portal: Portal }) {
                 <div style={s("font-size:20px;font-weight:800;letter-spacing:-.4px")}>
                   {content.title}
                 </div>
-                <div style={s("font-size:14px;color:var(--t2);margin-top:6px;line-height:1.55")}>
+                <div style={s("font-size:var(--fs-7);color:var(--t2);margin-top:6px;line-height:1.55")}>
                   {content.intro}
                 </div>
               </div>
@@ -240,12 +240,12 @@ export function HowItWorks({ portal }: { portal: Portal }) {
                   })}
                 >
                   <div style={s("display:flex;align-items:baseline;gap:10px")}>
-                    <span style={s("width:20px;height:20px;border-radius:50%;background:var(--brand-tint);color:var(--brand-ink);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none")}>
+                    <span style={s("width:20px;height:20px;border-radius:50%;background:var(--brand-tint);color:var(--brand-ink);font-size:var(--fs-1);font-weight:700;display:flex;align-items:center;justify-content:center;flex:none")}>
                       {i + 1}
                     </span>
-                    <div style={s("font-size:14px;font-weight:700")}>{sec.heading}</div>
+                    <div style={s("font-size:var(--fs-7);font-weight:700")}>{sec.heading}</div>
                   </div>
-                  <div style={s("font-size:13.5px;color:var(--t2);line-height:1.6;margin-top:7px;padding-left:30px")}>
+                  <div style={s("font-size:var(--fs-6);color:var(--t2);line-height:1.6;margin-top:7px;padding-left:30px")}>
                     {sec.body}
                   </div>
                 </div>
@@ -253,13 +253,13 @@ export function HowItWorks({ portal }: { portal: Portal }) {
             </div>
 
             <div style={s("padding:13px 22px;border-top:1px solid var(--border);background:var(--surface-2);border-radius:0 0 16px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap")}>
-              <div style={s("font-size:12px;color:var(--t4)")}>
+              <div style={s("font-size:var(--fs-3);color:var(--t4)")}>
                 Reopen this any time from the <strong style={s("font-weight:700")}>?</strong> button.
               </div>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                style={s("padding:0 14px;height:34px;border:0;border-radius:9px;font-size:13px;font-weight:700;background:var(--brand);color:#fff;cursor:pointer;font-family:inherit")}
+                style={s("padding:0 14px;height:34px;border:0;border-radius:9px;font-size:var(--fs-5);font-weight:700;background:var(--brand);color:#fff;cursor:pointer;font-family:inherit")}
               >
                 Got it
               </button>

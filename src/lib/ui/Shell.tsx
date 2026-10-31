@@ -171,7 +171,7 @@ export function Shell({
             <div style={s("font-size:14.5px;font-weight:800;letter-spacing:-.3px;white-space:nowrap")}>
               {BRAND.name}
             </div>
-            <div style={s("font-size:11.5px;color:var(--t3);white-space:nowrap")}>
+            <div style={s("font-size:var(--fs-2);color:var(--t3);white-space:nowrap")}>
               by {BRAND.by}
             </div>
           </div>
@@ -187,7 +187,7 @@ export function Shell({
         */}
         <Search portal={portal} />
 
-        <div style={s("padding:0 12px 6px;font-size:10.5px;font-weight:700;letter-spacing:.09em;color:var(--t4)")}>
+        <div style={s("padding:0 12px 6px;font-size:var(--fs-1);font-weight:700;letter-spacing:.09em;color:var(--t4)")}>
           {GROUP_LABEL[portal]}
         </div>
 
@@ -200,7 +200,7 @@ export function Shell({
                 key={n.key}
                 href={n.href}
                 style={sx(
-                  "height:38px;padding:0 10px;border-radius:10px;font-size:13.5px;display:flex;align-items:center;gap:10px;white-space:nowrap",
+                  "height:38px;padding:0 10px;border-radius:10px;font-size:var(--fs-6);display:flex;align-items:center;gap:10px;white-space:nowrap",
                   {
                     background: on ? "var(--brand-tint)" : "transparent",
                     color: on ? "var(--brand-ink)" : "var(--t2)",
@@ -211,7 +211,7 @@ export function Shell({
                 <n.Icon size={17} strokeWidth={1.75} style={{ flex: "none" }} />
                 <span style={s("flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis")}>{n.label}</span>
                 {badge ? (
-                  <span style={sx("font-size:11.5px;font-weight:700;border-radius:999px;padding:1px 7px;flex:none", {
+                  <span style={sx("font-size:var(--fs-2);font-weight:700;border-radius:999px;padding:1px 7px;flex:none", {
                     background: on ? "var(--surface)" : "var(--surface-3)",
                     color: on ? "var(--brand-ink)" : "var(--t3)",
                   })}>
@@ -224,7 +224,7 @@ export function Shell({
         </div>
 
         {/* NEEDS ATTENTION / TODAY'S QUEUE */}
-        <div style={s("margin:18px 12px 0;padding-top:14px;border-top:1px solid var(--border);font-size:10.5px;font-weight:700;letter-spacing:.09em;color:var(--t4)")}>
+        <div style={s("margin:18px 12px 0;padding-top:14px;border-top:1px solid var(--border);font-size:var(--fs-1);font-weight:700;letter-spacing:.09em;color:var(--t4)")}>
           {asideTitle}
         </div>
         <div style={s("padding:9px 12px;display:flex;flex-direction:column;gap:9px;overflow:hidden")}>
@@ -232,11 +232,11 @@ export function Shell({
             <div key={i} style={s("display:flex;align-items:flex-start;gap:8px;min-width:0")}>
               <div style={sx("width:6px;height:6px;border-radius:50%;flex:none;margin-top:5px", { background: a.dot })} />
               <div style={s("min-width:0")}>
-                <div style={s("font-size:12.5px;font-weight:600;color:var(--t2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
+                <div style={s("font-size:var(--fs-4);font-weight:600;color:var(--t2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
                   {a.label}
                 </div>
                 {a.sub ? (
-                  <div style={s("font-size:11.5px;color:var(--t4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
+                  <div style={s("font-size:var(--fs-2);color:var(--t4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
                     {a.sub}
                   </div>
                 ) : null}
@@ -247,14 +247,14 @@ export function Shell({
 
         {/* user footer */}
         <div style={s("margin-top:auto;padding:12px 14px 2px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px")}>
-          <div style={s("width:32px;height:32px;border-radius:50%;background:var(--surface-3);color:var(--t2);flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700")}>
+          <div style={s("width:32px;height:32px;border-radius:50%;background:var(--surface-3);color:var(--t2);flex:none;display:flex;align-items:center;justify-content:center;font-size:var(--fs-3);font-weight:700")}>
             {initials(user.name)}
           </div>
           <div style={s("min-width:0;flex:1")}>
-            <div style={s("font-size:12.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
+            <div style={s("font-size:var(--fs-4);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
               {user.name}
             </div>
-            <div style={s("font-size:11.5px;color:var(--t4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
+            <div style={s("font-size:var(--fs-2);color:var(--t4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
               {user.org}
             </div>
           </div>
@@ -272,10 +272,10 @@ export function Shell({
             shrank under the never-truncating name, which then overprinted the switcher at
             ~800px. Shrink weight 10 makes the portal part give way before the switcher.
           */}
-          <span style={s("font-size:13px;color:var(--t3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 10 auto;min-width:0")}>
+          <span style={s("font-size:var(--fs-5);color:var(--t3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 10 auto;min-width:0")}>
             {PORTAL_TAG[portal]} · {user.org}
           </span>
-          <span style={s("font-size:13px;flex:none;white-space:nowrap;margin-left:-7px")}>
+          <span style={s("font-size:var(--fs-5);flex:none;white-space:nowrap;margin-left:-7px")}>
             <span style={s("color:var(--t4)")}>›</span>{" "}
             <span style={s("font-weight:700")}>{active?.label ?? ""}</span>
           </span>
@@ -301,7 +301,7 @@ export function Shell({
                   key={w.side}
                   href={w.href}
                   aria-current={w.active ? "page" : undefined}
-                  style={sx("display:flex;align-items:center;gap:6px;height:26px;padding:0 11px;border-radius:8px;font-size:12.5px;white-space:nowrap", {
+                  style={sx("display:flex;align-items:center;gap:6px;height:26px;padding:0 11px;border-radius:8px;font-size:var(--fs-4);white-space:nowrap", {
                     background: w.active ? "var(--surface)" : "transparent",
                     color: w.active ? "var(--t1)" : "var(--t3)",
                     fontWeight: w.active ? 700 : 500,
@@ -327,10 +327,10 @@ export function Shell({
           {identities.length > 1 ? (
             // Shrinks rather than the breadcrumb; the names scroll sideways when squeezed.
             <div style={s("display:flex;align-items:center;gap:8px;flex:0 1 auto;height:32px;padding:0 10px;border:1px solid var(--border);border-radius:9px;min-width:0;overflow:hidden")}>
-              <span style={sx("font-size:9.5px;font-weight:700;letter-spacing:.08em;color:var(--t4);border:1px solid var(--border-2);border-radius:4px;padding:1px 4px;flex:none", { fontFamily: TOKENS.mono })}>
+              <span style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.08em;color:var(--t4);border:1px solid var(--border-2);border-radius:4px;padding:1px 4px;flex:none", { fontFamily: TOKENS.mono })}>
                 DEMO
               </span>
-              <span style={s("font-size:12.5px;color:var(--t3);white-space:nowrap;flex:0 100 auto;min-width:0;overflow:hidden")}>Acting as</span>
+              <span style={s("font-size:var(--fs-4);color:var(--t3);white-space:nowrap;flex:0 100 auto;min-width:0;overflow:hidden")}>Acting as</span>
               <div style={s("display:flex;gap:3px;min-width:0;overflow-x:auto;scrollbar-width:none")}>
                 {identities.map((p) => (
                   /*
@@ -354,7 +354,7 @@ export function Shell({
                     key={p.orgId}
                     href={p.href}
                     title={`${p.orgName}, ${p.role}`}
-                    style={sx("font-size:12.5px;font-weight:700;padding:2px 8px;border-radius:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px", {
+                    style={sx("font-size:var(--fs-4);font-weight:700;padding:5px 9px;border-radius:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px", {
                       background: p.active ? "var(--brand-tint)" : "transparent",
                       color: p.active ? "var(--brand-ink)" : "var(--t3)",
                     })}
@@ -397,7 +397,7 @@ export function PageHeader({
         <div style={s("min-width:0")}>
           <div style={s("font-size:26px;font-weight:800;letter-spacing:-.6px")}>{title}</div>
           {subtitle ? (
-            <div style={s("font-size:14px;color:var(--t2);margin-top:4px")}>{subtitle}</div>
+            <div style={s("font-size:var(--fs-7);color:var(--t2);margin-top:4px")}>{subtitle}</div>
           ) : null}
         </div>
         {actions ? <div style={s("display:flex;gap:8px;flex:none")}>{actions}</div> : null}
@@ -429,10 +429,10 @@ export function Button({
   download?: boolean;
 }) {
   const style = primary
-    ? sx("padding:0 14px;height:38px;display:inline-flex;align-items:center;border-radius:10px;font-size:13px;font-weight:700;color:#fff;white-space:nowrap;box-shadow:var(--sh)", {
+    ? sx("padding:0 14px;height:38px;display:inline-flex;align-items:center;border-radius:10px;font-size:var(--fs-5);font-weight:700;color:#fff;white-space:nowrap;box-shadow:var(--sh)", {
         background: accent ?? "var(--brand)",
       })
-    : s("padding:0 14px;height:38px;display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:10px;font-size:13px;font-weight:600;background:var(--surface);color:var(--t1);white-space:nowrap");
+    : s("padding:0 14px;height:38px;display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:10px;font-size:var(--fs-5);font-weight:600;background:var(--surface);color:var(--t1);white-space:nowrap");
   if (href && download) return <a href={href} style={style}>{children}</a>;
   return href ? <Link href={href} style={style}>{children}</Link> : <div style={style}>{children}</div>;
 }
@@ -442,16 +442,16 @@ export function StatCard({
 }: { label: string; value: string | number; delta?: string; deltaColor?: string; sub?: string }) {
   return (
     <div style={s("background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:17px;box-shadow:var(--sh)")}>
-      <div style={s("font-size:11.5px;font-weight:700;letter-spacing:.08em;color:var(--t3);text-transform:uppercase")}>
+      <div style={s("font-size:var(--fs-2);font-weight:700;letter-spacing:.08em;color:var(--t3);text-transform:uppercase")}>
         {label}
       </div>
       <div style={s("display:flex;align-items:baseline;gap:7px;margin-top:8px")}>
         <div style={s("font-size:28px;font-weight:800;letter-spacing:-1px;line-height:1")}>{value}</div>
         {delta ? (
-          <div style={sx("font-size:11.5px;font-weight:700", { color: deltaColor ?? "var(--t4)" })}>{delta}</div>
+          <div style={sx("font-size:var(--fs-2);font-weight:700", { color: deltaColor ?? "var(--t4)" })}>{delta}</div>
         ) : null}
       </div>
-      {sub ? <div style={s("font-size:11.5px;color:var(--t4);margin-top:6px")}>{sub}</div> : null}
+      {sub ? <div style={s("font-size:var(--fs-2);color:var(--t4);margin-top:6px")}>{sub}</div> : null}
     </div>
   );
 }
@@ -466,7 +466,7 @@ export function Card({ children, pad = "18px" }: { children: ReactNode; pad?: st
 
 export function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <div style={s("font-size:11.5px;font-weight:700;letter-spacing:.08em;color:var(--t3);text-transform:uppercase;margin-bottom:9px")}>
+    <div style={s("font-size:var(--fs-2);font-weight:700;letter-spacing:.08em;color:var(--t3);text-transform:uppercase;margin-bottom:9px")}>
       {children}
     </div>
   );
@@ -476,7 +476,7 @@ export function Pill({
   children, bg, fg, border,
 }: { children: ReactNode; bg: string; fg: string; border?: string }) {
   return (
-    <span style={sx("display:inline-block;padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:700;white-space:nowrap", {
+    <span style={sx("display:inline-block;padding:4px 10px;border-radius:999px;font-size:var(--fs-2);font-weight:700;white-space:nowrap", {
       background: bg, color: fg, border: border ? `1px solid ${border}` : undefined,
     })}>
       {children}
@@ -522,7 +522,7 @@ export function ScoreBars({
     })}>
       {rows.map(([label, v]) => (
         <div key={label} style={s("display:flex;align-items:center;gap:7px")}>
-          <div style={sx("font-size:9.5px;font-weight:700;letter-spacing:.08em;color:var(--t4);width:26px;flex:none", { fontFamily: TOKENS.mono })}>
+          <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.08em;color:var(--t4);width:26px;flex:none", { fontFamily: TOKENS.mono })}>
             {label}
           </div>
           <div style={s("flex:1;height:4px;background:var(--surface-3);border-radius:3px;overflow:hidden")}>
@@ -532,7 +532,7 @@ export function ScoreBars({
               background: (v ?? 0) >= 85 ? "var(--ok)" : (v ?? 0) >= 70 ? "var(--brand)" : "var(--warn)",
             })} />
           </div>
-          <div style={sx("font-size:11px;font-weight:700;width:22px;text-align:right;flex:none", { fontFamily: TOKENS.mono })}>
+          <div style={sx("font-size:var(--fs-1);font-weight:700;width:22px;text-align:right;flex:none", { fontFamily: TOKENS.mono })}>
             {v ?? "—"}
           </div>
         </div>
@@ -543,7 +543,7 @@ export function ScoreBars({
 
 export function EmptyState({ children }: { children: ReactNode }) {
   return (
-    <div style={s("background:var(--surface);border:1px dashed var(--border-2);border-radius:16px;padding:34px;text-align:center;color:var(--t4);font-size:13px")}>
+    <div style={s("background:var(--surface);border:1px dashed var(--border-2);border-radius:16px;padding:34px;text-align:center;color:var(--t4);font-size:var(--fs-5)")}>
       {children}
     </div>
   );

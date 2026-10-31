@@ -169,7 +169,7 @@ export function AddResourceForm({
           <Input value={baseCity} onChange={setBaseCity} placeholder="e.g. Pune" />
         </Field>
         <div style={s("background:var(--ok-tint);border:1px solid var(--ok-tint);border-radius:9px;padding:11px")}>
-          <div style={s("font-size:11.5px;color:var(--teal);line-height:1.6")}>
+          <div style={s("font-size:var(--fs-2);color:var(--teal);line-height:1.6")}>
             Clients will see this profile as <strong style={s("font-weight:700")}>TV-####</strong>{" "}
             only. The name and {vendorName} are never exposed, whether on the shortlist card, in a
             message from Talentvibes or in an interview invitation.
@@ -181,16 +181,16 @@ export function AddResourceForm({
         <Field label="Skills">
           <div style={s("display:flex;flex-wrap:wrap;gap:5px;align-items:center")}>
             {skills.map((sk) => (
-              <span key={sk} style={s("display:inline-flex;align-items:center;gap:6px;padding:4px 9px;background:var(--teal-tint);border-radius:6px;font-size:11.5px;font-weight:600;color:var(--teal)")}>
+              <span key={sk} style={s("display:inline-flex;align-items:center;gap:6px;padding:4px 9px;background:var(--teal-tint);border-radius:6px;font-size:var(--fs-2);font-weight:600;color:var(--teal)")}>
                 {sk}
                 <button onClick={() => setSkills((p) => p.filter((x) => x !== sk))}
-                  style={s("border:0;background:transparent;color:var(--teal);cursor:pointer;font-size:12px;line-height:1;padding:0;font-family:inherit")}>×</button>
+                  style={s("border:0;background:transparent;color:var(--teal);cursor:pointer;font-size:var(--fs-3);line-height:1;padding:0;font-family:inherit")}>×</button>
               </span>
             ))}
             <input value={draft} onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(draft); } }}
               placeholder="Add a skill…" list="vendor-skills"
-              style={s("border:0;outline:none;font-size:11.5px;padding:4px;min-width:110px;font-family:inherit")} />
+              style={s("border:0;outline:none;font-size:var(--fs-2);padding:4px;min-width:110px;font-family:inherit")} />
             <datalist id="vendor-skills">
               {availableSkills.map((sk) => <option key={sk} value={sk} />)}
             </datalist>
@@ -198,7 +198,7 @@ export function AddResourceForm({
           <div style={s("display:flex;flex-wrap:wrap;gap:5px;margin-top:8px")}>
             {suggestionsFrom(availableSkills, skills).map((sk) => (
               <button key={sk} onClick={() => add(sk)}
-                style={s("padding:3px 9px;border:1px solid var(--border-2);border-radius:6px;font-size:11px;background:var(--surface);cursor:pointer;color:var(--t3);font-family:inherit")}>
+                style={s("padding:3px 9px;border:1px solid var(--border-2);border-radius:6px;font-size:var(--fs-1);background:var(--surface);cursor:pointer;color:var(--t3);font-family:inherit")}>
                 + {sk}
               </button>
             ))}
@@ -209,7 +209,7 @@ export function AddResourceForm({
           <Field label="Total experience">
             <Input value={experience} onChange={setExperience} placeholder="e.g. 6 years 4 months" />
             {experience && months !== null ? (
-              <div style={s("font-size:10.5px;color:var(--t4);margin-top:5px")}>
+              <div style={s("font-size:var(--fs-1);color:var(--t4);margin-top:5px")}>
                 Saved as {months} months.
               </div>
             ) : null}
@@ -228,7 +228,7 @@ export function AddResourceForm({
               const on = modes.includes(k);
               return (
                 <button key={k} onClick={() => setModes((p) => on ? p.filter((x) => x !== k) : [...p, k])}
-                  style={sx("padding:6px 12px;border-radius:8px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit", {
+                  style={sx("padding:6px 12px;border-radius:8px;font-size:var(--fs-2);font-weight:700;cursor:pointer;font-family:inherit", {
                     background: on ? "var(--teal)" : "var(--surface)", color: on ? "var(--surface)" : "var(--t3)",
                     border: `1px solid ${on ? "var(--teal)" : "var(--border-2)"}`,
                   })}>
@@ -243,20 +243,20 @@ export function AddResourceForm({
       <Group label="YOUR RATE">
         <Field label="Monthly rate to Talentvibes">
           <div style={s("display:flex;align-items:center;gap:9px")}>
-            <span style={sx("font-size:14px;font-weight:700", { fontFamily: TOKENS.mono })}>₹</span>
+            <span style={sx("font-size:var(--fs-7);font-weight:700", { fontFamily: TOKENS.mono })}>₹</span>
             <input value={rate} onChange={(e) => setRate(e.target.value)} placeholder="145000"
-              style={sx("padding:8px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:14px;font-weight:700;width:150px;outline:none", { fontFamily: TOKENS.mono })} />
-            <span style={s("font-size:11px;color:var(--t4)")}>per month</span>
+              style={sx("padding:8px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-7);font-weight:700;width:150px;outline:none", { fontFamily: TOKENS.mono })} />
+            <span style={s("font-size:var(--fs-1);color:var(--t4)")}>per month</span>
           </div>
           <div style={s("margin-top:10px;background:var(--ok-tint);border:1px solid var(--ok-tint);border-radius:9px;padding:11px")}>
-            <div style={s("font-size:11.5px;color:var(--teal);line-height:1.6")}>
+            <div style={s("font-size:var(--fs-2);color:var(--teal);line-height:1.6")}>
               This is what Talentvibes pays you. You will never see the client-side rate, and the
               client never sees this figure. They see a coarse band derived from the price we quote
               them.
             </div>
           </div>
           {rateNum > 0 ? (
-            <div style={s("font-size:10.5px;color:var(--t4);margin-top:7px")}>
+            <div style={s("font-size:var(--fs-1);color:var(--t4);margin-top:7px")}>
               Stored as {rateNum * 100} paise. Money is never a float on this platform.
             </div>
           ) : null}
@@ -264,20 +264,20 @@ export function AddResourceForm({
       </Group>
 
       <Group label="PROCTORED ASSESSMENT">
-        <div style={s("font-size:11.5px;color:var(--t2);line-height:1.6;margin-bottom:10px")}>
+        <div style={s("font-size:var(--fs-2);color:var(--t2);line-height:1.6;margin-bottom:10px")}>
           Talentvibes shortlists scored profiles far more often. The proctoring provider sets
           the score. You cannot edit it, which is why a client trusts it.
         </div>
         {/* "Send test invite now" / "Schedule for later" were <div>s styled as buttons. Requesting
             a test is real, on Skill tests, once the person is saved. */}
-        <div style={s("font-size:11.5px;color:var(--t2)")}>
+        <div style={s("font-size:var(--fs-2);color:var(--t2)")}>
           Once saved, request a test for them on{" "}
           <Link href="/vendor/assessments" style={s("font-weight:700;color:var(--brand)")}>Skill tests</Link>.
         </div>
       </Group>
 
       {error ? (
-        <div style={s("margin-bottom:12px;background:var(--danger-tint);border:1px solid var(--danger-tint);border-radius:9px;padding:11px;font-size:12px;color:var(--danger);font-weight:600")}>
+        <div style={s("margin-bottom:12px;background:var(--danger-tint);border:1px solid var(--danger-tint);border-radius:9px;padding:11px;font-size:var(--fs-3);color:var(--danger);font-weight:600")}>
           {error}
         </div>
       ) : null}
@@ -287,7 +287,7 @@ export function AddResourceForm({
           type="button"
           onClick={() => submit("listed")}
           disabled={busy !== null}
-          style={sx("padding:9px 15px;border:0;border-radius:8px;font-size:12.5px;font-weight:700;color:var(--surface);font-family:inherit", {
+          style={sx("padding:9px 15px;border:0;border-radius:8px;font-size:var(--fs-4);font-weight:700;color:var(--surface);font-family:inherit", {
             background: "var(--teal)",
             cursor: busy ? "default" : "pointer",
             opacity: busy ? 0.6 : 1,
@@ -299,14 +299,14 @@ export function AddResourceForm({
           type="button"
           onClick={() => submit("draft")}
           disabled={busy !== null}
-          style={sx("padding:9px 15px;border:1px solid var(--border-2);border-radius:8px;font-size:12.5px;font-weight:600;background:var(--surface);font-family:inherit", {
+          style={sx("padding:9px 15px;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-4);font-weight:600;background:var(--surface);font-family:inherit", {
             cursor: busy ? "default" : "pointer",
             opacity: busy ? 0.6 : 1,
           })}
         >
           {busy === "draft" ? "Saving\u2026" : "Save as draft"}
         </button>
-        <div style={s("margin-left:auto;font-size:11.5px;color:var(--t3)")}>
+        <div style={s("margin-left:auto;font-size:var(--fs-2);color:var(--t3)")}>
           A masked ID is allocated at random when you add someone
         </div>
       </div>
@@ -319,7 +319,7 @@ export function AddResourceForm({
 function Group({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={s("padding-bottom:15px;margin-bottom:15px;border-bottom:1px solid var(--border)")}>
-      <div style={sx("font-size:9px;font-weight:700;letter-spacing:.14em;color:var(--t4);margin-bottom:12px", { fontFamily: TOKENS.mono })}>
+      <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.14em;color:var(--t4);margin-bottom:12px", { fontFamily: TOKENS.mono })}>
         {label}
       </div>
       <div style={s("display:flex;flex-direction:column;gap:14px")}>{children}</div>
@@ -330,7 +330,7 @@ function Group({ label, children }: { label: string; children: React.ReactNode }
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <div style={s("font-size:11.5px;font-weight:600;color:var(--t2);margin-bottom:6px")}>{label}</div>
+      <div style={s("font-size:var(--fs-2);font-weight:600;color:var(--t2);margin-bottom:6px")}>{label}</div>
       {children}
     </div>
   );
@@ -344,7 +344,7 @@ function Input({
       value={value}
       placeholder={placeholder}
       onChange={(e) => onChange(e.target.value)}
-      style={s("width:100%;padding:8px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:12.5px;font-family:inherit;outline:none")}
+      style={s("width:100%;padding:8px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-4);font-family:inherit;outline:none")}
     />
   );
 }
@@ -358,7 +358,7 @@ function Segments({
         const on = o.key === value;
         return (
           <button key={o.key} onClick={() => onChange(o.key)}
-            style={sx("padding:6px 12px;border-radius:8px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit", {
+            style={sx("padding:6px 12px;border-radius:8px;font-size:var(--fs-2);font-weight:700;cursor:pointer;font-family:inherit", {
               background: on ? accent : "var(--surface)", color: on ? "var(--surface)" : "var(--t3)",
               border: `1px solid ${on ? accent : "var(--border-2)"}`,
             })}>

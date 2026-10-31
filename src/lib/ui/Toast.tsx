@@ -145,7 +145,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 : <Check size={17} strokeWidth={2.4} />}
             </span>
 
-            <span style={s("font-size:13px;font-weight:600;line-height:1.4")}>
+            <span style={s("font-size:var(--fs-5);font-weight:600;line-height:1.4")}>
               {toast.message}
             </span>
 
@@ -154,7 +154,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 type="button"
                 onClick={runUndo}
                 disabled={toast.undoing}
-                style={sx("display:flex;align-items:center;gap:5px;border:0;background:transparent;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;flex:none;padding:2px 4px", {
+                style={sx("display:flex;align-items:center;gap:5px;border:0;background:transparent;font-size:var(--fs-5);font-weight:700;cursor:pointer;font-family:inherit;flex:none;padding:2px 4px", {
                   color: "var(--brand)",
                   opacity: toast.undoing ? 0.6 : 1,
                   cursor: toast.undoing ? "default" : "pointer",

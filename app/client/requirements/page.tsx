@@ -32,29 +32,29 @@ export default async function ClientRequirementsPage() {
     const st = stageMeta(r.stage);
     return (
       <div key={r.code} style={sx("display:grid;padding:11px 15px;border-bottom:1px solid var(--surface-3);align-items:center", { gridTemplateColumns: COLS, gap: "10px" })}>
-        <div style={sx("font-size:11px;font-weight:700", { fontFamily: TOKENS.mono })}>{r.code}</div>
+        <div style={sx("font-size:var(--fs-1);font-weight:700", { fontFamily: TOKENS.mono })}>{r.code}</div>
         <div style={s("min-width:0")}>
-          <div style={s("font-size:12.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>{r.roleTitle}</div>
-          <div style={s("font-size:10.5px;color:var(--t4);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
+          <div style={s("font-size:var(--fs-4);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>{r.roleTitle}</div>
+          <div style={s("font-size:var(--fs-1);color:var(--t4);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
             {r.experienceBand}y · {r.locationLabel}
             {r.promiseLabel ? ` · ${r.promiseLabel}` : ""}
           </div>
         </div>
-        <div style={sx("font-size:11.5px;font-weight:700", { fontFamily: TOKENS.mono })}>×{r.quantity}</div>
-        <div style={sx("font-size:11.5px;font-weight:600", { fontFamily: TOKENS.mono })}>{r.budgetLabel}</div>
+        <div style={sx("font-size:var(--fs-2);font-weight:700", { fontFamily: TOKENS.mono })}>×{r.quantity}</div>
+        <div style={sx("font-size:var(--fs-2);font-weight:600", { fontFamily: TOKENS.mono })}>{r.budgetLabel}</div>
         <div>
-          <span style={sx("display:inline-block;padding:3px 8px;border-radius:5px;font-size:8.5px;font-weight:700;letter-spacing:.08em", { background: st.bg, color: st.fg, fontFamily: TOKENS.mono })}>
+          <span style={sx("display:inline-block;padding:3px 8px;border-radius:5px;font-size:var(--fs-1);font-weight:700;letter-spacing:.08em", { background: st.bg, color: st.fg, fontFamily: TOKENS.mono })}>
             {st.label}
           </span>
         </div>
-        <div style={s("font-size:11px;color:var(--t4)")}>{r.postedAgo}</div>
+        <div style={s("font-size:var(--fs-1);color:var(--t4)")}>{r.postedAgo}</div>
         <div>
           {r.stage === "shortlisted" ? (
-            <Link href={`/client/shortlists/${r.code}`} style={s("font-size:11.5px;font-weight:700;color:var(--brand)")}>Review</Link>
+            <Link href={`/client/shortlists/${r.code}`} style={s("font-size:var(--fs-2);font-weight:700;color:var(--brand);display:inline-block;padding:6px 0")}>Review</Link>
           ) : r.stage === "interviewing" ? (
-            <Link href="/client/interviews" style={s("font-size:11.5px;font-weight:700;color:var(--brand)")}>Interviews</Link>
+            <Link href="/client/interviews" style={s("font-size:var(--fs-2);font-weight:700;color:var(--brand);display:inline-block;padding:6px 0")}>Interviews</Link>
           ) : (
-            <span style={s("font-size:11.5px;color:var(--t4)")}>—</span>
+            <span style={s("font-size:var(--fs-2);color:var(--t4)")}>—</span>
           )}
         </div>
       </div>
@@ -72,7 +72,7 @@ export default async function ClientRequirementsPage() {
         <div style={s("background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow-x:auto")}>
           <div style={sx("display:grid;padding:9px 15px;background:var(--surface-2);border-bottom:1px solid var(--border)", { gridTemplateColumns: COLS, gap: "10px" })}>
             {["REQ", "ROLE", "HOW MANY", "BUDGET / MONTH", "STAGE", "POSTED", "ACTION"].map((h) => (
-              <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--t4);white-space:nowrap", { fontFamily: TOKENS.mono })}>{h}</div>
+              <div key={h} style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.08em;color:var(--t3);line-height:1.3", { fontFamily: TOKENS.mono })}>{h}</div>
             ))}
           </div>
           {rows.map(row)}
@@ -92,13 +92,13 @@ export default async function ClientRequirementsPage() {
             <SectionLabel>YOUR NOTES TO THE BROKER</SectionLabel>
             <div style={s("display:flex;flex-direction:column;gap:8px")}>
               {rows.filter((r) => r.note).slice(0, 5).map((r) => (
-                <div key={r.code} style={s("font-size:11.5px;color:var(--t2);line-height:1.55")}>
+                <div key={r.code} style={s("font-size:var(--fs-2);color:var(--t2);line-height:1.55")}>
                   <span style={sx("font-weight:700;color:var(--warn)", { fontFamily: TOKENS.mono })}>{r.code}</span>
                   {": "}{r.note}
                 </div>
               ))}
             </div>
-            <div style={s("font-size:10.5px;color:var(--t4);margin-top:9px")}>
+            <div style={s("font-size:var(--fs-1);color:var(--t4);margin-top:9px")}>
               These notes are shared with your Talentvibes team only. They are never passed to a
               supplier.
             </div>

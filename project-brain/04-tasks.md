@@ -45,6 +45,10 @@
       fires); feedback is "due" on interviews that have not happened; the invoice header
       total disagrees with its lines; and the pipeline counts below-floor margins as
       "running late".
+- [x] **UI phase 1: accessibility floor** ✅ 2026-10-31. Contrast, type scale, focus ring and
+      hit areas. Journal Session 15.
+- [ ] **UI phase 2: polish**, with before-and-after screenshots for the owner: tabular numbers
+      in money columns, consistent headers and empty states, page hierarchy.
 - [ ] **Before launch:** remove the demo org switcher (it lists every org on every page)
       and stop `/api/search` taking `portal` from the query string.
 - [ ] **Small, recorded:** ambiguous (maskedId, roundNo) round lookup; `roleTitle`

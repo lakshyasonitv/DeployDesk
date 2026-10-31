@@ -62,7 +62,7 @@ export default async function ClientEngagementsPage() {
 
         {engagements.length ? (
           <div style={s("margin-top:12px;display:flex;align-items:center;justify-content:flex-end;gap:12px")}>
-            <span style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
+            <span style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.12em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
               TOTAL PER MONTH
             </span>
             <span style={sx("font-size:15px;font-weight:800", { fontFamily: TOKENS.mono })}>
@@ -73,7 +73,7 @@ export default async function ClientEngagementsPage() {
 
         <div style={s("margin-top:14px;background:var(--brand-tint);border:1px solid var(--brand-tint-2);border-radius:12px;padding:13px")}>
           <SectionLabel>HOW BILLING WORKS</SectionLabel>
-          <div style={s("font-size:12px;color:var(--brand-h);line-height:1.6")}>
+          <div style={s("font-size:var(--fs-3);color:var(--brand-h);line-height:1.6")}>
             Talentvibes invoices you at the agreed rate per resource, net 30, and contracts
             separately with each supplier. Supplier identity and supplier commercials are not part
             of your agreement, which keeps the exchange neutral for both sides.

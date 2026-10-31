@@ -288,7 +288,7 @@ export function AddToRequirementAction() {
         onClick={() => setOpen(true)}
         disabled={count === 0}
         title={count === 0 ? "Tick somebody in the table first" : undefined}
-        style={sx("padding:0 14px;height:38px;display:inline-flex;align-items:center;border-radius:10px;font-size:13px;font-weight:700;white-space:nowrap;font-family:inherit;border:0;box-shadow:var(--sh)", {
+        style={sx("padding:0 14px;height:38px;display:inline-flex;align-items:center;border-radius:10px;font-size:var(--fs-5);font-weight:700;white-space:nowrap;font-family:inherit;border:0;box-shadow:var(--sh)", {
           background: count === 0 ? "var(--surface-3)" : "var(--t1)",
           color: count === 0 ? "var(--t4)" : "#fff",
           cursor: count === 0 ? "default" : "pointer",
@@ -311,10 +311,10 @@ export function AddToRequirementAction() {
           >
             <div style={s("padding:15px 18px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:12px")}>
               <div style={s("flex:1;min-width:0")}>
-                <div style={s("font-size:14px;font-weight:800")}>
+                <div style={s("font-size:var(--fs-7);font-weight:800")}>
                   {outcome ? `Added to ${outcome.requirementCode}` : `Add ${count} to a requirement`}
                 </div>
-                <div style={s("font-size:11.5px;color:var(--t4);margin-top:3px;line-height:1.45")}>
+                <div style={s("font-size:var(--fs-2);color:var(--t4);margin-top:3px;line-height:1.45")}>
                   {outcome
                     ? "Not everybody went in cleanly. Here is what happened to each one."
                     : "Only roles somebody is still working are listed. They are scored and ranked like anybody the matcher sourced, and any order you arranged by hand is kept."}
@@ -348,19 +348,19 @@ export function AddToRequirementAction() {
                       else close();
                     }}
                     placeholder="Find a role by code, title or client"
-                    style={s("flex:1;min-width:0;border:0;outline:0;background:transparent;font-size:12.5px;font-family:inherit;color:var(--t1)")}
+                    style={s("flex:1;min-width:0;border:0;outline:0;background:transparent;font-size:var(--fs-4);font-family:inherit;color:var(--t1)")}
                   />
                 </div>
 
                 <div style={s("flex:1;overflow:auto")}>
                   {matches.length === 0 ? (
                     <div style={s("padding:28px 18px;text-align:center")}>
-                      <div style={s("font-size:12.5px;font-weight:600")}>
+                      <div style={s("font-size:var(--fs-4);font-weight:600")}>
                         {requirements.length === 0
                           ? "No role is open right now."
                           : "No open role matches that."}
                       </div>
-                      <div style={s("font-size:11.5px;color:var(--t4);margin-top:5px;line-height:1.5")}>
+                      <div style={s("font-size:var(--fs-2);color:var(--t4);margin-top:5px;line-height:1.5")}>
                         {requirements.length === 0
                           ? "A role has to be posted and still being worked. A draft, a placed role or a closed one cannot take candidates."
                           : "Clear the search to see all of them."}
@@ -379,14 +379,14 @@ export function AddToRequirementAction() {
                     >
                       <div style={s("flex:1;min-width:0")}>
                         <div style={s("display:flex;align-items:center;gap:7px;min-width:0")}>
-                          <span style={sx("font-size:10.5px;font-weight:700;color:var(--t4);flex:none", { fontFamily: TOKENS.mono })}>{r.code}</span>
-                          <span style={s("font-size:12.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>{r.roleTitle}</span>
+                          <span style={sx("font-size:var(--fs-1);font-weight:700;color:var(--t4);flex:none", { fontFamily: TOKENS.mono })}>{r.code}</span>
+                          <span style={s("font-size:var(--fs-4);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>{r.roleTitle}</span>
                         </div>
-                        <div style={s("font-size:11px;color:var(--t4);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
+                        <div style={s("font-size:var(--fs-1);color:var(--t4);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
                           {r.clientName} · {r.positions} {r.positions === 1 ? "position" : "positions"} · {r.experienceBand} yrs · {r.budgetLabel} · {r.poolCount} already sourced
                         </div>
                       </div>
-                      <span style={sx("padding:3px 8px;border-radius:999px;font-size:9.5px;font-weight:700;flex:none", { background: "var(--surface-3)", color: "var(--t4)", fontFamily: TOKENS.mono })}>
+                      <span style={sx("padding:3px 8px;border-radius:999px;font-size:var(--fs-1);font-weight:700;flex:none", { background: "var(--surface-3)", color: "var(--t4)", fontFamily: TOKENS.mono })}>
                         {r.stage.toUpperCase()}
                       </span>
                       {busy === r.code ? (
@@ -403,7 +403,7 @@ export function AddToRequirementAction() {
                 <button
                   type="button"
                   onClick={close}
-                  style={sx("padding:0 14px;height:34px;display:inline-flex;align-items:center;border-radius:9px;font-size:12.5px;font-weight:700;border:0;cursor:pointer;font-family:inherit", { background: "var(--t1)", color: "#fff" })}
+                  style={sx("padding:0 14px;height:34px;display:inline-flex;align-items:center;border-radius:9px;font-size:var(--fs-4);font-weight:700;border:0;cursor:pointer;font-family:inherit", { background: "var(--t1)", color: "#fff" })}
                 >
                   Done
                 </button>
@@ -448,20 +448,20 @@ function OutcomeList({ outcome }: { outcome: AddResult }) {
     <>
       {sections.map((sec) => (
         <div key={sec.title} style={s("padding:8px 0")}>
-          <div style={sx("padding:0 18px 4px;font-size:9px;font-weight:700;letter-spacing:.12em", { color: sec.color, fontFamily: TOKENS.mono })}>
+          <div style={sx("padding:0 18px 4px;font-size:var(--fs-1);font-weight:700;letter-spacing:.12em", { color: sec.color, fontFamily: TOKENS.mono })}>
             {sec.title.toUpperCase()} · {sec.rows.length}
           </div>
           {sec.rows.map(([id, text]) => (
             <div key={id} style={s("display:flex;align-items:baseline;gap:9px;padding:6px 18px")}>
-              <span style={sx("font-size:10.5px;font-weight:700;flex:none;width:76px", { fontFamily: TOKENS.mono, color: "var(--t2)" })}>{id}</span>
-              <span style={s("font-size:11.5px;line-height:1.45;color:var(--t2)")}>{text}</span>
+              <span style={sx("font-size:var(--fs-1);font-weight:700;flex:none;width:76px", { fontFamily: TOKENS.mono, color: "var(--t2)" })}>{id}</span>
+              <span style={s("font-size:var(--fs-2);line-height:1.45;color:var(--t2)")}>{text}</span>
             </div>
           ))}
         </div>
       ))}
       {outcome.flagged.length ? (
         <div style={s("margin:4px 18px 12px;padding:10px 12px;border-radius:10px;background:var(--warn-tint)")}>
-          <div style={s("font-size:11.5px;line-height:1.5;color:var(--t2)")}>
+          <div style={s("font-size:var(--fs-2);line-height:1.5;color:var(--t2)")}>
             A flagged candidate is in the pool and carries the reason on their match, so the
             matching desk shows it rather than mixing them in silently. Nothing reaches the
             client until you send a shortlist.

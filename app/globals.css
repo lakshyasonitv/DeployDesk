@@ -25,8 +25,10 @@
   /* text */
   --t1: #0f1729;          /* headings, values, primary text; also dark button + toast bg */
   --t2: #475369;          /* body copy */
-  --t3: #6b7789;          /* labels, meta, table header text */
-  --t4: #98a2b3;          /* hints, captions, group labels */
+  /* t3 and t4 are darker than the v2 tokens (#6b7789, #98a2b3), which measured 4.1 and 2.3:1 on
+     surface-3. Both now pass 4.5:1 on every surface (owner's OK, 2026-10-31). */
+  --t3: #5b6678;          /* labels, meta, table header text. 5.26:1 at worst */
+  --t4: #667085;          /* hints, captions, group labels. 4.51:1 at worst */
 
   /* brand */
   --brand: #0b6ed9;
@@ -55,6 +57,20 @@
   /* type */
   --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /*
+   * The type scale. Every size up to 14px uses one of these steps, not a hand-typed number.
+   * The smallest is 11px, the v2 contract's floor for pills and labels: 61% of the 544 sizes
+   * were under 12px and 79 were between 7.5 and 9.5px, below the contract and hard to read.
+   * Headings and big numbers (14.5px and up) keep their own sizes.
+   */
+  --fs-1: 11px;    /* labels, pills, column heads, captions */
+  --fs-2: 11.5px;
+  --fs-3: 12px;    /* meta, sub-lines */
+  --fs-4: 12.5px;  /* links, small buttons */
+  --fs-5: 13px;    /* table cells, body */
+  --fs-6: 13.5px;
+  --fs-7: 14px;    /* body, page explainers */
 }
 
 [data-tvtheme="dark"] {
@@ -64,7 +80,8 @@
   --surface-3: #1c222b;
   --border: #242b35;
   --border-2: #333c48;
-  --t1: #eef1f6; --t2: #c2cad6; --t3: #93a0b1; --t4: #6b7789;
+  /* t4 lightened from #6b7789 (3.5:1 on surface-3) to pass 4.5:1 everywhere: 4.96:1 at worst. */
+  --t1: #eef1f6; --t2: #c2cad6; --t3: #93a0b1; --t4: #8590a2;
   --brand: #4f9df2;
   --brand-h: color-mix(in oklab, var(--brand) 80%, #fff);
   --brand-tint: color-mix(in oklab, var(--brand) 16%, var(--surface));
@@ -125,4 +142,14 @@ a:hover { color: var(--brand-h); }
 
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
+}
+
+/*
+ * Keyboard focus is always visible. Twenty inputs set `outline: none` inline and nothing
+ * replaced it, so a keyboard user could not see which field they were in. `!important` is
+ * needed to win over those inline styles; `:focus-visible` keeps the ring off mouse clicks.
+ */
+:focus-visible {
+  outline: 2px solid var(--brand) !important;
+  outline-offset: 2px;
 }

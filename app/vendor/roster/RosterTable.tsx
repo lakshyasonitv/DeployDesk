@@ -32,7 +32,7 @@ const ASSESSMENT_STYLE: Record<string, { dot: string; label: string; sub: string
 };
 
 // The flexible column has a floor: as a bare 1fr it collapsed to 0px on narrower screens.
-const COLS = "170px minmax(140px, 1fr) 66px 118px 138px 186px 122px";
+const COLS = "170px minmax(140px, 1fr) 96px 118px 138px 186px 122px";
 
 type Filter = "all" | "listed" | "in_process" | "expiring" | "unconfirmed" | "draft";
 
@@ -151,7 +151,7 @@ export function RosterTable({
         <div style={s("display:flex;align-items:flex-end;justify-content:space-between;gap:16px")}>
           <div>
             <div style={s("font-size:22px;font-weight:800;letter-spacing:-.6px")}>Bench roster</div>
-            <div style={s("font-size:12.5px;color:var(--t3);margin-top:4px")}>
+            <div style={s("font-size:var(--fs-4);color:var(--t3);margin-top:4px")}>
               {total} resources · {counts.listed} listed on the exchange · confirm availability
               every 14 days to stay in matching
             </div>
@@ -159,13 +159,13 @@ export function RosterTable({
           <div style={s("display:flex;gap:8px;flex:none")}>
             {/* A <div> that looked like a button. Plain <a>: it is a route handler, not a page. */}
             <a href="/api/export?kind=vendor-roster"
-              style={s("padding:8px 13px;border:1px solid var(--border-2);border-radius:8px;font-size:12.5px;font-weight:600;background:var(--surface);color:var(--t1);text-decoration:none")}>
+              style={s("padding:8px 13px;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-4);font-weight:600;background:var(--surface);color:var(--t1);text-decoration:none")}>
               Export CSV
             </a>
             <button
               disabled={!expiringIds.length}
               onClick={() => startTransition(() => { void confirm(expiringIds, "bulk"); })}
-              style={sx("padding:8px 13px;border:0;border-radius:8px;font-size:12.5px;font-weight:700;color:var(--surface);font-family:inherit", {
+              style={sx("padding:8px 13px;border:0;border-radius:8px;font-size:var(--fs-4);font-weight:700;color:var(--surface);font-family:inherit", {
                 background: expiringIds.length ? "var(--ok)" : "var(--ok-tint)",
                 cursor: expiringIds.length ? "pointer" : "default",
               })}
@@ -181,7 +181,7 @@ export function RosterTable({
               const active = filter === key;
               return (
                 <button key={key} onClick={() => setFilter(key)}
-                  style={sx("padding:5px 11px;border-radius:999px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;border:0", {
+                  style={sx("padding:5px 11px;border-radius:999px;font-size:var(--fs-2);font-weight:700;cursor:pointer;font-family:inherit;border:0", {
                     background: active ? bg : "var(--surface)",
                     color: active ? fg : "var(--t3)",
                     boxShadow: active ? "none" : "inset 0 0 0 1px var(--border)",
@@ -191,7 +191,7 @@ export function RosterTable({
               );
             })}
           </div>
-          <div style={sx("font-size:10.5px;color:var(--t4);flex:none", { fontFamily: TOKENS.mono })}>
+          <div style={sx("font-size:var(--fs-1);color:var(--t4);flex:none", { fontFamily: TOKENS.mono })}>
             Freshness is worked out each time this page loads
           </div>
         </div>
@@ -200,7 +200,7 @@ export function RosterTable({
       <div style={s("flex:1;overflow:auto")}>
         <div style={sx("display:grid;padding:9px 26px;background:var(--surface-2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:2", { gridTemplateColumns: COLS, gap: "12px" })}>
           {["NAME", "SKILLS", "EXPERIENCE", "YOUR MONTHLY RATE", "ASSESSMENT", "LAST CONFIRMED", "CONFIRM"].map((h) => (
-            <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--t4);white-space:nowrap", { fontFamily: TOKENS.mono })}>
+            <div key={h} style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.08em;color:var(--t3);line-height:1.3", { fontFamily: TOKENS.mono })}>
               {h}
             </div>
           ))}
@@ -217,11 +217,11 @@ export function RosterTable({
             <div key={r.maskedId}
               style={sx("display:grid;padding:11px 26px;border-bottom:1px solid var(--surface-3);align-items:center;background:var(--surface)", { gridTemplateColumns: COLS, gap: "12px" })}>
               <div style={s("min-width:0")}>
-                <div style={s("font-size:12.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
+                <div style={s("font-size:var(--fs-4);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
                   {r.fullName}
                 </div>
                 <div style={s("display:flex;align-items:center;gap:6px;margin-top:2px;min-width:0")}>
-                  <span style={sx("font-size:10.5px;color:var(--t4)", { fontFamily: TOKENS.mono })}>
+                  <span style={sx("font-size:var(--fs-1);color:var(--t4)", { fontFamily: TOKENS.mono })}>
                     {r.maskedId} · {r.baseCity}
                   </span>
                   {/*
@@ -231,13 +231,13 @@ export function RosterTable({
                   */}
                   {r.status === "draft" ? (
                     <span title="Not on the exchange yet. Talentvibes cannot offer this person until you list them."
-                      style={sx("padding:1px 6px;border-radius:4px;font-size:8.5px;font-weight:700;letter-spacing:.07em;flex:none", { background: "var(--info-tint)", color: "var(--info)", fontFamily: TOKENS.mono })}>
+                      style={sx("padding:1px 6px;border-radius:4px;font-size:var(--fs-1);font-weight:700;letter-spacing:.07em;flex:none", { background: "var(--info-tint)", color: "var(--info)", fontFamily: TOKENS.mono })}>
                       DRAFT
                     </span>
                   ) : offBench(r.status) ? (
                     // Looked exactly like a live profile, with a working "Still available".
                     <span title="Off the exchange. Talentvibes cannot offer this person."
-                      style={sx("padding:1px 6px;border-radius:4px;font-size:8.5px;font-weight:700;letter-spacing:.07em;flex:none", { background: "var(--surface-3)", color: "var(--t3)", fontFamily: TOKENS.mono })}>
+                      style={sx("padding:1px 6px;border-radius:4px;font-size:var(--fs-1);font-weight:700;letter-spacing:.07em;flex:none", { background: "var(--surface-3)", color: "var(--t3)", fontFamily: TOKENS.mono })}>
                       {r.status.toUpperCase()}
                     </span>
                   ) : null}
@@ -246,34 +246,34 @@ export function RosterTable({
 
               <div style={s("display:flex;flex-wrap:wrap;gap:4px;min-width:0")}>
                 {r.skills.slice(0, 4).map((sk) => (
-                  <span key={sk} style={s("padding:2px 7px;background:var(--surface-3);border-radius:5px;font-size:10.5px;font-weight:600;color:var(--t2);white-space:nowrap")}>
+                  <span key={sk} style={s("padding:2px 7px;background:var(--surface-3);border-radius:5px;font-size:var(--fs-1);font-weight:600;color:var(--t2);white-space:nowrap")}>
                     {sk}
                   </span>
                 ))}
               </div>
 
-              <div style={s("font-size:12px;font-weight:600")}>{r.experienceLabel}</div>
+              <div style={s("font-size:var(--fs-3);font-weight:600")}>{r.experienceLabel}</div>
 
-              <div style={sx("font-size:12px;font-weight:700", { fontFamily: TOKENS.mono })}>
+              <div style={sx("font-size:var(--fs-3);font-weight:700", { fontFamily: TOKENS.mono })}>
                 {r.vendorRateLabel}
               </div>
 
               <div style={s("min-width:0")}>
                 <div style={s("display:flex;align-items:center;gap:6px")}>
                   <span style={sx("width:6px;height:6px;border-radius:50%;flex:none", { background: as.dot })} />
-                  <span style={s("font-size:12px;font-weight:600")}>
+                  <span style={s("font-size:var(--fs-3);font-weight:600")}>
                     {as.label}{r.assessment.overall != null ? ` ${r.assessment.overall}` : ""}
                   </span>
                 </div>
-                <div style={s("font-size:10px;color:var(--t4);margin-top:2px")}>{as.sub}</div>
+                <div style={s("font-size:var(--fs-1);color:var(--t4);margin-top:2px")}>{as.sub}</div>
               </div>
 
               <div style={s("min-width:0")}>
                 <div style={s("display:flex;align-items:center;gap:7px")}>
-                  <span style={sx("display:inline-block;padding:2px 7px;border-radius:4px;font-size:8.5px;font-weight:700;letter-spacing:.08em;white-space:nowrap", { background: fs.bg, color: fs.fg, fontFamily: TOKENS.mono })}>
+                  <span style={sx("display:inline-block;padding:2px 7px;border-radius:4px;font-size:var(--fs-1);font-weight:700;letter-spacing:.08em;white-space:nowrap", { background: fs.bg, color: fs.fg, fontFamily: TOKENS.mono })}>
                     {fs.label}
                   </span>
-                  <span style={s("font-size:10.5px;color:var(--t4)")}>
+                  <span style={s("font-size:var(--fs-1);color:var(--t4)")}>
                     {fresh.state === "confirmed" && isConfirmed ? "just now" : `${fresh.days}d ago`}
                   </span>
                 </div>
@@ -290,20 +290,20 @@ export function RosterTable({
                 {r.status === "draft" ? (
                   <button
                     onClick={() => startTransition(() => { void listOnExchange(r.maskedId, r.fullName); })}
-                    style={s("padding:6px 10px;border:0;border-radius:7px;font-size:11px;font-weight:700;background:var(--brand);color:#fff;cursor:pointer;width:100%;font-family:inherit")}
+                    style={s("padding:6px 10px;border:0;border-radius:7px;font-size:var(--fs-1);font-weight:700;background:var(--brand);color:#fff;cursor:pointer;width:100%;font-family:inherit")}
                   >
                     List on the exchange
                   </button>
                 ) : offBench(r.status) ? (
-                  <div style={s("padding:6px 10px;font-size:11px;color:var(--t4);text-align:center")}>Off the exchange</div>
+                  <div style={s("padding:6px 10px;font-size:var(--fs-1);color:var(--t4);text-align:center")}>Off the exchange</div>
                 ) : isConfirmed ? (
-                  <div style={s("padding:6px 10px;border-radius:7px;font-size:11px;font-weight:700;background:var(--surface-3);color:var(--t4);text-align:center")}>
+                  <div style={s("padding:6px 10px;border-radius:7px;font-size:var(--fs-1);font-weight:700;background:var(--surface-3);color:var(--t4);text-align:center")}>
                     Confirmed ✓
                   </div>
                 ) : (
                   <button
                     onClick={() => startTransition(() => { void confirm([r.maskedId], "single"); })}
-                    style={s("padding:6px 10px;border:0;border-radius:7px;font-size:11px;font-weight:700;background:var(--ok);color:var(--surface);cursor:pointer;width:100%;font-family:inherit")}
+                    style={s("padding:6px 10px;border:0;border-radius:7px;font-size:var(--fs-1);font-weight:700;background:var(--ok);color:var(--surface);cursor:pointer;width:100%;font-family:inherit")}
                   >
                     Still available
                   </button>
@@ -322,7 +322,7 @@ export function RosterTable({
           audience is senior staff who should not have to infer what a bare ratio means.
         */}
         <div style={s("padding:14px 26px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap")}>
-          <div style={s("font-size:12.5px;color:var(--t3)")}>
+          <div style={s("font-size:var(--fs-4);color:var(--t3)")}>
             {visible >= shown.length
               ? `Showing all ${shown.length} ${shown.length === 1 ? "person" : "people"}${filterLabel}`
               : `Showing ${Math.min(visible, shown.length)} of ${shown.length} ${shown.length === 1 ? "person" : "people"}${filterLabel}`}
@@ -331,7 +331,7 @@ export function RosterTable({
             <button
               type="button"
               onClick={() => setVisible(shown.length)}
-              style={s("padding:8px 14px;border:1px solid var(--border-2);border-radius:9px;font-size:12.5px;font-weight:700;background:var(--surface);cursor:pointer;font-family:inherit;color:var(--t1)")}
+              style={s("padding:8px 14px;border:1px solid var(--border-2);border-radius:9px;font-size:var(--fs-4);font-weight:700;background:var(--surface);cursor:pointer;font-family:inherit;color:var(--t1)")}
             >
               Show all {shown.length} {shown.length === 1 ? "person" : "people"}
             </button>

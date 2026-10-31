@@ -146,10 +146,10 @@ export function FeedbackCard({
 
   return (
     <div style={s("margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--border)")}>
-      <div style={s("font-size:12.5px;font-weight:700")}>
+      <div style={s("font-size:var(--fs-4);font-weight:700")}>
         <span style={{ fontFamily: TOKENS.mono }}>{maskedId}</span> · {roundLabel}
       </div>
-      <div style={s("font-size:11px;color:var(--t4);margin-top:2px")}>
+      <div style={s("font-size:var(--fs-1);color:var(--t4);margin-top:2px")}>
         {roleTitle} · {requirementCode}
       </div>
 
@@ -157,7 +157,7 @@ export function FeedbackCard({
       <div style={s("margin-top:12px;display:flex;flex-direction:column;gap:10px")}>
         {ratings.map((r) => (
           <div key={r.label}>
-            <div style={s("display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:5px")}>
+            <div style={s("display:flex;justify-content:space-between;font-size:var(--fs-2);margin-bottom:5px")}>
               <span style={s("color:var(--t2)")}>{r.label}</span>
               <span style={sx("font-weight:700", {
                 fontFamily: TOKENS.mono,
@@ -190,16 +190,16 @@ export function FeedbackCard({
         onChange={(e) => setNotes(e.target.value)}
         rows={3}
         placeholder="What stood out, and anything your Talentvibes team should know."
-        style={s("width:100%;margin-top:12px;padding:9px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:12px;font-family:inherit;outline:none;resize:vertical;line-height:1.5")}
+        style={s("width:100%;margin-top:12px;padding:9px 11px;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-3);font-family:inherit;outline:none;resize:vertical;line-height:1.5")}
       />
-      <div style={s("font-size:10.5px;color:var(--t4);margin-top:5px;line-height:1.5")}>
+      <div style={s("font-size:var(--fs-1);color:var(--t4);margin-top:5px;line-height:1.5")}>
         Goes to your Talentvibes team as written. They send the supplier a shortened version and
         never pass your note on word for word.
       </div>
 
       {/* ---- outcome ---- */}
       <div style={s("margin-top:12px")}>
-        <div style={s("font-size:11.5px;color:var(--t2);margin-bottom:6px")}>
+        <div style={s("font-size:var(--fs-2);color:var(--t2);margin-bottom:6px")}>
           What should happen next?
         </div>
         <div style={s("display:flex;gap:6px;flex-wrap:wrap")}>
@@ -210,7 +210,7 @@ export function FeedbackCard({
                 key={o.key}
                 type="button"
                 onClick={() => setOutcome(on ? null : o.key)}
-                style={sx("padding:6px 12px;border-radius:8px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit", {
+                style={sx("padding:6px 12px;border-radius:8px;font-size:var(--fs-2);font-weight:700;cursor:pointer;font-family:inherit", {
                   background: on ? o.tone : "var(--surface)",
                   color: on ? "#fff" : "var(--t2)",
                   border: `1px solid ${on ? o.tone : "var(--border-2)"}`,
@@ -230,7 +230,7 @@ export function FeedbackCard({
           onClick={() => save("submit")}
           disabled={busy !== null || !outcome}
           title={outcome ? undefined : "Choose what should happen next first"}
-          style={sx("padding:0 14px;height:34px;display:inline-flex;align-items:center;border:0;border-radius:9px;font-size:12.5px;font-weight:700;color:#fff;font-family:inherit", {
+          style={sx("padding:0 14px;height:34px;display:inline-flex;align-items:center;border:0;border-radius:9px;font-size:var(--fs-4);font-weight:700;color:#fff;font-family:inherit", {
             background: outcome ? "var(--brand)" : "var(--brand-tint-2)",
             cursor: busy || !outcome ? "default" : "pointer",
             opacity: busy ? 0.6 : 1,
@@ -242,13 +242,13 @@ export function FeedbackCard({
           type="button"
           onClick={() => save("draft")}
           disabled={busy !== null}
-          style={sx("padding:0 14px;height:34px;display:inline-flex;align-items:center;border:1px solid var(--border-2);border-radius:9px;font-size:12.5px;font-weight:600;background:var(--surface);font-family:inherit", {
+          style={sx("padding:0 14px;height:34px;display:inline-flex;align-items:center;border:1px solid var(--border-2);border-radius:9px;font-size:var(--fs-4);font-weight:600;background:var(--surface);font-family:inherit", {
             cursor: busy ? "default" : "pointer", opacity: busy ? 0.6 : 1,
           })}
         >
           {busy === "draft" ? "Saving…" : "Save for later"}
         </button>
-        <span style={s("font-size:11px;color:var(--t4);margin-left:auto")}>
+        <span style={s("font-size:var(--fs-1);color:var(--t4);margin-left:auto")}>
           {answered} of {ratings.length} rated
         </span>
       </div>

@@ -125,7 +125,7 @@ export function Search({ portal }: { portal: Portal }) {
           onFocus={() => setOpen(true)}
           placeholder="Search"
           aria-label="Search"
-          style={s("flex:1;min-width:0;border:0;outline:none;background:transparent;font-size:13px;font-family:inherit;color:var(--t1)")}
+          style={s("flex:1;min-width:0;align-self:stretch;border:0;outline:none;background:transparent;font-size:var(--fs-5);font-family:inherit;color:var(--t1)")}
         />
         {loading ? (
           <Loader2 size={14} strokeWidth={2} style={{ color: "var(--t4)", flex: "none", animation: "tv-spin .8s linear infinite" }} />
@@ -144,20 +144,20 @@ export function Search({ portal }: { portal: Portal }) {
       {showPanel ? (
         <div style={s("position:absolute;left:0;right:0;top:44px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--sh3);max-height:min(60vh,420px);overflow:auto;z-index:60;animation:tvin .14s ease-out")}>
           {hits === null || loading ? (
-            <div style={s("padding:14px;font-size:12.5px;color:var(--t4)")}>Searching…</div>
+            <div style={s("padding:14px;font-size:var(--fs-4);color:var(--t4)")}>Searching…</div>
           ) : hits.length === 0 ? (
             <div style={s("padding:14px")}>
-              <div style={s("font-size:12.5px;color:var(--t2);font-weight:600")}>
+              <div style={s("font-size:var(--fs-4);color:var(--t2);font-weight:600")}>
                 Nothing matches {`"${query.trim()}"`}.
               </div>
-              <div style={s("font-size:11.5px;color:var(--t4);margin-top:6px;line-height:1.6")}>
+              <div style={s("font-size:var(--fs-2);color:var(--t4);margin-top:6px;line-height:1.6")}>
                 Try {examples.map((e, i) => (
                   <span key={e}>
                     {i > 0 ? (i === examples.length - 1 ? " or " : ", ") : ""}
                     <button
                       type="button"
                       onClick={() => setQuery(e)}
-                      style={sx("border:0;background:transparent;padding:0;cursor:pointer;font-family:inherit;font-size:11.5px;font-weight:700", { color: "var(--brand)" })}
+                      style={sx("border:0;background:transparent;padding:0;cursor:pointer;font-family:inherit;font-size:var(--fs-2);font-weight:700", { color: "var(--brand)" })}
                     >
                       {e}
                     </button>
@@ -168,7 +168,7 @@ export function Search({ portal }: { portal: Portal }) {
           ) : (
             groups.map(([group, rows]) => (
               <div key={group}>
-                <div style={s("padding:9px 13px 5px;font-size:10.5px;font-weight:700;letter-spacing:.08em;color:var(--t4);text-transform:uppercase")}>
+                <div style={s("padding:9px 13px 5px;font-size:var(--fs-1);font-weight:700;letter-spacing:.08em;color:var(--t4);text-transform:uppercase")}>
                   {group}
                 </div>
                 {rows.map((h, i) => (
@@ -179,16 +179,16 @@ export function Search({ portal }: { portal: Portal }) {
                     style={s("display:block;padding:8px 13px;border-top:1px solid var(--border)")}
                   >
                     <div style={s("display:flex;align-items:baseline;gap:8px")}>
-                      <span style={s("font-size:13px;font-weight:700;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
+                      <span style={s("font-size:var(--fs-5);font-weight:700;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
                         {h.title}
                       </span>
                       {h.code && h.code !== h.title ? (
-                        <span style={sx("font-size:11px;color:var(--t4);flex:none", { fontFamily: TOKENS.mono })}>
+                        <span style={sx("font-size:var(--fs-1);color:var(--t4);flex:none", { fontFamily: TOKENS.mono })}>
                           {h.code}
                         </span>
                       ) : null}
                     </div>
-                    <div style={s("font-size:11.5px;color:var(--t3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
+                    <div style={s("font-size:var(--fs-2);color:var(--t3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>
                       {h.sub}
                     </div>
                   </Link>

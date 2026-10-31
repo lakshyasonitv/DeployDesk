@@ -36,7 +36,8 @@ export const metadata = { title: "Talent pool · DeployDesk" };
  * made a score bar 9999px wide on the matching desk.
  */
 // SKILLS has a floor (it was a bare `1fr`, and long chips spilled into EXPERIENCE).
-const COLS = "24px 158px 148px minmax(130px, 1fr) 74px 74px 108px 108px 96px 126px";
+// Sized to fit a 1366px laptop with the 11px type floor; it scrolled 65px sideways before.
+const COLS = "24px 150px 140px minmax(110px, 1fr) 74px 74px 108px 96px 92px 116px";
 
 const FRESHNESS_PILL = {
   confirmed: { bg: "var(--ok-tint)", fg: "var(--ok)" },
@@ -136,7 +137,7 @@ export default async function PoolPage({
         <PoolFilters current={filters} facets={facets} savedViews={savedViews} />
 
         <div style={s("padding:0 26px 8px;display:flex;align-items:center;justify-content:flex-end;flex:none")}>
-          <span style={sx("font-size:10.5px;color:var(--t4)", { fontFamily: TOKENS.mono })}>
+          <span style={sx("font-size:var(--fs-1);color:var(--t4)", { fontFamily: TOKENS.mono })}>
             {pool.matchCount} matching · {pool.elapsedSeconds}s
           </span>
         </div>
@@ -147,7 +148,7 @@ export default async function PoolPage({
                 whole exchange. "Select all 1,284" would be a promise the limit cannot keep. */}
             <PoolHeaderCheck />
             {["NAME", "EMPLOYER", "SKILLS", "EXPERIENCE", "TEST SCORE", "VENDOR RATE", "CLIENT RATE", "CITY", "LAST CONFIRMED"].map((h) => (
-              <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--t4);white-space:nowrap", { fontFamily: TOKENS.mono })}>{h}</div>
+              <div key={h} style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.08em;color:var(--t3);line-height:1.3", { fontFamily: TOKENS.mono })}>{h}</div>
             ))}
           </div>
 
@@ -158,34 +159,34 @@ export default async function PoolPage({
               <div key={r.maskedId} style={sx("display:grid;padding:10px 26px;border-bottom:1px solid var(--surface-3);align-items:center;background:var(--surface)", { gridTemplateColumns: COLS, gap: "10px" })}>
                 <PoolRowCheck maskedId={r.maskedId} name={r.fullName} />
                 <div style={s("min-width:0")}>
-                  <div style={s("font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>{r.fullName}</div>
-                  <div style={sx("font-size:10px;color:var(--t4);margin-top:2px", { fontFamily: TOKENS.mono })}>{r.maskedId}</div>
+                  <div style={s("font-size:var(--fs-3);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>{r.fullName}</div>
+                  <div style={sx("font-size:var(--fs-1);color:var(--t4);margin-top:2px", { fontFamily: TOKENS.mono })}>{r.maskedId}</div>
                 </div>
                 <div style={s("min-width:0")}>
-                  <div style={s("font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>{r.vendorName}</div>
+                  <div style={s("font-size:var(--fs-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>{r.vendorName}</div>
                   <div style={s("display:flex;align-items:center;gap:5px;margin-top:2px")}>
                     <span style={sx("width:5px;height:5px;border-radius:50%", { background: rel >= 4 ? "var(--ok)" : rel >= 3.5 ? "var(--warn)" : "var(--danger)" })} />
-                    <span style={s("font-size:10px;color:var(--t4)")}>reliability {r.vendorReliability}</span>
+                    <span style={s("font-size:var(--fs-1);color:var(--t4)")}>reliability {r.vendorReliability}</span>
                   </div>
                 </div>
                 {/* Chips stay inside their cell: they wrap, and a long one truncates with a title. */}
                 <div style={s("display:flex;flex-wrap:wrap;gap:3px;min-width:0;overflow:hidden")}>
                   {r.skills.slice(0, 3).map((sk) => (
-                    <span key={sk} title={sk} style={s("padding:2px 6px;background:var(--surface-3);border-radius:4px;font-size:10px;font-weight:600;color:var(--t2);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis")}>{sk}</span>
+                    <span key={sk} title={sk} style={s("padding:2px 6px;background:var(--surface-3);border-radius:4px;font-size:var(--fs-1);font-weight:600;color:var(--t2);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis")}>{sk}</span>
                   ))}
                 </div>
-                <div style={s("font-size:11.5px;font-weight:600")}>{r.experienceLabel}</div>
-                <div style={sx("font-size:12.5px;font-weight:800", { color: scoreColor(r.score) })}>
+                <div style={s("font-size:var(--fs-2);font-weight:600")}>{r.experienceLabel}</div>
+                <div style={sx("font-size:var(--fs-4);font-weight:800", { color: scoreColor(r.score) })}>
                   {r.score ?? "—"}
                 </div>
-                <div style={sx("font-size:11.5px;font-weight:600", { fontFamily: TOKENS.mono })}>{r.vendorRateLabel}</div>
-                <div style={sx("font-size:11.5px;font-weight:600", { fontFamily: TOKENS.mono, color: r.clientRateLabel ? "var(--brand)" : "var(--t4)" })}>
+                <div style={sx("font-size:var(--fs-2);font-weight:600", { fontFamily: TOKENS.mono })}>{r.vendorRateLabel}</div>
+                <div style={sx("font-size:var(--fs-2);font-weight:600", { fontFamily: TOKENS.mono, color: r.clientRateLabel ? "var(--brand)" : "var(--t4)" })}>
                   {/* Ops sees both sides. Shows the real proposed rate, or nothing. */}
                   {r.clientRateLabel ?? "not priced"}
                 </div>
-                <div style={s("font-size:11.5px;color:var(--t2)")}>{r.city}</div>
+                <div style={s("font-size:var(--fs-2);color:var(--t2)")}>{r.city}</div>
                 <div>
-                  <span style={sx("display:inline-block;padding:3px 8px;border-radius:999px;font-size:9.5px;font-weight:700", { background: fp.bg, color: fp.fg, fontFamily: TOKENS.mono })}>
+                  <span style={sx("display:inline-block;padding:3px 8px;border-radius:999px;font-size:var(--fs-1);font-weight:700", { background: fp.bg, color: fp.fg, fontFamily: TOKENS.mono })}>
                     {r.freshnessLabel}
                   </span>
                 </div>
@@ -195,15 +196,15 @@ export default async function PoolPage({
 
           {pool.results.length === 0 ? (
             <div style={s("padding:34px 26px;text-align:center")}>
-              <div style={s("font-size:13px;font-weight:600")}>Nobody matches all of those filters.</div>
-              <div style={s("font-size:12px;color:var(--t4);margin-top:5px")}>
+              <div style={s("font-size:var(--fs-5);font-weight:600")}>Nobody matches all of those filters.</div>
+              <div style={s("font-size:var(--fs-3);color:var(--t4);margin-top:5px")}>
                 Widen one of them. The skill filter is the narrowest, because every skill you add has
                 to be present on the same person.
               </div>
             </div>
           ) : (
             <div style={s("padding:14px 26px;display:flex;align-items:center;justify-content:space-between;gap:12px")}>
-              <div style={s("font-size:11.5px;color:var(--t4)")}>
+              <div style={s("font-size:var(--fs-2);color:var(--t4)")}>
                 {more > 0
                   ? `Showing the ${pool.resultCount} most recently confirmed of ${pool.matchCount} matches`
                   : `All ${pool.matchCount} matches are shown`}

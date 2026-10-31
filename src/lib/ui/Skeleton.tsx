@@ -38,14 +38,14 @@ export function ShellSkeleton({ portal }: { portal: Portal }) {
             <div style={s("font-size:14.5px;font-weight:800;letter-spacing:-.3px;white-space:nowrap;color:var(--t1)")}>
               {BRAND.name}
             </div>
-            <div style={s("font-size:11.5px;color:var(--t3);white-space:nowrap")}>by {BRAND.by}</div>
+            <div style={s("font-size:var(--fs-2);color:var(--t3);white-space:nowrap")}>by {BRAND.by}</div>
           </div>
         </div>
 
         {/* same geometry as the real Search box, so the sidebar does not jump */}
         <div style={s("margin:0 12px 14px;height:38px;background:var(--surface-2);border:1px solid var(--border);border-radius:10px")} />
 
-        <div style={s("padding:0 12px 6px;font-size:10.5px;font-weight:700;letter-spacing:.09em;color:var(--t4)")}>
+        <div style={s("padding:0 12px 6px;font-size:var(--fs-1);font-weight:700;letter-spacing:.09em;color:var(--t4)")}>
           {GROUP_LABEL[portal]}
         </div>
 

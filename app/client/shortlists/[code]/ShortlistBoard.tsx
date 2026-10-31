@@ -169,12 +169,12 @@ export function ShortlistBoard({
           <div style={s("min-width:0")}>
             <div style={s("display:flex;align-items:center;gap:9px;margin-bottom:7px")}>
               <Pill bg="var(--brand-tint)" fg="var(--brand)">SHORTLIST READY</Pill>
-              <span style={sx("font-size:10.5px;font-weight:600;color:var(--t4)", { fontFamily: TOKENS.mono })}>
+              <span style={sx("font-size:var(--fs-1);font-weight:600;color:var(--t4)", { fontFamily: TOKENS.mono })}>
                 {view.requirementCode} · delivered {formatDelivered(view.sentAt)}
               </span>
             </div>
             <div style={s("font-size:22px;font-weight:800;letter-spacing:-.6px")}>{view.roleTitle}</div>
-            <div style={s("font-size:12.5px;color:var(--t3);margin-top:4px")}>
+            <div style={s("font-size:var(--fs-4);color:var(--t3);margin-top:4px")}>
               {view.quantity} position{view.quantity === 1 ? "" : "s"} · masked profiles ·
               names, photos and supplier withheld
             </div>
@@ -182,7 +182,7 @@ export function ShortlistBoard({
           <div style={s("display:flex;gap:8px;flex:none")}>
             <button
               onClick={() => { setAskContext(`${view.requirementCode} · ${view.roleTitle}`); setAskOpen(true); }}
-              style={s("padding:8px 13px;border:1px solid var(--border-2);border-radius:8px;font-size:12.5px;font-weight:600;background:var(--surface);cursor:pointer;font-family:inherit")}
+              style={s("padding:8px 13px;border:1px solid var(--border-2);border-radius:8px;font-size:var(--fs-4);font-weight:600;background:var(--surface);cursor:pointer;font-family:inherit")}
             >
               Conversation
             </button>
@@ -190,7 +190,7 @@ export function ShortlistBoard({
               type="button"
               onClick={requestInterviews}
               disabled={!selected.length || busy}
-              style={sx("padding:8px 13px;border:0;border-radius:8px;font-size:12.5px;font-weight:700;color:#fff;font-family:inherit", {
+              style={sx("padding:8px 13px;border:0;border-radius:8px;font-size:var(--fs-4);font-weight:700;color:#fff;font-family:inherit", {
                 background: selected.length ? "var(--brand)" : "var(--brand-tint-2)",
                 cursor: selected.length && !busy ? "pointer" : "default",
                 opacity: busy ? 0.6 : 1,
@@ -204,7 +204,7 @@ export function ShortlistBoard({
 
       {/* -------- toolbar -------- */}
       <div style={s("padding:12px 26px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex:none")}>
-        <div style={s("font-size:12.5px;color:var(--t3)")}>
+        <div style={s("font-size:var(--fs-4);color:var(--t3)")}>
           <strong style={s("font-weight:700;color:var(--t1)")}>{view.candidates.length} masked profiles</strong>
           {/* Not "ranked by proctored score": the order is your Talentvibes team's. And no
               "J / K to move" hint — no key handler ever existed. */}
@@ -234,7 +234,7 @@ export function ShortlistBoard({
                     <div style={sx("font-size:15px;font-weight:700;letter-spacing:-.5px", { fontFamily: TOKENS.mono })}>
                       {c.maskedId}
                     </div>
-                    <div style={s("font-size:11.5px;color:var(--t4);margin-top:2px")}>
+                    <div style={s("font-size:var(--fs-2);color:var(--t4);margin-top:2px")}>
                       {c.experienceLabel} · {c.baseCity}
                     </div>
                   </div>
@@ -242,7 +242,7 @@ export function ShortlistBoard({
                     <div style={sx("font-size:19px;font-weight:800;letter-spacing:-.6px;line-height:1", { color: av.fg })}>
                       {c.scoreOverall ?? "—"}
                     </div>
-                    <div style={sx("font-size:8.5px;font-weight:700;letter-spacing:.1em;color:var(--t4);margin-top:3px", { fontFamily: TOKENS.mono })}>
+                    <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.1em;color:var(--t4);margin-top:3px", { fontFamily: TOKENS.mono })}>
                       PROCTORED
                     </div>
                   </div>
@@ -251,7 +251,7 @@ export function ShortlistBoard({
                 {/* 2. skill chips */}
                 <div style={s("display:flex;flex-wrap:wrap;gap:4px")}>
                   {c.skills.map((sk) => (
-                    <span key={sk} style={s("padding:3px 7px;background:var(--surface-3);border-radius:5px;font-size:10.5px;font-weight:600;color:var(--t2)")}>
+                    <span key={sk} style={s("padding:3px 7px;background:var(--surface-3);border-radius:5px;font-size:var(--fs-1);font-weight:600;color:var(--t2)")}>
                       {sk}
                     </span>
                   ))}
@@ -263,7 +263,7 @@ export function ShortlistBoard({
                 </div>
 
                 {/* 4. provenance */}
-                <div style={s("font-size:10.5px;color:var(--t4)")}>
+                <div style={s("font-size:var(--fs-1);color:var(--t4)")}>
                   Proctored by Talentvibes · attempt {c.attemptNo ?? 1}
                   {c.testedOn ? ` · tested ${formatTested(c.testedOn)}` : ""}
                 </div>
@@ -285,10 +285,10 @@ export function ShortlistBoard({
                 */}
                 <div style={s("display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto")}>
                   <div>
-                    <div style={s("font-size:13px;font-weight:700")}>{c.rateBandLabel}</div>
-                    <div style={s("font-size:10.5px;color:var(--t4)")}>per month</div>
+                    <div style={s("font-size:var(--fs-5);font-weight:700")}>{c.rateBandLabel}</div>
+                    <div style={s("font-size:var(--fs-1);color:var(--t4)")}>per month</div>
                   </div>
-                  <span style={sx("display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:999px;font-size:10.5px;font-weight:600", { background: av.bg, color: av.fg })}>
+                  <span style={sx("display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:999px;font-size:var(--fs-1);font-weight:600", { background: av.bg, color: av.fg })}>
                     <span style={sx("width:5px;height:5px;border-radius:50%", { background: av.fg })} />
                     {c.availabilityLabel}
                   </span>
@@ -298,7 +298,7 @@ export function ShortlistBoard({
                 <div style={s("display:flex;align-items:center;gap:6px;margin-top:2px")}>
                   <button
                     onClick={() => toggle(c.maskedId)}
-                    style={sx("flex:1;padding:7px;border-radius:7px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit", {
+                    style={sx("flex:1;padding:7px;border-radius:7px;font-size:var(--fs-2);font-weight:700;cursor:pointer;font-family:inherit", {
                       background: isSelected ? "var(--brand)" : "var(--surface)",
                       color: isSelected ? "var(--surface)" : "var(--t1)",
                       border: `1px solid ${isSelected ? "var(--brand)" : "var(--border-2)"}`,
@@ -308,7 +308,7 @@ export function ShortlistBoard({
                   </button>
                   <button
                     onClick={() => pass(c.maskedId)}
-                    style={s("padding:7px 10px;border:1px solid var(--border-2);border-radius:7px;font-size:11.5px;font-weight:600;background:var(--surface);cursor:pointer;color:var(--t3);font-family:inherit")}
+                    style={s("padding:7px 10px;border:1px solid var(--border-2);border-radius:7px;font-size:var(--fs-2);font-weight:600;background:var(--surface);cursor:pointer;color:var(--t3);font-family:inherit")}
                   >
                     Pass
                   </button>
@@ -323,16 +323,16 @@ export function ShortlistBoard({
         {/* -------- broker footer strip -------- */}
         {view.brokerNote ? (
           <div style={s("margin-top:14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;align-items:flex-start;gap:11px")}>
-            <div style={s("width:28px;height:28px;border-radius:50%;background:var(--brand-tint-2);flex:none;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--brand)")}>
+            <div style={s("width:28px;height:28px;border-radius:50%;background:var(--brand-tint-2);flex:none;display:flex;align-items:center;justify-content:center;font-size:var(--fs-1);font-weight:700;color:var(--brand)")}>
               {initials(view.brokerName)}
             </div>
             <div style={s("flex:1;min-width:0")}>
-              <span style={s("font-size:12.5px;font-weight:700")}>{view.brokerName}:</span>
-              <span style={s("font-size:12.5px;color:var(--t2);line-height:1.55")}> {`"${view.brokerNote}"`}</span>
+              <span style={s("font-size:var(--fs-4);font-weight:700")}>{view.brokerName}:</span>
+              <span style={s("font-size:var(--fs-4);color:var(--t2);line-height:1.55")}> {`"${view.brokerNote}"`}</span>
             </div>
             <button
               onClick={() => { setAskContext(`${view.requirementCode} · ${view.roleTitle}`); setAskOpen(true); }}
-              style={s("padding:7px 14px;border:0;border-radius:8px;font-size:12px;font-weight:700;background:var(--t1);color:var(--surface);cursor:pointer;flex:none;font-family:inherit")}
+              style={s("padding:7px 14px;border:0;border-radius:8px;font-size:var(--fs-3);font-weight:700;background:var(--t1);color:var(--surface);cursor:pointer;flex:none;font-family:inherit")}
             >
               View conversation
             </button>
@@ -377,25 +377,25 @@ function AskPanel({
       >
         <div style={s("padding:15px 17px;border-bottom:1px solid var(--border);flex:none")}>
           <div style={s("display:flex;align-items:center;justify-content:space-between;gap:10px")}>
-            <div style={s("font-size:13.5px;font-weight:800")}>Your Talentvibes team</div>
+            <div style={s("font-size:var(--fs-6);font-weight:800")}>Your Talentvibes team</div>
             <button onClick={onClose} style={s("border:0;background:transparent;font-size:17px;color:var(--t4);cursor:pointer;line-height:1")}>×</button>
           </div>
-          <div style={sx("font-size:10.5px;font-weight:600;color:var(--t4);margin-top:3px", { fontFamily: TOKENS.mono })}>
+          <div style={sx("font-size:var(--fs-1);font-weight:600;color:var(--t4);margin-top:3px", { fontFamily: TOKENS.mono })}>
             {context}
           </div>
         </div>
 
         <div style={s("flex:1;overflow:auto;padding:15px 17px;display:flex;flex-direction:column;gap:10px")}>
           {thread.length === 0 ? (
-            <div style={s("font-size:12.5px;color:var(--t4);line-height:1.6;padding:4px 0")}>
+            <div style={s("font-size:var(--fs-4);color:var(--t4);line-height:1.6;padding:4px 0")}>
               No messages yet. {brokerName} looks after this role for you, and this conversation
               is between you and them only. No supplier ever sees it.
             </div>
           ) : null}
           {thread.map((m, i) => (
             <div key={i} style={sx("display:flex;flex-direction:column;gap:3px", { alignItems: m.mine ? "flex-end" : "flex-start" })}>
-              <div style={s("font-size:10px;color:var(--t4)")}>{m.who} · {m.at}</div>
-              <div style={sx("max-width:86%;padding:9px 11px;border-radius:11px;font-size:12.5px;line-height:1.5", {
+              <div style={s("font-size:var(--fs-1);color:var(--t4)")}>{m.who} · {m.at}</div>
+              <div style={sx("max-width:86%;padding:9px 11px;border-radius:11px;font-size:var(--fs-4);line-height:1.5", {
                 background: m.mine ? "var(--t1)" : "var(--surface-2)",
                 color: m.mine ? "var(--surface)" : "var(--t1)",
                 border: `1px solid ${m.mine ? "var(--t1)" : "var(--border)"}`,
@@ -407,11 +407,11 @@ function AskPanel({
         </div>
 
         <div style={s("padding:11px 17px;border-top:1px solid var(--border);flex:none")}>
-          <div style={s("font-size:12px;color:var(--t2);line-height:1.55")}>
+          <div style={s("font-size:var(--fs-3);color:var(--t2);line-height:1.55")}>
             Sending from here is not connected yet, so nothing typed here would reach{" "}
             {brokerName}. Reach them the way you usually do; their replies appear above.
           </div>
-          <div style={s("font-size:10px;color:var(--t4);margin-top:8px;line-height:1.5")}>
+          <div style={s("font-size:var(--fs-1);color:var(--t4);margin-top:8px;line-height:1.5")}>
             Talentvibes relays anything relevant to the supplier with your company name and
             commercials removed.
           </div>

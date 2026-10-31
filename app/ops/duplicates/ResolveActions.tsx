@@ -96,7 +96,7 @@ export function ResolveActions({
     }
   }
 
-  const base = "padding:0 13px;height:34px;display:inline-flex;align-items:center;border-radius:9px;font-size:12.5px;font-weight:700;font-family:inherit;white-space:nowrap";
+  const base = "padding:0 13px;height:34px;display:inline-flex;align-items:center;border-radius:9px;font-size:var(--fs-4);font-weight:700;font-family:inherit;white-space:nowrap";
   const look = (primary: boolean, blocked: boolean) => sx(base, {
     background: primary ? "var(--t1)" : "var(--surface)",
     color: primary ? "var(--surface)" : "var(--t1)",
@@ -135,7 +135,7 @@ export function ResolveActions({
       </div>
       {/* Said on screen, not only in a tooltip: a greyed button with no reason is a dead end. */}
       {blocked.length ? (
-        <div style={s("font-size:10.5px;color:var(--t4);text-align:right;max-width:420px")}>
+        <div style={s("font-size:var(--fs-1);color:var(--t4);text-align:right;max-width:420px")}>
           Can&apos;t withdraw: {blocked.join("; ")}. Talk to the client first.
         </div>
       ) : null}

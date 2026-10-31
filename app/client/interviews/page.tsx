@@ -59,24 +59,24 @@ export default async function ClientInterviewsPage() {
               return (
                 <div key={`${iv.maskedId}-${iv.roundLabel}`} style={s("background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px;display:flex;gap:13px;align-items:flex-start")}>
                   <div style={s("width:52px;flex:none;text-align:center;background:var(--surface-2);border-radius:9px;padding:8px 0")}>
-                    <div style={sx("font-size:8.5px;font-weight:700;letter-spacing:.1em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
+                    <div style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.1em;color:var(--t4)", { fontFamily: TOKENS.mono })}>
                       {istFormat(d, { month: "short" }).toUpperCase()}
                     </div>
                     <div style={s("font-size:19px;font-weight:800;line-height:1.1")}>
                       {istFormat(d, { day: "2-digit" })}
                     </div>
-                    <div style={sx("font-size:9.5px;color:var(--t3)", { fontFamily: TOKENS.mono })}>
+                    <div style={sx("font-size:var(--fs-1);color:var(--t3)", { fontFamily: TOKENS.mono })}>
                       {istFormat(d, { hour: "2-digit", minute: "2-digit", hour12: false })}
                     </div>
                   </div>
                   <div style={s("flex:1;min-width:0")}>
                     <div style={s("display:flex;align-items:center;gap:8px;flex-wrap:wrap")}>
-                      <span style={sx("font-size:13px;font-weight:700", { fontFamily: TOKENS.mono })}>{iv.maskedId}</span>
+                      <span style={sx("font-size:var(--fs-5);font-weight:700", { fontFamily: TOKENS.mono })}>{iv.maskedId}</span>
                       <Pill bg="var(--brand-tint)" fg="var(--brand)">{iv.roundLabel}</Pill>
-                      <span style={sx("font-size:10.5px;color:var(--t4)", { fontFamily: TOKENS.mono })}>{iv.requirementCode}</span>
+                      <span style={sx("font-size:var(--fs-1);color:var(--t4)", { fontFamily: TOKENS.mono })}>{iv.requirementCode}</span>
                     </div>
-                    <div style={s("font-size:12.5px;font-weight:600;margin-top:5px")}>{iv.roleTitle}</div>
-                    <div style={s("font-size:11.5px;color:var(--t3);margin-top:3px")}>
+                    <div style={s("font-size:var(--fs-4);font-weight:600;margin-top:5px")}>{iv.roleTitle}</div>
+                    <div style={s("font-size:var(--fs-2);color:var(--t3);margin-top:3px")}>
                       {iv.durationLabel}{iv.modeLabel ? ` · ${iv.modeLabel}` : ""}
                     </div>
                   </div>
@@ -89,13 +89,13 @@ export default async function ClientInterviewsPage() {
                     */}
                     {iv.meetingUrl ? (
                       <a href={iv.meetingUrl} target="_blank" rel="noreferrer"
-                        style={s("padding:0 13px;height:32px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:9px;font-size:12px;font-weight:700;background:var(--brand);color:#fff;text-decoration:none;white-space:nowrap")}>
+                        style={s("padding:0 13px;height:32px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:9px;font-size:var(--fs-3);font-weight:700;background:var(--brand);color:#fff;text-decoration:none;white-space:nowrap")}>
                         Join
                       </a>
                     ) : iv.modeLabel.startsWith("Onsite") ? null : (
                       // An onsite round has no link to come; its place is in the line above.
                       <span title="Your Talentvibes team issues the link once the round is locked."
-                        style={s("padding:0 13px;height:32px;display:inline-flex;align-items:center;justify-content:center;border:1px dashed var(--border-2);border-radius:9px;font-size:12px;font-weight:600;color:var(--t4);white-space:nowrap")}>
+                        style={s("padding:0 13px;height:32px;display:inline-flex;align-items:center;justify-content:center;border:1px dashed var(--border-2);border-radius:9px;font-size:var(--fs-3);font-weight:600;color:var(--t4);white-space:nowrap")}>
                         Link to come
                       </span>
                     )}
@@ -114,15 +114,15 @@ export default async function ClientInterviewsPage() {
                 {waiting.map((iv) => (
                   <div key={`${iv.maskedId}-wait`} style={s("background:var(--warn-tint);border:1px solid var(--warn-tint);border-radius:12px;padding:13px")}>
                     <div style={s("display:flex;align-items:center;gap:8px;flex-wrap:wrap")}>
-                      <span style={sx("font-size:13px;font-weight:700", { fontFamily: TOKENS.mono })}>{iv.maskedId}</span>
+                      <span style={sx("font-size:var(--fs-5);font-weight:700", { fontFamily: TOKENS.mono })}>{iv.maskedId}</span>
                       <Pill bg="var(--warn-tint)" fg="var(--warn)">AWAITING</Pill>
-                      <span style={sx("font-size:10.5px;color:var(--t4)", { fontFamily: TOKENS.mono })}>{iv.requirementCode}</span>
+                      <span style={sx("font-size:var(--fs-1);color:var(--t4)", { fontFamily: TOKENS.mono })}>{iv.requirementCode}</span>
                     </div>
                     {/* The client is told the broker is working, never which supplier. */}
-                    <div style={s("font-size:12.5px;color:var(--warn);font-weight:600;margin-top:6px")}>
+                    <div style={s("font-size:var(--fs-4);color:var(--warn);font-weight:600;margin-top:6px")}>
                       {iv.waitingLabel}
                     </div>
-                    <div style={s("font-size:11.5px;color:var(--t3);margin-top:4px")}>
+                    <div style={s("font-size:var(--fs-2);color:var(--t3);margin-top:4px")}>
                       {iv.slots.length ? "You offered times" : "You asked for this interview"}
                       {iv.requestedAgo ? ` ${iv.requestedAgo}` : ""}. Your Talentvibes team comes back with
                       a locked slot and a Talentvibes meeting link.
@@ -139,7 +139,7 @@ export default async function ClientInterviewsPage() {
             ) : null}
 
             {interviews.length === 0 ? (
-              <div style={s("background:var(--surface);border:1px dashed var(--border-2);border-radius:12px;padding:30px;text-align:center;color:var(--t4);font-size:12.5px")}>
+              <div style={s("background:var(--surface);border:1px dashed var(--border-2);border-radius:12px;padding:30px;text-align:center;color:var(--t4);font-size:var(--fs-4)")}>
                 No interviews yet. Select profiles on a shortlist and request interviews.
               </div>
             ) : null}
@@ -168,7 +168,7 @@ export default async function ClientInterviewsPage() {
                   notes={f.notes}
                 />
               ))}
-              <div style={s("font-size:10.5px;color:var(--t4);line-height:1.55;padding-top:10px;border-top:1px solid var(--surface-3)")}>
+              <div style={s("font-size:var(--fs-1);color:var(--t4);line-height:1.55;padding-top:10px;border-top:1px solid var(--surface-3)")}>
                 Talentvibes relays a redacted summary to the supplier with your company name and
                 commercials removed. Your panel notes are never forwarded verbatim.
               </div>
@@ -176,7 +176,7 @@ export default async function ClientInterviewsPage() {
           ) : (
             <Card pad="13px">
               <SectionLabel>FEEDBACK DUE</SectionLabel>
-              <div style={s("font-size:12px;color:var(--t4)")}>
+              <div style={s("font-size:var(--fs-3);color:var(--t4)")}>
                 Nothing outstanding. Feedback appears here after an interview completes.
               </div>
             </Card>

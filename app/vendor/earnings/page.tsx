@@ -57,7 +57,7 @@ export default async function VendorEarningsPage() {
         <div style={s("margin-top:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow-x:auto")}>
           <div style={sx("display:grid;padding:9px 15px;background:var(--surface-2);border-bottom:1px solid var(--border)", { gridTemplateColumns: COLS, gap: "10px" })}>
             {["NAME", "ROLE", "WORKING SINCE", "YOUR MONTHLY RATE", "BILLED THIS MONTH", "STATUS"].map((h) => (
-              <div key={h} style={sx("font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--t4);white-space:nowrap", { fontFamily: TOKENS.mono })}>{h}</div>
+              <div key={h} style={sx("font-size:var(--fs-1);font-weight:700;letter-spacing:.08em;color:var(--t3);line-height:1.3", { fontFamily: TOKENS.mono })}>{h}</div>
             ))}
           </div>
           {e.rows.map((r) => {
@@ -65,15 +65,15 @@ export default async function VendorEarningsPage() {
             return (
               <div key={r.maskedId + r.since} style={sx("display:grid;padding:11px 15px;border-bottom:1px solid var(--surface-3);align-items:center", { gridTemplateColumns: COLS, gap: "10px" })}>
                 <div style={s("min-width:0")}>
-                  <div style={s("font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>{r.fullName}</div>
-                  <div style={sx("font-size:10px;color:var(--t4);margin-top:2px", { fontFamily: TOKENS.mono })}>{r.maskedId}</div>
+                  <div style={s("font-size:var(--fs-3);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>{r.fullName}</div>
+                  <div style={sx("font-size:var(--fs-1);color:var(--t4);margin-top:2px", { fontFamily: TOKENS.mono })}>{r.maskedId}</div>
                 </div>
-                <div style={s("font-size:12px;color:var(--t2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>{r.roleTitle}</div>
-                <div style={s("font-size:11px;color:var(--t3)")}>{r.since ? fmt(r.since) : "—"}</div>
-                <div style={sx("font-size:11.5px;font-weight:700", { fontFamily: TOKENS.mono })}>{r.rateLabel}</div>
-                <div style={sx("font-size:11.5px;font-weight:600", { fontFamily: TOKENS.mono })}>{r.monthLabel}</div>
+                <div style={s("font-size:var(--fs-3);color:var(--t2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>{r.roleTitle}</div>
+                <div style={s("font-size:var(--fs-1);color:var(--t3)")}>{r.since ? fmt(r.since) : "—"}</div>
+                <div style={sx("font-size:var(--fs-2);font-weight:700", { fontFamily: TOKENS.mono })}>{r.rateLabel}</div>
+                <div style={sx("font-size:var(--fs-2);font-weight:600", { fontFamily: TOKENS.mono })}>{r.monthLabel}</div>
                 <div>
-                  <span style={sx("display:inline-block;padding:3px 8px;border-radius:5px;font-size:8.5px;font-weight:700;letter-spacing:.08em", { background: pill.bg, color: pill.fg, fontFamily: TOKENS.mono })}>
+                  <span style={sx("display:inline-block;padding:3px 8px;border-radius:5px;font-size:var(--fs-1);font-weight:700;letter-spacing:.08em", { background: pill.bg, color: pill.fg, fontFamily: TOKENS.mono })}>
                     {r.status}
                   </span>
                 </div>
@@ -81,12 +81,12 @@ export default async function VendorEarningsPage() {
             );
           })}
           {e.rows.length === 0 ? (
-            <div style={s("padding:28px;text-align:center;color:var(--t4);font-size:12.5px")}>
+            <div style={s("padding:28px;text-align:center;color:var(--t4);font-size:var(--fs-4)")}>
               No placements billed yet.
             </div>
           ) : null}
           <div style={s("padding:12px 15px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--surface-2)")}>
-            <div style={s("font-size:11.5px;color:var(--t4)")}>
+            <div style={s("font-size:var(--fs-2);color:var(--t4)")}>
               {e.stats.activePlacements} active placements
               {ending ? ` · ${ending} billed pro-rata this month` : ""}
             </div>
@@ -98,7 +98,7 @@ export default async function VendorEarningsPage() {
 
         <div style={s("margin-top:14px;background:var(--teal-tint);border:1px solid var(--ok-tint);border-radius:12px;padding:13px")}>
           <SectionLabel>WHY YOU DO NOT SEE THE CLIENT</SectionLabel>
-          <div style={s("font-size:12px;color:var(--teal);line-height:1.6")}>
+          <div style={s("font-size:var(--fs-3);color:var(--teal);line-height:1.6")}>
             {e.disclosure} Client identity, client rate and margin are not shared with suppliers,
             and your rate is not shared with clients. That keeps the exchange neutral for both
             sides.

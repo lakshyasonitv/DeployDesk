@@ -33,6 +33,7 @@
 
 **2026-10-31**
 
+- [Two v2 colour tokens darkened, and every small size on one scale](#2026-10-31-two-v2-colour-tokens-darkened-and-every-small-size-on-one-scale)
 - [The owner's "unslop" rules are the house style for all writing](#2026-10-31-the-owners-unslop-rules-are-the-house-style-for-all-writing)
 - [The client's match preview has no budget dimension, and returns only buckets](#2026-10-31-the-clients-match-preview-has-no-budget-dimension-and-returns-only-buckets)
 - [Talentvibes sees everything; the client and the vendor see the bare minimum](#2026-10-31-talentvibes-sees-everything-the-client-and-the-vendor-see-the-bare-minimum)
@@ -89,6 +90,29 @@
 - [Inline styles copied from the prototype via a parser helper](#2026-10-06-inline-styles-copied-from-the-prototype-via-a-parser-helper)
 - [Database changes are file-first and approval-gated](#2026-10-06-database-changes-are-file-first-and-approval-gated)
 - [Dual-role organisations: three decisions taken before building](#2026-10-06-dual-role-organisations-three-decisions-taken-before-building)
+
+## 2026-10-31 — Two v2 colour tokens darkened, and every small size on one scale
+
+- **Decision:** text colours and sizes now meet a readability floor, two tokens departing
+  from the v2 contract.
+  - Light `--t3` changes from #6b7789 to #5b6678, and light `--t4` from #98a2b3 to #667085.
+  - Dark `--t4` changes from #6b7789 to #8590a2.
+  - Every font size up to 14px uses `--fs-1` to `--fs-7` in `globals.css`. The smallest is
+    11px, the contract's own floor.
+- **Why:** the owner asked for a more professional, user-friendly UI and approved these two
+  colour changes.
+  - Measured: `--t4` was 2.3 to 2.6:1 against every surface and `--t3` failed on the grey
+    surfaces, where text needs 4.5:1.
+  - 61% of the 544 font sizes were under 12px, and 79 were between 7.5 and 9.5px, well
+    below the contract's own type scale.
+- **Rejected:**
+  - Keeping the contract's greys: they fail contrast on almost every page.
+  - Moving every size up one step: that would also enlarge text that was already at the
+    contract's size, and cost more layout.
+  - A per-file pass by hand: 544 sizes would drift again. One scale is one place to change.
+- **Impact:** a new size goes on the scale, or is a heading at 14.5px or more. `--t3` and
+  `--t4` are now closer in tone, so hierarchy between them comes from size and weight. The
+  v2 handoff files are unchanged; this entry records the departure.
 
 ## 2026-10-31 — The owner's "unslop" rules are the house style for all writing
 

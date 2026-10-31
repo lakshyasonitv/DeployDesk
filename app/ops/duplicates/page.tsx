@@ -51,7 +51,7 @@ export default async function DuplicatesPage() {
           nothing; it is a count, so it reads as one.
         */
         actions={
-          <span style={s("font-size:12.5px;font-weight:700;color:var(--t2)")}>
+          <span style={s("font-size:var(--fs-4);font-weight:700;color:var(--t2)")}>
             {open.length} open {open.length === 1 ? "flag" : "flags"}
           </span>
         }
@@ -63,17 +63,17 @@ export default async function DuplicatesPage() {
             <div key={f.code} style={s("background:var(--surface);border:1px solid var(--danger-tint);border-radius:12px;overflow:hidden;margin-bottom:14px")}>
               <div style={s("background:var(--danger-tint);border-bottom:1px solid var(--danger-tint);padding:11px 15px;display:flex;align-items:center;justify-content:space-between;gap:12px")}>
                 <div>
-                  <div style={s("font-size:13px;font-weight:800;color:var(--danger)")}>
+                  <div style={s("font-size:var(--fs-5);font-weight:800;color:var(--danger)")}>
                     Likely the same person · {f.confidence}% confidence
                   </div>
-                  <div style={s("font-size:11px;color:var(--danger);margin-top:3px")}>
+                  <div style={s("font-size:var(--fs-1);color:var(--danger);margin-top:3px")}>
                     Flagged {stamp(f.detectedAt)}
                     {f.blockedRequirementCount > 0
                       ? ` · blocks ${f.blockedRequirementCount} shortlist`
                       : ""}
                   </div>
                 </div>
-                <div style={sx("font-size:11px;font-weight:700;color:var(--danger)", { fontFamily: TOKENS.mono })}>{f.code}</div>
+                <div style={sx("font-size:var(--fs-1);font-weight:700;color:var(--danger)", { fontFamily: TOKENS.mono })}>{f.code}</div>
               </div>
 
               <div style={s("display:grid;grid-template-columns:1fr 200px 1fr")}>
@@ -86,8 +86,8 @@ export default async function DuplicatesPage() {
                       const c = sev(sig.severity);
                       return (
                         <div key={sig.key} style={sx("border-radius:7px;padding:7px 9px", { background: c.bg, border: `1px solid ${c.border}` })}>
-                          <div style={sx("font-size:10.5px;font-weight:700", { color: c.fg })}>{sig.label}</div>
-                          <div style={s("font-size:10px;color:var(--t3);margin-top:2px")}>{sig.verdict}</div>
+                          <div style={sx("font-size:var(--fs-1);font-weight:700", { color: c.fg })}>{sig.label}</div>
+                          <div style={s("font-size:var(--fs-1);color:var(--t3);margin-top:2px")}>{sig.verdict}</div>
                         </div>
                       );
                     })}
@@ -98,7 +98,7 @@ export default async function DuplicatesPage() {
               </div>
 
               <div style={s("background:var(--surface-2);border-top:1px solid var(--surface-3);padding:13px 15px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap")}>
-                <div style={s("font-size:12px;color:var(--t2);line-height:1.6;flex:1;min-width:260px")}>
+                <div style={s("font-size:var(--fs-3);color:var(--t2);line-height:1.6;flex:1;min-width:260px")}>
                   <strong style={s("font-weight:700")}>Recommended:</strong> keep the{" "}
                   <strong style={s("font-weight:700")}>{keeper?.vendorName ?? "first"}</strong>{" "}
                   submission, because {f.recommendationReason ?? "it was submitted first"}. The other
@@ -117,17 +117,17 @@ export default async function DuplicatesPage() {
             <div key={f.code} style={s("background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 15px;display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap")}>
               <span style={sx("width:8px;height:8px;border-radius:50%;flex:none", { background: settled ? "var(--ok)" : "var(--warn)" })} />
               <div style={s("flex:1;min-width:0")}>
-                <div style={s("font-size:12.5px;font-weight:700")}>
+                <div style={s("font-size:var(--fs-4);font-weight:700")}>
                   {f.sides[0]?.fullName} ({f.sides[0]?.vendorName}) vs {f.sides[1]?.fullName} ({f.sides[1]?.vendorName})
                 </div>
-                <div style={s("font-size:11.5px;color:var(--t3);margin-top:3px")}>
+                <div style={s("font-size:var(--fs-2);color:var(--t3);margin-top:3px")}>
                   {f.signals.map((x) => x.verdict === "DIFFERENT" ? `different ${x.label.toLowerCase()}` : x.label.toLowerCase()).join(", ")}.{" "}
                   {settled ?? "Needs a human call."}
                 </div>
               </div>
               <div style={s("text-align:right;flex:none")}>
-                <div style={sx("font-size:11px;font-weight:700", { fontFamily: TOKENS.mono })}>{f.code} · {f.confidence}%</div>
-                <div style={s("font-size:10.5px;color:var(--t4);margin-top:2px")}>
+                <div style={sx("font-size:var(--fs-1);font-weight:700", { fontFamily: TOKENS.mono })}>{f.code} · {f.confidence}%</div>
+                <div style={s("font-size:var(--fs-1);color:var(--t4);margin-top:2px")}>
                   assigned to {f.assignedName ?? "unassigned"} · {settled ? "settled" : "open"}
                 </div>
               </div>
@@ -142,7 +142,7 @@ export default async function DuplicatesPage() {
         })}
 
         {flags.length === 0 ? (
-          <div style={s("background:var(--surface);border:1px dashed var(--border-2);border-radius:12px;padding:34px;text-align:center;color:var(--t4);font-size:12.5px")}>
+          <div style={s("background:var(--surface);border:1px dashed var(--border-2);border-radius:12px;padding:34px;text-align:center;color:var(--t4);font-size:var(--fs-4)")}>
             No duplicate flags open. Detection runs on create, on import and nightly.
           </div>
         ) : null}
@@ -183,28 +183,28 @@ function SidePanel({ side, letter }: { side: Side; letter: "A" | "B" }) {
   return (
     <div style={s("padding:13px 15px")}>
       <div style={s("display:flex;align-items:center;gap:8px;flex-wrap:wrap")}>
-        <span style={sx("padding:2px 7px;border-radius:4px;font-size:8.5px;font-weight:700;letter-spacing:.08em", {
+        <span style={sx("padding:2px 7px;border-radius:4px;font-size:var(--fs-1);font-weight:700;letter-spacing:.08em", {
           background: tone ? `var(--${tone}-tint)` : "var(--surface-3)",
           color: tone ? `var(--${tone})` : "var(--t2)",
           fontFamily: TOKENS.mono,
         })}>
           SUBMISSION {letter}{side.order ? ` · ${side.order.toUpperCase()}` : ""}
         </span>
-        <span style={sx("font-size:9.5px;color:var(--t4)", { fontFamily: TOKENS.mono })}>
+        <span style={sx("font-size:var(--fs-1);color:var(--t4)", { fontFamily: TOKENS.mono })}>
           {stamp(side.submittedAt).toUpperCase()}
         </span>
       </div>
-      <div style={s("font-size:14px;font-weight:800;margin-top:8px")}>{side.fullName}</div>
-      <div style={sx("font-size:11px;color:var(--t4);margin-top:2px", { fontFamily: TOKENS.mono })}>{side.maskedId}</div>
-      <div style={s("font-size:11.5px;color:var(--t2);margin-top:3px")}>
+      <div style={s("font-size:var(--fs-7);font-weight:800;margin-top:8px")}>{side.fullName}</div>
+      <div style={sx("font-size:var(--fs-1);color:var(--t4);margin-top:2px", { fontFamily: TOKENS.mono })}>{side.maskedId}</div>
+      <div style={s("font-size:var(--fs-2);color:var(--t2);margin-top:3px")}>
         submitted by <strong style={s("font-weight:700")}>{side.vendorName}</strong>
       </div>
 
       <div style={s("margin-top:11px;display:flex;flex-direction:column")}>
         {side.facts.map((f) => (
           <div key={f.k} style={s("display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid var(--surface-3)")}>
-            <span style={s("font-size:11px;color:var(--t4)")}>{f.k}</span>
-            <span style={sx("font-size:11px;font-weight:700;text-align:right", {
+            <span style={s("font-size:var(--fs-1);color:var(--t4)")}>{f.k}</span>
+            <span style={sx("font-size:var(--fs-1);font-weight:700;text-align:right", {
               color: f.severity === "high" ? "var(--danger)" : f.severity === "medium" ? "var(--warn)" : "var(--t1)",
               fontFamily: TOKENS.mono,
             })}>{f.v}</span>

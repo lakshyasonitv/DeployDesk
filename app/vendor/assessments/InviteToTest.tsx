@@ -90,7 +90,7 @@ export function InviteAllButton({ maskedIds }: { maskedIds: string[] }) {
   // Nothing untested: say so rather than offering an action that would do nothing.
   if (!n) {
     return (
-      <span style={s("padding:0 14px;height:34px;display:inline-flex;align-items:center;border:1px dashed var(--border-2);border-radius:9px;font-size:12.5px;font-weight:600;color:var(--t4);white-space:nowrap")}>
+      <span style={s("padding:0 14px;height:34px;display:inline-flex;align-items:center;border:1px dashed var(--border-2);border-radius:9px;font-size:var(--fs-4);font-weight:600;color:var(--t4);white-space:nowrap")}>
         Everyone has been tested
       </span>
     );
@@ -101,7 +101,7 @@ export function InviteAllButton({ maskedIds }: { maskedIds: string[] }) {
       type="button"
       onClick={() => run(maskedIds, (q) => `Requested a test for ${q} ${q === 1 ? "person" : "people"}.`)}
       disabled={busy}
-      style={sx("padding:0 14px;height:34px;display:inline-flex;align-items:center;border:0;border-radius:9px;font-size:12.5px;font-weight:700;color:#fff;background:var(--teal);font-family:inherit;white-space:nowrap", {
+      style={sx("padding:0 14px;height:34px;display:inline-flex;align-items:center;border:0;border-radius:9px;font-size:var(--fs-4);font-weight:700;color:#fff;background:var(--teal);font-family:inherit;white-space:nowrap", {
         cursor: busy ? "default" : "pointer", opacity: busy ? 0.6 : 1,
       })}
     >
@@ -117,7 +117,7 @@ export function RequestTestButton({ maskedId, fullName }: { maskedId: string; fu
       type="button"
       onClick={() => run([maskedId], () => `Requested a test for ${fullName}.`)}
       disabled={busy}
-      style={sx("margin-top:11px;width:100%;padding:7px;border:1px solid var(--teal);border-radius:8px;font-size:11.5px;font-weight:700;background:transparent;color:var(--teal);font-family:inherit", {
+      style={sx("margin-top:11px;width:100%;padding:7px;border:1px solid var(--teal);border-radius:8px;font-size:var(--fs-2);font-weight:700;background:transparent;color:var(--teal);font-family:inherit", {
         cursor: busy ? "default" : "pointer", opacity: busy ? 0.6 : 1,
       })}
     >

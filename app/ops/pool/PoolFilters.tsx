@@ -39,7 +39,7 @@ const FRESH_OPTIONS: Array<[string, string]> = [
 ];
 
 function chipStyle(on: boolean) {
-  return sx("padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap", {
+  return sx("padding:4px 10px;border-radius:999px;font-size:var(--fs-1);font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap", {
     background: on ? "var(--warn-tint)" : "var(--surface)",
     color: on ? "var(--warn)" : "var(--t4)",
     border: `1px solid ${on ? "var(--warn-tint)" : "var(--border)"}`,
@@ -172,7 +172,7 @@ export function PoolFilters({
       <button
         type="button"
         onClick={onPick}
-        style={sx("display:block;width:100%;text-align:left;padding:6px 8px;border:0;border-radius:7px;font-size:11.5px;cursor:pointer;font-family:inherit", {
+        style={sx("display:block;width:100%;text-align:left;padding:6px 8px;border:0;border-radius:7px;font-size:var(--fs-2);cursor:pointer;font-family:inherit", {
           background: on ? "var(--brand-tint)" : "transparent",
           color: on ? "var(--brand-h)" : "var(--t2)",
           fontWeight: on ? 700 : 500,
@@ -215,7 +215,7 @@ export function PoolFilters({
         to set it was to edit the URL.
       */}
       <span style={s("position:relative;display:inline-flex;align-items:center")}>
-        <span style={s("position:absolute;left:9px;font-size:11px;color:var(--t4);pointer-events:none")}>⌕</span>
+        <span style={s("position:absolute;left:9px;font-size:var(--fs-1);color:var(--t4);pointer-events:none")}>⌕</span>
         <input
           value={typed}
           onChange={(e) => setTyped(e.target.value)}
@@ -227,7 +227,7 @@ export function PoolFilters({
           onBlur={commitSearch}
           placeholder="Name, TV id, skill, employer"
           aria-label="Search the talent pool"
-          style={sx("padding:4px 10px 4px 23px;border-radius:999px;font-size:11px;font-family:inherit;outline:none;width:192px", {
+          style={sx("padding:4px 10px 4px 23px;border-radius:999px;font-size:var(--fs-1);font-family:inherit;outline:none;width:192px", {
             background: current.search ? "var(--warn-tint)" : "var(--surface)",
             border: `1px solid ${current.search ? "var(--warn-tint)" : "var(--border)"}`,
             color: current.search ? "var(--warn)" : "var(--t1)",
@@ -239,7 +239,7 @@ export function PoolFilters({
             type="button"
             aria-label="Clear the search"
             onClick={() => { setTyped(""); if (current.search) apply({ ...current, search: undefined }); }}
-            style={s("position:absolute;right:6px;border:0;background:transparent;font-size:13px;line-height:1;color:var(--t4);cursor:pointer;font-family:inherit")}
+            style={s("position:absolute;right:6px;border:0;background:transparent;font-size:var(--fs-5);line-height:1;color:var(--t4);cursor:pointer;font-family:inherit")}
           >
             ×
           </button>
@@ -301,7 +301,7 @@ export function PoolFilters({
 
       {activeCount ? (
         <button type="button" onClick={() => apply({})}
-          style={s("padding:4px 10px;border:1px solid var(--border-2);border-radius:999px;font-size:11px;font-weight:700;background:transparent;cursor:pointer;color:var(--t3);font-family:inherit;white-space:nowrap")}>
+          style={s("padding:4px 10px;border:1px solid var(--border-2);border-radius:999px;font-size:var(--fs-1);font-weight:700;background:transparent;cursor:pointer;color:var(--t3);font-family:inherit;white-space:nowrap")}>
           Clear {activeCount} filter{activeCount === 1 ? "" : "s"}
         </button>
       ) : null}
@@ -313,12 +313,12 @@ export function PoolFilters({
             <span key={v.name} style={s("display:inline-flex;align-items:center;gap:0")}>
               <button type="button" onClick={() => apply(v.filters)}
                 title="Apply this view"
-                style={s("padding:4px 9px;border:1px solid var(--brand-tint-2);border-right:0;border-radius:999px 0 0 999px;font-size:11px;font-weight:700;background:var(--brand-tint);color:var(--brand-h);cursor:pointer;font-family:inherit;white-space:nowrap")}>
+                style={s("padding:4px 9px;border:1px solid var(--brand-tint-2);border-right:0;border-radius:999px 0 0 999px;font-size:var(--fs-1);font-weight:700;background:var(--brand-tint);color:var(--brand-h);cursor:pointer;font-family:inherit;white-space:nowrap")}>
                 {v.name}
               </button>
               <button type="button" onClick={() => forgetView(v.name)}
                 aria-label={`Forget ${v.name}`} title="Forget this view"
-                style={s("padding:4px 8px;border:1px solid var(--brand-tint-2);border-radius:0 999px 999px 0;font-size:11px;font-weight:700;background:var(--brand-tint);color:var(--brand);cursor:pointer;font-family:inherit;line-height:1")}>
+                style={s("padding:4px 8px;border:1px solid var(--brand-tint-2);border-radius:0 999px 999px 0;font-size:var(--fs-1);font-weight:700;background:var(--brand-tint);color:var(--brand);cursor:pointer;font-family:inherit;line-height:1")}>
                 ×
               </button>
             </span>
@@ -334,20 +334,20 @@ export function PoolFilters({
             onChange={(e) => setViewName(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") saveView(); if (e.key === "Escape") setNaming(false); }}
             placeholder="Name this view"
-            style={s("padding:4px 9px;border:1px solid var(--border-2);border-radius:999px;font-size:11px;font-family:inherit;outline:none;width:150px")}
+            style={s("padding:4px 9px;border:1px solid var(--border-2);border-radius:999px;font-size:var(--fs-1);font-family:inherit;outline:none;width:150px")}
           />
           <button type="button" onClick={saveView} disabled={busy}
-            style={sx("padding:4px 10px;border:0;border-radius:999px;font-size:11px;font-weight:700;background:var(--brand);color:#fff;font-family:inherit", { cursor: busy ? "default" : "pointer", opacity: busy ? 0.6 : 1 })}>
+            style={sx("padding:4px 10px;border:0;border-radius:999px;font-size:var(--fs-1);font-weight:700;background:var(--brand);color:#fff;font-family:inherit", { cursor: busy ? "default" : "pointer", opacity: busy ? 0.6 : 1 })}>
             {busy ? "Saving…" : "Save"}
           </button>
           <button type="button" onClick={() => setNaming(false)}
-            style={s("border:0;background:transparent;font-size:14px;color:var(--t4);cursor:pointer;line-height:1;font-family:inherit")}>
+            style={s("border:0;background:transparent;font-size:var(--fs-7);color:var(--t4);cursor:pointer;line-height:1;font-family:inherit")}>
             ×
           </button>
         </span>
       ) : activeCount ? (
         <button type="button" onClick={() => setNaming(true)}
-          style={s("padding:4px 10px;border:1px dashed var(--border-2);border-radius:999px;font-size:11px;font-weight:600;background:transparent;cursor:pointer;color:var(--t3);font-family:inherit;white-space:nowrap")}>
+          style={s("padding:4px 10px;border:1px dashed var(--border-2);border-radius:999px;font-size:var(--fs-1);font-weight:600;background:transparent;cursor:pointer;color:var(--t3);font-family:inherit;white-space:nowrap")}>
           + Save this view
         </button>
       ) : null}
