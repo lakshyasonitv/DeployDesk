@@ -47,7 +47,7 @@
       "running late".
 - [x] **UI phase 1: accessibility floor** ✅ 2026-10-31. Contrast, type scale, focus ring and
       hit areas. Journal Session 15.
-- [x] **UI phases 2 to 5** ✅ 2026-10-31, not yet committed. Numbers right-aligned, contract
+- [x] **UI phases 2 to 5** ✅ 2026-10-31, committed as `e339f1e`. Numbers right-aligned, contract
       headers, titles, radii, field heights and grids, one empty state, dark-mode contrast,
       shared Button and Drawer, three audits. Journal Session 16.
 - [ ] **UI, the owner's calls:** mono section labels against the contract's sans label, the
